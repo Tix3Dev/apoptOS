@@ -3,7 +3,7 @@
 <h3>apoptOS</h3>
 <p>A modern x86_64 UNIX-like microkernel written in C and Assembly</p>
 
-<img src=""> </a>
+<img src="https://github.com/Tix3Dev/apoptOS/tree/main/misc/screenshots/logs.svg"> </a>
 </div>
 
 ## Features
@@ -37,13 +37,13 @@
 
 - Install the dependencies
 - Get the repository
-  - git clone https://github.com/Tix3Dev/apoptOS --recursive
-  - cd apoptOS
+  - `git clone https://github.com/Tix3Dev/apoptOS --recursive`
+  - `cd apoptOS`
 - Build it
-  - make all
+  - `make all` (release build, for debug build use `make all_dbg`)
 - Run it
-  - make run
+  - `make run` (release QEMU version, for debug QEMU version use `make run_dbg`)
 
 ## Contributing
 
-For those interested in contributing, please refer to the [contributing guidelines](https://github.com/Tix3Dev/apoptOS/blob/main/CONTRIBUTING.md).
+For those interested in contributing, please refer to the [contributing guidelines](https://github.com/Tix3Dev/apoptOS/blob/main/misc/CONTRIBUTING.md).
