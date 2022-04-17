@@ -3,7 +3,7 @@
 <h3>apoptOS</h3>
 <p>A modern x86_64 UNIX-like microkernel written in C and Assembly</p>
 
-<img src="https://github.com/Tix3Dev/apoptOS/tree/main/misc/screenshots/logs.svg"> </a>
+![](./misc/screenshots/logs.svg)
 </div>
 
 ## Features
