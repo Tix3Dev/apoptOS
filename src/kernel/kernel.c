@@ -15,13 +15,24 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+/*
+
+Brief file description:
+C code entry point of whole kernel, even OS itself.
+
+*/
+
+
 #include <stddef.h>
 #include <stdint.h>
 
 #include <boot/stivale2.h>
+#include <devices/com.h>
  
 void kmain(struct stivale2_struct *stivale2_struct)
 {
+    com_send_string(COM1, "Hello World!\n");
+
     for (;;)
 	asm volatile("hlt");
 }
