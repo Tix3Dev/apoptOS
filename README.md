@@ -31,7 +31,12 @@
 
 **NOTE: Depending on your Linux Distribution the package names might be different (supposing you are using Linux)**
 
-- 
+- x86_64-elf-binutils
+- x86_64-elf-gcc
+- nasm-git
+- make
+- xorriso
+- qemu
 
 ## Installation
 
