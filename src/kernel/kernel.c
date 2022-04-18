@@ -27,11 +27,18 @@ C code entry point of whole kernel, even OS itself.
 #include <stdint.h>
 
 #include <boot/stivale2.h>
-#include <devices/com.h>
+#include <serial/debug.h>
+#include <serial/log.h>
  
 void kmain(struct stivale2_struct *stivale2_struct)
 {
-    com_send_string(COM1, "Hello World!\n");
+    debug("ordinary hello %s\n", "world");
+    debug_set_color(TERM_GREEN);
+    debug("green hello\n");
+
+    log(INFO, "bruh 1\n");
+    log(WARNING, "bruh %d\n", 2);
+    log(PANIC, "Pagefault - Please go back!\n");
 
     for (;;)
 	asm volatile("hlt");
