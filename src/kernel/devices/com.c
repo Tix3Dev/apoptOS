@@ -22,8 +22,6 @@ Provides basic buffer based communication via COM.
 
 */
 
-#include <stdbool.h>
-
 #include <assembly/utils.h>
 #include <devices/com.h>
 

@@ -15,9 +15,8 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stddef.h>
-
 #include <boot/stivale2.h>
+#include <boot/stivale2_boot.h>
 
 static uint8_t stack[4096];
 

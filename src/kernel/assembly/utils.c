@@ -22,8 +22,6 @@ Provides C implementations for assembly instructions
 
 */
 
-#include <stdint.h>
-
 #include <assembly/utils.h>
 
 /* core functions */
