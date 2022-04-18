@@ -32,13 +32,7 @@ C code entry point of whole kernel, even OS itself.
  
 void kmain(struct stivale2_struct *stivale2_struct)
 {
-    debug("ordinary hello %s\n", "world");
-    debug_set_color(TERM_GREEN);
-    debug("green hello\n");
-
-    log(INFO, "bruh 1\n");
-    log(WARNING, "bruh %d\n", 2);
-    log(PANIC, "Pagefault - Please go back!\n");
+    log(INFO, "Kernel started\n");
 
     for (;;)
 	asm volatile("hlt");
