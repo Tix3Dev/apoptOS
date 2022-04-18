@@ -30,7 +30,7 @@ const char debug_buffer[5120];
 
 /* core functions */
 
-// variadic function for format specifiers to print to the serial console
+// variadic function for format specifiers to print debugging information to the serial console
 void debug(char *fmt, ...)
 {
     va_list ptr;
@@ -42,6 +42,7 @@ void debug(char *fmt, ...)
     va_end(ptr);
 }
 
+// set bash color code
 void debug_set_color(char *color_code)
 {
     if (color_code[0] != '\e' || color_code[1] != '[')

@@ -18,6 +18,8 @@
 /*
 
 Brief file description:
+Print logs to serial_console via COM.
+Logs can be a kernel panic and will thus result in halting the kernel
 
 */
 
@@ -29,6 +31,7 @@ const char log_buffer[5120];
 
 /* core functions */
 
+// variadic function for format specifiers to print logs to the serial console
 void log_impl(char *file, int line_nr, log_status_t status, char *fmt, ...)
 {
     va_list ptr;

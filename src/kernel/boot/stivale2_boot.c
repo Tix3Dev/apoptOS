@@ -15,6 +15,13 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+/*
+
+Brief:
+Utilities for interacting with the bootloader via the stivale2 boot protocol.
+
+*/
+
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
 
@@ -29,6 +36,8 @@ static struct stivale2_header stivale_hdr =
     .tags	    = 0
 };
 
+
+// search and get given structure tags from the bootloader
 void *stivale2_get_tag(struct stivale2_struct *stivale2_struct, uint64_t id)
 {
     struct stivale2_tag *current_tag = (void *)stivale2_struct->tags;
