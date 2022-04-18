@@ -17,8 +17,8 @@
 
 /*
 
-Brief file description:
-Print debugging information to serial_console via COM.
+    Brief file description:
+    Print debugging information to serial_console via COM.
 
 */
 
@@ -26,7 +26,7 @@ Print debugging information to serial_console via COM.
 #include <libs/serial/debug.h>
 #include <libs/kprintf/kprintf.h>
 
-const char debug_buffer[5120]; 
+const char debug_buffer[5120];
 
 /* core functions */
 

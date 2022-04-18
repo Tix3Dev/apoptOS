@@ -17,8 +17,8 @@
 
 /*
 
-Brief file description:
-C code entry point of whole kernel, even OS itself.
+    Brief file description:
+    C code entry point of whole kernel, even OS itself.
 
 */
 
@@ -37,5 +37,5 @@ void kmain(struct stivale2_struct *stivale2_struct)
     unit_test_run_all();
 
     for (;;)
-	asm volatile("hlt");
+        asm volatile("hlt");
 }

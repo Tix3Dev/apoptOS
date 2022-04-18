@@ -17,8 +17,8 @@
 
 /*
 
-Brief:
-Utilities for interacting with the bootloader via the stivale2 boot protocol.
+    Brief:
+    Utilities for interacting with the bootloader via the stivale2 boot protocol.
 
 */
 

@@ -17,9 +17,9 @@
 
 /*
 
-Brief file description:
-Provides all needed (helper) implementations for basic unit testing -> Framework
-Is used in tests/unit_test_list.c
+    Brief file description:
+    Provides all needed (helper) implementations for basic unit testing -> Framework
+    Is used in tests/unit_test_list.c
 
 */
 
@@ -38,18 +38,19 @@ int fail_count = 0;
 void unit_assert_impl(char *file, int line_nr, bool condition, char *condition_str)
 {
     if (condition)
-	return;
+        return;
 
     if (fail_count >= MAX_FAIL_COUNT)
     {
-	log(WARNING, "Unit test - Maximal assert count exceeded!\n");
-	return;
+        log(WARNING, "Unit test - Maximal assert count exceeded!\n");
+        return;
     }
 
-    fails[fail_count++] = (failed_assert_t){
-	.file_name = file,
-	.line_number = line_nr,
-	.condition_string = condition_str
+    fails[fail_count++] = (failed_assert_t)
+    {
+        .file_name = file,
+        .line_number = line_nr,
+        .condition_string = condition_str
     };
 }
 
@@ -62,27 +63,27 @@ void unit_test_run_all(void)
 {
     for (int i = 0; i < test_count; i++)
     {
-	unit_test_t current_test = tests[i];
-	(*current_test.func_ptr)();
+        unit_test_t current_test = tests[i];
+        (*current_test.func_ptr)();
 
-	if (fail_count == 0)
-	    log(SUCCESS, "Unit test for %s passed\n", current_test.func_name);
+        if (fail_count == 0)
+            log(SUCCESS, "Unit test for %s passed\n", current_test.func_name);
 
-	log(FAIL, "Unit test for %s failed\n", current_test.func_name);
-	debug("Failed asserts:\n");
+        log(FAIL, "Unit test for %s failed\n", current_test.func_name);
+        debug("Failed asserts:\n");
 
-	for (int j = 0; j < fail_count; j++)
-	{
-	    failed_assert_t current_fail = fails[j];
+        for (int j = 0; j < fail_count; j++)
+        {
+            failed_assert_t current_fail = fails[j];
 
-	    debug("	In %s:%d with condition %s\n",
-		    current_fail.file_name,
-		    current_fail.line_number,
-		    current_fail.condition_string
-	    );
-	}
+            debug("	In %s:%d with condition %s\n",
+                  current_fail.file_name,
+                  current_fail.line_number,
+                  current_fail.condition_string
+                 );
+        }
 
-	// reset fails array by allowing overwriting from the start on
-	fail_count = 0;
+        // reset fails array by allowing overwriting from the start on
+        fail_count = 0;
     }
 }

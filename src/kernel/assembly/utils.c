@@ -17,8 +17,8 @@
 
 /*
 
-Brief file description:
-Provides C implementations for assembly instructions.
+    Brief file description:
+    Provides C implementations for assembly instructions.
 
 */
 

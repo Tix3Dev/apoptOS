@@ -17,9 +17,9 @@
 
 /*
 
-Brief file description:
-Print logs to serial_console via COM.
-Logs can be a kernel panic and will thus result in halting the kernel.
+    Brief file description:
+    Print logs to serial_console via COM.
+    Logs can be a kernel panic and will thus result in halting the kernel.
 
 */
 
@@ -53,8 +53,8 @@ void log_impl(char *file, int line_nr, log_status_t status, char *fmt, ...)
         debug_set_color(TERM_RED);
         debug("[PANIC]   | %s:%d ─→ %s", file, line_nr, (char *)log_buffer);
 
-	for (;;)
-	    asm volatile("cli; hlt");
+        for (;;)
+            asm volatile("cli; hlt");
     }
     else if (status == SUCCESS)
     {
