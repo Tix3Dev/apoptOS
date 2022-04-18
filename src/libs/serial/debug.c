@@ -22,9 +22,9 @@ Print debugging information to serial_console via COM.
 
 */
 
-#include <devices/com.h>
-#include <serial/debug.h>
-#include <kprintf/kprintf.h>
+#include <kernel/devices/com.h>
+#include <libs/serial/debug.h>
+#include <libs/kprintf/kprintf.h>
 
 const char debug_buffer[5120]; 
 

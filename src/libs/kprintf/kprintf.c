@@ -35,7 +35,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <kprintf/kprintf.h>
+#include <libs/kprintf/kprintf.h>
 
 // 'ntoa' conversion buffer size, this must be big enough to hold one converted
 // numeric number including padded zeros (dynamically created on stack)

@@ -22,8 +22,8 @@ Provides basic buffer based communication via COM.
 
 */
 
-#include <assembly/utils.h>
-#include <devices/com.h>
+#include <kernel/assembly/utils.h>
+#include <kernel/devices/com.h>
 
 /* utility function prototypes */
 

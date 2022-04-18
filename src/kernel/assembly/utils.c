@@ -18,11 +18,11 @@
 /*
 
 Brief file description:
-Provides C implementations for assembly instructions
+Provides C implementations for assembly instructions.
 
 */
 
-#include <assembly/utils.h>
+#include <kernel/assembly/utils.h>
 
 /* core functions */
 

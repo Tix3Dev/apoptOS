@@ -19,13 +19,13 @@
 
 Brief file description:
 Print logs to serial_console via COM.
-Logs can be a kernel panic and will thus result in halting the kernel
+Logs can be a kernel panic and will thus result in halting the kernel.
 
 */
 
-#include <kprintf/kprintf.h>
-#include <serial/debug.h>
-#include <serial/log.h>
+#include <libs/kprintf/kprintf.h>
+#include <libs/serial/debug.h>
+#include <libs/serial/log.h>
 
 const char log_buffer[5120];
 
@@ -55,6 +55,16 @@ void log_impl(char *file, int line_nr, log_status_t status, char *fmt, ...)
 
 	for (;;)
 	    asm volatile("cli; hlt");
+    }
+    else if (status == SUCCESS)
+    {
+        debug_set_color(TERM_GREEN);
+        debug("[ 🗸 ]	| %s:%d ─→ %s", file, line_nr, (char *)log_buffer);
+    }
+    else if (status == FAIL)
+    {
+        debug_set_color(TERM_PURPLE);
+        debug("[ ✗ ]	| %s:%d ─→ %s", file, line_nr, (char *)log_buffer);
     }
 
     debug_set_color(TERM_COLOR_RESET);
