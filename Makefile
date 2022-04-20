@@ -54,7 +54,7 @@ C_OBJ	= $(C_FILES:.c=.o)
 AS_OBJ	= $(AS_FILES:.s=.o)
 OBJ	= $(C_OBJ) $(AS_OBJ)
 
-.PHONY: all clean format run
+.PHONY: all all_dbg clean format run run_dbg
 
 all: CC_FLAGS += -O3
 all: $(TARGET)
