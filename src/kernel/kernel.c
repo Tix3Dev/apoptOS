@@ -27,10 +27,13 @@
 
 #include <boot/stivale2.h>
 #include <libk/serial/log.h>
+#include <tables/gdt.h>
 
 void kmain(struct stivale2_struct *stivale2_struct)
 {
     log(INFO, "Kernel started\n");
+
+    gdt_init();
 
     for (;;)
         asm volatile("hlt");
