@@ -17,7 +17,8 @@
 
 /*
 
-Brief file description:
+    Brief file description:
+    Initialize global descriptor table and it's task state segment entry.
 
 */
 
@@ -33,6 +34,7 @@ extern void _load_gdt_and_tss_asm(uint64_t gdt_descriptor_ptr);
 
 /* core functions */
 
+// set up segments of GDT and load the necessary ones
 void gdt_init(void)
 {
     // segment 0x00 - null descriptor
@@ -93,11 +95,13 @@ void gdt_init(void)
     log(INFO, "GDT initialized\n");
 }
 
+// return pointer to GDT for external use
 gdt_t *gdt_get(void)
 {
     return &gdt;
 }
 
+// return pointer to GDT descriptor for external use
 gdt_descriptor_t *gdt_descriptor_get(void)
 {
     return &gdt_descriptor;
