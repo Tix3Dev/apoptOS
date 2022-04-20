@@ -23,9 +23,9 @@
 
 */
 
-#include <libs/kprintf/kprintf.h>
-#include <libs/serial/debug.h>
-#include <libs/serial/log.h>
+#include <libk/kprintf/kprintf.h>
+#include <libk/serial/debug.h>
+#include <libk/serial/log.h>
 
 const char log_buffer[5120];
 

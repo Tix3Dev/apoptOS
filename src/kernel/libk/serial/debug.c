@@ -22,9 +22,9 @@
 
 */
 
-#include <kernel/devices/com.h>
-#include <libs/serial/debug.h>
-#include <libs/kprintf/kprintf.h>
+#include <devices/com.h>
+#include <libk/serial/debug.h>
+#include <libk/kprintf/kprintf.h>
 
 const char debug_buffer[5120];
 

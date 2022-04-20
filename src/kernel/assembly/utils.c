@@ -22,7 +22,7 @@
 
 */
 
-#include <kernel/assembly/utils.h>
+#include <assembly/utils.h>
 
 /* core functions */
 

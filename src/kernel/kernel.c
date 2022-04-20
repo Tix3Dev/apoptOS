@@ -25,8 +25,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <kernel/boot/stivale2.h>
-#include <libs/serial/log.h>
+#include <boot/stivale2.h>
+#include <libk/serial/log.h>
 
 void kmain(struct stivale2_struct *stivale2_struct)
 {

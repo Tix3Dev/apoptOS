@@ -35,7 +35,7 @@ INTERNAL_LD_FLAGS :=		\
 	-ztext					
 
 INTERNAL_CC_FLAGS :=		\
- 	-Isrc			\
+ 	-Isrc/kernel		\
 	-std=gnu11		\
 	-ffreestanding		\
 	-fno-stack-protector	\

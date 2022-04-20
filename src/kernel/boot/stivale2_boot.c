@@ -22,8 +22,8 @@
 
 */
 
-#include <kernel/boot/stivale2.h>
-#include <kernel/boot/stivale2_boot.h>
+#include <boot/stivale2.h>
+#include <boot/stivale2_boot.h>
 
 static uint8_t stack[4096];
 
