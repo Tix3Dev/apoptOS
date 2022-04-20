@@ -8,7 +8,7 @@ Pull requests may only be accepted, if the follwing guidelines were respected.
 
 ## Coding style/formatting
 
-Try to adapt as much as possible to the coding style used in this project. Small anomalies might be updated by maintainers.
+Try to adapt as much as possible to the coding style and the [file layout](https://github.com/Tix3Dev/apoptOS/blob/main/misc/default_file_layout.md) used in this project. Small anomalies might be updated by maintainers.
 For code formatting we make use of a syntax formatting tool [Artistic Style](http://astyle.sourceforge.net/), which you are expected to run before commiting via the command `make format`.
 
 ## Comments
