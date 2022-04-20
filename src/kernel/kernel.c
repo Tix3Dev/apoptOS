@@ -26,15 +26,11 @@
 #include <stdint.h>
 
 #include <kernel/boot/stivale2.h>
-#include <libs/serial/debug.h>
 #include <libs/serial/log.h>
-#include <libs/testing/unit_test.h>
 
 void kmain(struct stivale2_struct *stivale2_struct)
 {
     log(INFO, "Kernel started\n");
-
-    unit_test_run_all();
 
     for (;;)
         asm volatile("hlt");
