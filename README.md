@@ -1,7 +1,7 @@
 <div align="center">
 
 <h3>apoptOS</h3>
-<p>A modern x86_64 UNIX-like microkernel written in C and Assembly</p>
+<p>A modern x86_64 UNIX-like microkernel-based operating system written in C and Assembly</p>
 
 ![](./misc/screenshots/logs.svg)
 </div>
