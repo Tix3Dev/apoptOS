@@ -25,6 +25,9 @@
 #include <libk/serial/log.h>
 #include <tables/gdt.h>
 
+extern uint8_t stack[16384];
+
+static tss_t tss;
 static gdt_t gdt;
 static gdt_descriptor_t gdt_descriptor;
 
@@ -87,22 +90,32 @@ void gdt_init(void)
     gdt.gdt_tss.base_upper  = 0;
     gdt.gdt_tss.reserved    = 0;
 
+    // TODO: use memset later on
+    // tss structure
+    tss.reserved0   = 0;
+    tss.rsp[0]	    = 0;
+    tss.rsp[1] 	    = 0;
+    tss.rsp[2] 	    = 0;
+    tss.reserved1   = 0;
+    tss.ist[0]	    = 0;
+    tss.ist[1]	    = 0;
+    tss.ist[2]	    = 0;
+    tss.ist[3]	    = 0;
+    tss.ist[4]	    = 0;
+    tss.ist[5]	    = 0;
+    tss.ist[6]	    = 0;
+    tss.reserved2   = 0;
+    tss.reserved3   = 0;
+    tss.reserved4   = 0;
+    tss.iopb_offset = 0;
+
+    tss.rsp[0]	    = (uintptr_t)stack + sizeof(stack);
+    tss.iopb_offset = sizeof(tss);
+
     gdt_descriptor.limit    = sizeof(gdt) - 1;
     gdt_descriptor.base	    = (uint64_t)&gdt;
 
     _load_gdt_and_tss_asm((uintptr_t)&gdt_descriptor);
     
     log(INFO, "GDT initialized\n");
-}
-
-// return pointer to GDT for external use
-gdt_t *gdt_get(void)
-{
-    return &gdt;
-}
-
-// return pointer to GDT descriptor for external use
-gdt_descriptor_t *gdt_descriptor_get(void)
-{
-    return &gdt_descriptor;
 }

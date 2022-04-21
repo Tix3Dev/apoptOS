@@ -30,15 +30,16 @@
 
 typedef struct __attribute__((__packed__))
 {
-    uint16_t	length;	    // bits 0-15 
-    uint16_t	base_low;   // bits 0-15
-    uint8_t	base_mid;   // bits 16-23
-    uint8_t	flags1;	    // flags
-    uint8_t	flags2;	    // flags 
-    uint8_t	base_high;  // bits 24-31
-    uint32_t	base_upper; // bits 32-63
-    uint32_t	reserved;   // reserved
-} tss_entry_t;
+    uint32_t	reserved0;
+    uint64_t	rsp[3];
+    uint64_t	reserved1;
+    uint64_t	ist[7];
+    uint32_t	reserved2;
+    uint32_t	reserved3;
+    uint16_t	reserved4;
+    uint16_t	iopb_offset;
+} tss_t;
+
 
 typedef struct __attribute__((__packed__))
 {
@@ -52,9 +53,22 @@ typedef struct __attribute__((__packed__))
 
 typedef struct __attribute__((__packed__))
 {
+    uint16_t	length;	    // bits 0-15 
+    uint16_t	base_low;   // bits 0-15
+    uint8_t	base_mid;   // bits 16-23
+    uint8_t	flags1;	    // flags
+    uint8_t	flags2;	    // flags 
+    uint8_t	base_high;  // bits 24-31
+    uint32_t	base_upper; // bits 32-63
+    uint32_t	reserved;   // reserved
+} tss_entry_t;
+
+typedef struct __attribute__((__packed__))
+{
     gdt_entry_t entries[GDT_ENTRY_COUNT];
     tss_entry_t gdt_tss;
 } gdt_t;
+
 
 typedef struct __attribute__((__packed__))
 {
@@ -63,7 +77,5 @@ typedef struct __attribute__((__packed__))
 } gdt_descriptor_t;
 
 void gdt_init();
-gdt_t *gdt_get(void);
-gdt_descriptor_t *gdt_descriptor_get(void);
 
 #endif

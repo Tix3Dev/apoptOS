@@ -25,7 +25,7 @@
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
 
-static uint8_t stack[4096];
+static uint8_t stack[16384];
 
 __attribute__((section(".stivale2hdr"), used))
 static struct stivale2_header stivale_hdr =
