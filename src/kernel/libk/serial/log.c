@@ -41,17 +41,17 @@ void log_impl(char *file, int line_nr, log_status_t status, char *fmt, ...)
     if (status == INFO)
     {
         debug_set_color(TERM_CYAN);
-        debug("[INFO]    | %s:%d ─→ %s", file, line_nr, (char *)log_buffer);
+        debug("[INFO]    | %s:%d -> %s", file, line_nr, (char *)log_buffer);
     }
     else if (status == WARNING)
     {
         debug_set_color(TERM_YELLOW);
-        debug("[WARNING] | %s:%d ─→ %s", file, line_nr, (char *)log_buffer);
+        debug("[WARNING] | %s:%d -> %s", file, line_nr, (char *)log_buffer);
     }
     else if (status == PANIC)
     {
         debug_set_color(TERM_RED);
-        debug("[PANIC]   | %s:%d ─→ %s", file, line_nr, (char *)log_buffer);
+        debug("[PANIC]   | %s:%d -> %s", file, line_nr, (char *)log_buffer);
 
         for (;;)
             asm volatile("cli; hlt");
@@ -59,12 +59,12 @@ void log_impl(char *file, int line_nr, log_status_t status, char *fmt, ...)
     else if (status == SUCCESS)
     {
         debug_set_color(TERM_GREEN);
-        debug("[ 🗸 ]	| %s:%d ─→ %s", file, line_nr, (char *)log_buffer);
+        debug("[ 🗸 ]	| %s:%d -> %s", file, line_nr, (char *)log_buffer);
     }
     else if (status == FAIL)
     {
         debug_set_color(TERM_PURPLE);
-        debug("[ ✗ ]	| %s:%d ─→ %s", file, line_nr, (char *)log_buffer);
+        debug("[ ✗ ]	| %s:%d -> %s", file, line_nr, (char *)log_buffer);
     }
 
     debug_set_color(TERM_COLOR_RESET);
