@@ -18,7 +18,7 @@
 extern isr_handler
 
 global _isr_handler_asm
-global _isr_names_asm
+global _isr_vector_asm
 
 _isr_handler_asm:
     cld			; clear DF on function entry
@@ -51,6 +51,7 @@ _ISR%1:
     jmp _isr_handler_asm
 %endmacro
 
+; exceptions
 ISR_NO_ERR  0
 ISR_NO_ERR  1
 ISR_NO_ERR  2
@@ -84,6 +85,7 @@ ISR_NO_ERR  29
 ISR_NO_ERR  30
 ISR_NO_ERR  31
 
+; standard ISA IRQ's
 ISR_NO_ERR  32
 ISR_NO_ERR  33
 ISR_NO_ERR  34
@@ -101,57 +103,17 @@ ISR_NO_ERR  45
 ISR_NO_ERR  46
 ISR_NO_ERR  47
 
-ISR_NO_ERR  128
+; remaining IRQ's
+%assign i 48
+%rep 256
+    ISR_NO_ERR i
+%assign i i+1
+%endrep
 
-_isr_names_asm:
-    ISR_NAME 0
-    ISR_NAME 1
-    ISR_NAME 2
-    ISR_NAME 3
-    ISR_NAME 4
-    ISR_NAME 5
-    ISR_NAME 6
-    ISR_NAME 7
-    ISR_NAME 8
-    ISR_NAME 9
-    ISR_NAME 10
-    ISR_NAME 11
-    ISR_NAME 12
-    ISR_NAME 13
-    ISR_NAME 14
-    ISR_NAME 15
-    ISR_NAME 16
-    ISR_NAME 17
-    ISR_NAME 18
-    ISR_NAME 19
-    ISR_NAME 20
-    ISR_NAME 21
-    ISR_NAME 22
-    ISR_NAME 23
-    ISR_NAME 24
-    ISR_NAME 25
-    ISR_NAME 26
-    ISR_NAME 27
-    ISR_NAME 28
-    ISR_NAME 29
-    ISR_NAME 30
-    ISR_NAME 31
-    
-    ISR_NAME 32
-    ISR_NAME 33
-    ISR_NAME 34
-    ISR_NAME 35
-    ISR_NAME 36
-    ISR_NAME 37
-    ISR_NAME 38
-    ISR_NAME 39
-    ISR_NAME 40
-    ISR_NAME 41
-    ISR_NAME 42
-    ISR_NAME 43
-    ISR_NAME 44
-    ISR_NAME 45
-    ISR_NAME 46
-    ISR_NAME 47
 
-    ISR_NAME 128
+_isr_vector_asm:
+%assign i 0
+%rep 256
+    ISR_NAME i
+%assign i i+1
+%endrep

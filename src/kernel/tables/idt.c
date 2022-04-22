@@ -32,7 +32,7 @@
 #include <assembly/utils.h>
 
 extern void _load_idt_asm(uint64_t idt_ptr);
-extern uintptr_t _isr_names_asm[];
+extern uintptr_t _isr_vector_asm[];
 
 static idt_descriptor_t idt[256];
 static idt_pointer_t idt_pointer;
@@ -46,23 +46,26 @@ void create_descriptor(uint8_t index, uint8_t type_attributes);
 // create and load IDT
 void idt_init(void)
 {
-    // 32 exceptions
-    for (uint8_t i = 0; i < 32; i++)
+    uint16_t i = 0;
+
+    // exceptions
+    for (; i < 32; i++)
 	create_descriptor(i, INT_GATE);
 
+    // initialize PIC before setting up PIC lines
     pic_remap();
 
-    // 16 standard ISA IRQ's
-    for (uint8_t i = 32; i < 48; i++)
+    // standard ISA IRQ's
+    for (; i < 48; i++)
 	create_descriptor(i, INT_GATE);
 
-    create_descriptor(128, 0x8F);
+    // remaining IRQ's
+    for (; i < 256; i++)
+	create_descriptor(i, INT_GATE);
     
     idt_pointer.limit = sizeof(idt) - 1;
     idt_pointer.base = (uint64_t)&idt;
 
-    log(WARNING, "idtptr limit: %p\n", idt_pointer.limit);
-    log(WARNING, "idtptr base: %p\n", idt_pointer.base);
     _load_idt_asm((uintptr_t)&idt_pointer);
 
     asm volatile("sti"); // store interrupt flag -> allow hardware interrupts
@@ -75,7 +78,7 @@ void idt_init(void)
 // create an IDT descriptor
 void create_descriptor(uint8_t index, uint8_t type_attributes)
 {
-    uint64_t offset = _isr_names_asm[index]; // address of ISR
+    uint64_t offset = _isr_vector_asm[index]; // ISR handler address
 
     idt[index].offset_low	= offset & 0xFFFF;
     idt[index].selector		= 0x08; // kernel code segment

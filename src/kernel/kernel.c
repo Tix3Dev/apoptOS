@@ -37,8 +37,6 @@ void kmain(struct stivale2_struct *stivale2_struct)
     gdt_init();
     idt_init();
 
-    asm volatile("int $0x80");
-
     for (;;)
         asm volatile("hlt");
 }
