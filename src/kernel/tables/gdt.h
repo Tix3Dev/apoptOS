@@ -49,24 +49,24 @@ typedef struct __attribute__((__packed__))
     uint8_t	access;		    	// access
     uint8_t	limit_high_and_flags;	// bits 16-19 and flags
     uint8_t	base_high;		// bits 24-31
-} gdt_entry_t;
+} gdt_descriptor_t;
 
 typedef struct __attribute__((__packed__))
 {
-    uint16_t	length;	    // bits 0-15 
-    uint16_t	base_low;   // bits 0-15
-    uint8_t	base_mid;   // bits 16-23
-    uint8_t	flags1;	    // flags
-    uint8_t	flags2;	    // flags 
-    uint8_t	base_high;  // bits 24-31
-    uint32_t	base_upper; // bits 32-63
-    uint32_t	reserved;   // reserved
-} tss_entry_t;
+    uint16_t	length;		// bits 0-15 
+    uint16_t	base_low;	// bits 0-15
+    uint8_t	base_middle;	// bits 16-23
+    uint8_t	flags1;		// flags
+    uint8_t	flags2;	    	// flags 
+    uint8_t	base_high;  	// bits 24-31
+    uint32_t	base_upper; 	// bits 32-63
+    uint32_t	reserved;   	// reserved
+} tss_descriptor_t;
 
 typedef struct __attribute__((__packed__))
 {
-    gdt_entry_t entries[GDT_ENTRY_COUNT];
-    tss_entry_t gdt_tss;
+    gdt_descriptor_t entries[GDT_ENTRY_COUNT];
+    tss_descriptor_t tss_descriptor;
 } gdt_t;
 
 
@@ -74,7 +74,7 @@ typedef struct __attribute__((__packed__))
 {
     uint16_t limit; // equivalent to size
     uint64_t base;  // equivalent to address
-} gdt_descriptor_t;
+} gdt_pointer_t;
 
 void gdt_init();
 

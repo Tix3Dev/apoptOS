@@ -18,7 +18,7 @@
 /*
 
     Brief file description:
-    Initialize global descriptor table and it's task state segment entry.
+    Initialize global descriptor table and the task state segment.
 
 */
 
@@ -29,18 +29,18 @@ extern uint8_t stack[16384];
 
 static tss_t tss;
 static gdt_t gdt;
-static gdt_descriptor_t gdt_descriptor;
+static gdt_pointer_t gdt_pointer;
 
 /* utility function prototypes */
 
-extern void _load_gdt_and_tss_asm(uint64_t gdt_descriptor_ptr);
+extern void _load_gdt_and_tss_asm(uint64_t gdt_ptr);
 
 /* core functions */
 
 // set up segments of GDT and load the necessary ones
 void gdt_init(void)
 {
-    // segment 0x00 - null descriptor
+    // segment 0x00 - null descriptor segment
     gdt.entries[GDT_NULL_DESCRIPTOR].limit_low		    = 0;
     gdt.entries[GDT_NULL_DESCRIPTOR].base_low		    = 0;
     gdt.entries[GDT_NULL_DESCRIPTOR].base_middle	    = 0;
@@ -48,7 +48,7 @@ void gdt_init(void)
     gdt.entries[GDT_NULL_DESCRIPTOR].limit_high_and_flags   = 0;
     gdt.entries[GDT_NULL_DESCRIPTOR].base_high		    = 0;
 
-    // segment 0x08 - kernel code
+    // segment 0x08 - kernel code segment
     gdt.entries[GDT_KERNEL_CODE].limit_low		= 0;
     gdt.entries[GDT_KERNEL_CODE].base_low		= 0;
     gdt.entries[GDT_KERNEL_CODE].base_middle		= 0;
@@ -56,7 +56,7 @@ void gdt_init(void)
     gdt.entries[GDT_KERNEL_CODE].limit_high_and_flags	= 0b00100000;
     gdt.entries[GDT_KERNEL_CODE].base_high		= 0;
 
-    // segment 0x10 - kernel data
+    // segment 0x10 - kernel data segment
     gdt.entries[GDT_KERNEL_DATA].limit_low		= 0;
     gdt.entries[GDT_KERNEL_DATA].base_low		= 0;
     gdt.entries[GDT_KERNEL_DATA].base_middle		= 0;
@@ -64,7 +64,7 @@ void gdt_init(void)
     gdt.entries[GDT_KERNEL_DATA].limit_high_and_flags	= 0;
     gdt.entries[GDT_KERNEL_DATA].base_high		= 0;
 
-    // segment 0x18 - user data
+    // segment 0x18 - user data segment
     gdt.entries[GDT_USER_DATA].limit_low		= 0;
     gdt.entries[GDT_USER_DATA].base_low			= 0;
     gdt.entries[GDT_USER_DATA].base_middle		= 0;
@@ -72,7 +72,7 @@ void gdt_init(void)
     gdt.entries[GDT_USER_DATA].limit_high_and_flags	= 0;
     gdt.entries[GDT_USER_DATA].base_high		= 0;
 
-    // segment 0x20 - user code
+    // segment 0x20 - user code segment
     gdt.entries[GDT_USER_CODE].limit_low	    = 0;
     gdt.entries[GDT_USER_CODE].base_low		    = 0;
     gdt.entries[GDT_USER_CODE].base_middle	    = 0;
@@ -80,15 +80,15 @@ void gdt_init(void)
     gdt.entries[GDT_USER_CODE].limit_high_and_flags = 0b00100000;
     gdt.entries[GDT_USER_CODE].base_high	    = 0;
 
-    // segment 0x28 - tss entry
-    gdt.gdt_tss.length	    = 104;
-    gdt.gdt_tss.base_low    = 0;
-    gdt.gdt_tss.base_mid    = 0;
-    gdt.gdt_tss.flags1	    = 0b10001001;
-    gdt.gdt_tss.flags2	    = 0;
-    gdt.gdt_tss.base_high   = 0;
-    gdt.gdt_tss.base_upper  = 0;
-    gdt.gdt_tss.reserved    = 0;
+    // segment 0x28 - tss segment
+    gdt.tss_descriptor.length		= 104;
+    gdt.tss_descriptor.base_low    	= 0;
+    gdt.tss_descriptor.base_middle	= 0;
+    gdt.tss_descriptor.flags1		= 0b10001001;
+    gdt.tss_descriptor.flags2	    	= 0;
+    gdt.tss_descriptor.base_high   	= 0;
+    gdt.tss_descriptor.base_upper  	= 0;
+    gdt.tss_descriptor.reserved    	= 0;
 
     // TODO: use memset later on
     // tss structure
@@ -112,10 +112,10 @@ void gdt_init(void)
     tss.rsp[0]	    = (uintptr_t)stack + sizeof(stack);
     tss.iopb_offset = sizeof(tss);
 
-    gdt_descriptor.limit    = sizeof(gdt) - 1;
-    gdt_descriptor.base	    = (uint64_t)&gdt;
+    gdt_pointer.limit    = sizeof(gdt) - 1;
+    gdt_pointer.base	    = (uint64_t)&gdt;
 
-    _load_gdt_and_tss_asm((uintptr_t)&gdt_descriptor);
+    _load_gdt_and_tss_asm((uintptr_t)&gdt_pointer);
     
     log(INFO, "GDT initialized\n");
 }
