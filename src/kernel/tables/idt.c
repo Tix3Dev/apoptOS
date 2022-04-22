@@ -25,6 +25,7 @@
 
 */
 
+#include <devices/pic.h>
 #include <libk/serial/log.h>
 #include <tables/idt.h>
 
@@ -49,11 +50,13 @@ void idt_init(void)
     for (uint8_t i = 0; i < 32; i++)
 	create_descriptor(i, INT_GATE);
 
-    // pic_remap();
+    pic_remap();
 
     // 16 standard ISA IRQ's
     for (uint8_t i = 32; i < 48; i++)
 	create_descriptor(i, INT_GATE);
+
+    create_descriptor(128, 0x8F);
     
     idt_pointer.limit = sizeof(idt) - 1;
     idt_pointer.base = (uint64_t)&idt;
@@ -72,7 +75,7 @@ void idt_init(void)
 // create an IDT descriptor
 void create_descriptor(uint8_t index, uint8_t type_attributes)
 {
-    uint64_t offset = _isr_names_asm[index];
+    uint64_t offset = _isr_names_asm[index]; // address of ISR
 
     idt[index].offset_low	= offset & 0xFFFF;
     idt[index].selector		= 0x08; // kernel code segment

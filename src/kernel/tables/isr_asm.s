@@ -101,7 +101,7 @@ ISR_NO_ERR  45
 ISR_NO_ERR  46
 ISR_NO_ERR  47
 
-; ISR_NO_ERR   128 <- TODO: this will be needed for syscalls
+ISR_NO_ERR  128
 
 _isr_names_asm:
     ISR_NAME 0
@@ -154,4 +154,4 @@ _isr_names_asm:
     ISR_NAME 46
     ISR_NAME 47
 
-    ; ISR_NAME	128 <- TODO: this will be needed for syscalls
+    ISR_NAME 128
