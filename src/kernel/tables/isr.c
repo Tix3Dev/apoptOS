@@ -1,8 +1,8 @@
 /*
-	This file is part of a modern x86_64 UNIX-like microkernel which is called apoptOS
-	Everything is openly developed on GitHub: https://github.com/Tix3Dev/apoptOS
+	This file is part of an x86_64 hobbyist operating system called KnutOS
+	Everything is openly developed on GitHub: https://github.com/Tix3Dev/KnutOS/
 
-	Copyright (C) 2022  Yves Vollmeier <https://github.com/Tix3Dev>
+	Copyright (C) 2021-2022  Yves Vollmeier <https://github.com/Tix3Dev>
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -15,30 +15,17 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
-
-    Brief file description:
-    C code entry point of whole kernel, even OS itself.
-
-*/
-
-#include <stddef.h>
-#include <stdint.h>
-
-#include <boot/stivale2.h>
+#include <core/cpu.h>
 #include <libk/serial/log.h>
-#include <tables/gdt.h>
-#include <tables/idt.h>
 
-void kmain(struct stivale2_struct *stivale2_struct)
+uint64_t isr_handler(uint64_t rsp)
 {
-    log(INFO, "Kernel started\n");
+    interrupt_cpu_state_t *cpu = (interrupt_cpu_state_t*)rsp;
 
-    gdt_init();
-    idt_init();
-
-    asm volatile("int $0x0");
+    log(WARNING, "ISR %d\n", cpu->isr_number);
 
     for (;;)
-        asm volatile("hlt");
+	asm volatile("cli; hlt");
+
+    return rsp;
 }

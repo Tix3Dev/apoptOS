@@ -15,30 +15,30 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
-
-    Brief file description:
-    C code entry point of whole kernel, even OS itself.
-
-*/
-
-#include <stddef.h>
 #include <stdint.h>
 
-#include <boot/stivale2.h>
-#include <libk/serial/log.h>
-#include <tables/gdt.h>
-#include <tables/idt.h>
+#ifndef IDT_H
+#define IDT_H
 
-void kmain(struct stivale2_struct *stivale2_struct)
+#define INT_GATE 0x8E
+
+typedef struct __attribute__((__packed__))
 {
-    log(INFO, "Kernel started\n");
+    uint16_t	offset_low;
+    uint16_t	selector;
+    uint8_t	ist;
+    uint8_t	type_attributes;
+    uint16_t	offset_middle;
+    uint16_t	offset_high;
+    uint32_t	zero;
+} idt_descriptor_t;
 
-    gdt_init();
-    idt_init();
+typedef struct __attribute__((__packed__))
+{
+    uint16_t limit;
+    uint64_t base;
+} idt_pointer_t;
 
-    asm volatile("int $0x0");
+void idt_init(void);
 
-    for (;;)
-        asm volatile("hlt");
-}
+#endif

@@ -15,30 +15,7 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
+#ifndef ISR_H
+#define ISR_H
 
-    Brief file description:
-    C code entry point of whole kernel, even OS itself.
-
-*/
-
-#include <stddef.h>
-#include <stdint.h>
-
-#include <boot/stivale2.h>
-#include <libk/serial/log.h>
-#include <tables/gdt.h>
-#include <tables/idt.h>
-
-void kmain(struct stivale2_struct *stivale2_struct)
-{
-    log(INFO, "Kernel started\n");
-
-    gdt_init();
-    idt_init();
-
-    asm volatile("int $0x0");
-
-    for (;;)
-        asm volatile("hlt");
-}
+#endif
