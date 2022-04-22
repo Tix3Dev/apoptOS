@@ -87,7 +87,7 @@ void pic_set_mask(uint8_t irq_line)
     io_outb(port, value);
 }
 
-// "undo" pic_set_mask
+// unset interrupt mask register to acknowledge incoming IRQ's
 void pic_clear_mask(uint8_t irq_line)
 {
     uint16_t port;
@@ -106,7 +106,7 @@ void pic_clear_mask(uint8_t irq_line)
 }
 
 // signal an end of interrupt
-void pic_signal_EOI(uint64_t isr_number)
+void pic_signal_eoi(uint64_t isr_number)
 {
     // check if IRQ comes from slave PIC
     if (isr_number >= 40)
