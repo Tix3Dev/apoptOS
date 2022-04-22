@@ -29,7 +29,7 @@ typedef struct __attribute__((__packed__))
     uint8_t	ist;
     uint8_t	type_attributes;
     uint16_t	offset_middle;
-    uint16_t	offset_high;
+    uint32_t	offset_high;
     uint32_t	zero;
 } idt_descriptor_t;
 

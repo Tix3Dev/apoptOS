@@ -58,6 +58,8 @@ void idt_init(void)
     idt_pointer.limit = sizeof(idt) - 1;
     idt_pointer.base = (uint64_t)&idt;
 
+    log(WARNING, "idtptr limit: %p\n", idt_pointer.limit);
+    log(WARNING, "idtptr base: %p\n", idt_pointer.base);
     _load_idt_asm((uintptr_t)&idt_pointer);
 
     asm volatile("sti"); // store interrupt flag -> allow hardware interrupts
