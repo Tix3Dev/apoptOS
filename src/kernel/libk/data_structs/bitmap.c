@@ -15,11 +15,31 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PMM_H
-#define PMM_H
+/*
 
-void pmm_init(struct stivale2_struct *stivale2_struct);
-void *pmm_alloc(size_t page_count);
-void pmm_free(void *pointer, size_t page_count);
+    Brief file description:
+    Interaction with the custom bitmap data structure.
 
-#endif
+*/
+
+#include <libk/data_structs/bitmap.h>
+
+/* core functions */
+
+// set exactly one bit to 1 in the bitmap
+void bitmap_set_bit(BITMAP_t *bitmap, int bit)
+{
+    bitmap->map[bit / 8] |= (1 << (bit % 8));
+}
+
+// set exactly one bit to 0 in the bitmap
+void bitmap_unset_bit(BITMAP_t *bitmap, int bit)
+{
+    bitmap->map[bit / 8] &= ~(1 << (bit % 8));
+}
+
+// return specific bit in bitmap (either 0 or 1)
+uint8_t bitmap_check_bit(BITMAP_t *bitmap, int bit)
+{
+    return bitmap->map[bit / 8] & (1 << (bit % 8));
+}
