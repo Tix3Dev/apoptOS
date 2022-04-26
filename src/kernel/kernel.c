@@ -44,49 +44,6 @@ void kmain(struct stivale2_struct *stivale2_struct)
     
     kinit_all(stivale2_struct);
 
-
-    debug_set_color(TERM_PURPLE);
-
-    void *ptr1 = pmm_alloc(1);
-    debug("1: ptr1 allocated at: 0x%x\n", ptr1);
-
-    void *ptr2 = pmm_alloc(1);
-    debug("1: ptr2 allocated at: 0x%x\n", ptr2);
-
-    void *ptr3 = pmm_alloc(1);
-    debug("1: ptr3 allocated at: 0x%x\n", ptr3);
-
-    void *ptr4 = pmm_alloc(2);
-    debug("2: ptr4 allocated at: 0x%x\n", ptr4);
-
-    void *ptr5 = pmm_alloc(3);
-    debug("3: ptr5 allocated at: 0x%x\n", ptr5);
-
-    void *ptr6 = pmm_alloc(8);
-    debug("8: ptr6 allocated at: 0x%x\n", ptr6);
-
-    void *ptr7 = pmm_alloc(1);
-    debug("1: ptr7 allocated at: 0x%x\n", ptr7);
-
-    pmm_free(ptr1, 1);
-    pmm_free(ptr2, 1);
-    pmm_free(ptr3, 1);
-    pmm_free(ptr4, 2);
-    pmm_free(ptr5, 3);
-    pmm_free(ptr6, 8);
-    pmm_free(ptr7, 7);
-
-    void *ptr8 = pmm_alloc(1);
-    debug("1: ptr8 allocated at: 0x%x\n", ptr8);
-
-    debug_set_color(TERM_PURPLE);
-
-    for (;;)
-    {
-	void *ptr9 = pmm_alloc(10000);
-	debug("1: ptr9 allocated at: 0x%x\n", ptr9);
-    }
-
     log(INFO, "All kernels parts initialized\n");
 
     for (;;)
