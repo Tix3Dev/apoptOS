@@ -92,11 +92,9 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
 
 	if (current_entry->length >= pmm_bitmap.size)
 	{
-	    debug_set_color(TERM_PURPLE);
-	    debug("Found big memory map entry to host the PMM bitmap\n");
-            debug("PMM bitmap stored between 0x%.8lx and 0x%.8lx\n",
+	    log(INFO, "Found big enough memory map entry to host the PMM bitmap\n");
+            log(INFO, "PMM bitmap stored between 0x%.8lx and 0x%.8lx\n",
 		    current_entry->base, current_entry->base + current_entry->length - 1);
-	    debug_set_color(TERM_COLOR_RESET);
 
 	    pmm_bitmap.map = (uint8_t *)(phys_to_higher_half_data(current_entry->base));
 
