@@ -27,19 +27,19 @@
 /* core functions */
 
 // set exactly one bit to 1 in the bitmap
-void bitmap_set_bit(BITMAP_t *bitmap, int bit)
+void bitmap_set_bit(bitmap_t *bitmap, int bit)
 {
     bitmap->map[bit / 8] |= (1 << (bit % 8));
 }
 
 // set exactly one bit to 0 in the bitmap
-void bitmap_unset_bit(BITMAP_t *bitmap, int bit)
+void bitmap_unset_bit(bitmap_t *bitmap, int bit)
 {
     bitmap->map[bit / 8] &= ~(1 << (bit % 8));
 }
 
 // return specific bit in bitmap (either 0 or 1)
-uint8_t bitmap_check_bit(BITMAP_t *bitmap, int bit)
+uint8_t bitmap_check_bit(bitmap_t *bitmap, int bit)
 {
     return bitmap->map[bit / 8] & (1 << (bit % 8));
 }
