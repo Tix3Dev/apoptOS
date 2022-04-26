@@ -11,6 +11,11 @@
 
 - Limine bootloader
 - Stivale2 boot protocol
+- GDT and TSS
+- IDT and ISR's
+- Physical memory management -> Bitmap based allocator
+- Serial communication
+- Basic kernel library
 
 ## Goals
 
