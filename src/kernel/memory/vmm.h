@@ -15,48 +15,12 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
+#ifndef VMM_H
+#define VMM_H
 
-    Brief file description:
-    C code entry point of whole kernel, even OS itself.
+void vmm_init(void);
+void vmm_map_page(uint64_t *page_table, uint64_t phys_page, uint64_t virt_page, uint64_t flags);
+void vmm_unmap_page(uint64_t *page_table, uint64_t virt_page);
+void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags);
 
-*/
-
-#include <stddef.h>
-#include <stdint.h>
-
-#include <boot/stivale2.h>
-#include <libk/serial/debug.h>
-#include <libk/serial/log.h>
-#include <memory/pmm.h>
-#include <memory/vmm.h>
-#include <tables/gdt.h>
-#include <tables/idt.h>
-
-/* utility function prototypes */
-
-void kinit_all(struct stivale2_struct *stivale2_struct);
-
-/* core functions */
-
-void kmain(struct stivale2_struct *stivale2_struct)
-{
-    log(INFO, "Kernel started\n");
-    
-    kinit_all(stivale2_struct);
-
-    log(INFO, "All kernels parts initialized\n");
-
-    for (;;)
-        asm volatile("hlt");
-}
-
-/* utility functions */
-
-void kinit_all(struct stivale2_struct *stivale2_struct)
-{
-    gdt_init();
-    idt_init();
-    pmm_init(stivale2_struct);
-    vmm_init();
-}
+#endif
