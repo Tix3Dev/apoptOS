@@ -105,8 +105,12 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
 	}
     }
 
+    /* set values in bitmap */
+
+    // set everything to used state as default
     memset((void *)pmm_bitmap.map, 0xFF, pmm_bitmap.size);
 
+    // set all usable entries to free
     for (uint64_t i = 0; i < memory_map->entries; i++)
     {
 	current_entry = &memory_map->memmap[i];
@@ -115,6 +119,7 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
 	    pmm_free((void *)current_entry->base, current_entry->length / PAGE_SIZE);
     }
 
+    // reserve the null pointer by setting it to free
     bitmap_set_bit(&pmm_bitmap, 0);
 
     log(INFO, "PMM initialized\n");
