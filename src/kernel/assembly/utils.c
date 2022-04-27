@@ -23,27 +23,3 @@
 */
 
 #include <assembly/utils.h>
-
-/* core functions */
-
-// send data to a IO port
-void io_outb(uint16_t port, uint8_t value)
-{
-    asm volatile("outb %0, %1" : : "a"(value), "Nd"(port));
-}
-
-// get data from a IO port
-uint8_t io_inb(uint16_t port)
-{
-    uint8_t ret;
-
-    asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
-
-    return ret;
-}
-
-// wait for one IO cycle
-void io_wait(void)
-{
-    io_inb(0x80);
-}

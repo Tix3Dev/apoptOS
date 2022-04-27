@@ -17,6 +17,8 @@
 
 #include <stdbool.h>
 
+#include <assembly/utils.h>
+
 #ifndef MEM_H
 #define MEM_H
 
@@ -40,9 +42,7 @@
 // get cr4 and return la57 = bit 12
 static inline bool is_la57_enabled(void)
 {
-    uint64_t cr4;
-
-    asm volatile("mov %%cr4, %0" : "=rax"(cr4));
+    uint64_t cr4 = asm_read_cr(4);
 
     return (cr4 >> 12) & 1;
 }

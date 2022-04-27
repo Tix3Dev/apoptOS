@@ -35,13 +35,13 @@ bool com_is_received(com_port_t port);
 // set basic values for a given COM port
 void com_init(com_port_t port)
 {
-    io_outb(port + 1, 0x00);
-    io_outb(port + 3, 0x80);
-    io_outb(port + 0, 0x03);
-    io_outb(port + 1, 0x00);
-    io_outb(port + 3, 0x03);
-    io_outb(port + 2, 0xC7);
-    io_outb(port + 4, 0x0B);
+    asm_io_outb(port + 1, 0x00);
+    asm_io_outb(port + 3, 0x80);
+    asm_io_outb(port + 0, 0x03);
+    asm_io_outb(port + 1, 0x00);
+    asm_io_outb(port + 3, 0x03);
+    asm_io_outb(port + 2, 0xC7);
+    asm_io_outb(port + 4, 0x0B);
 }
 
 // send data (char) to a given COM port
@@ -49,7 +49,7 @@ void com_send_char(com_port_t port, char c)
 {
     while (!com_is_transmit_empty(port));
 
-    io_outb(port, c);
+    asm_io_outb(port, c);
 }
 
 // send data (string) to a given COM port
@@ -64,7 +64,7 @@ char com_recv(com_port_t port)
 {
     while (!com_is_received(port));
 
-    return io_inb(port);
+    return asm_io_inb(port);
 }
 
 /* utility functions */
@@ -72,11 +72,11 @@ char com_recv(com_port_t port)
 // check if transmission buffer of a given COM port is empty
 bool com_is_transmit_empty(com_port_t port)
 {
-    return io_inb(port + 5) & 0x20;
+    return asm_io_inb(port + 5) & 0x20;
 }
 
 // check if transmission buffer of a given COM port is not empty
 bool com_is_received(com_port_t port)
 {
-    return io_inb(port + 5) & 1;
+    return asm_io_inb(port + 5) & 1;
 }
