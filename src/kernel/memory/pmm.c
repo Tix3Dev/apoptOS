@@ -18,9 +18,10 @@
 /*
 
     Brief file description:
-    Physical memory management through bitmap based allocator. Basic concept:
-    Each bit in the bitmap corresponds to a page (block of memory) through a
-    mapping system. A bit only says if the corresponding page is free or used.
+    Physical memory management through bitmap based page frame allocator.
+    Basic concept: Each bit in the bitmap corresponds to a page (block of memory)
+    through a mapping system. A bit only says if the corresponding page
+    is free or used.
 
 */
 
@@ -136,7 +137,31 @@ void *pmm_alloc(size_t page_count)
     if (pointer == NULL)
         return NULL;
 
-    uint64_t index = (uint64_t)pointer / PAGE_SIZE;
+    uint64_t index = PAGE_TO_BIT(pointer);
+
+    for (size_t i = 0; i < page_count; i++)
+        bitmap_set_bit(&pmm_bitmap, index + i);
+
+    used_pages_count += page_count;
+
+    return (void *)BIT_TO_PAGE(index);
+}
+
+// set free memory range to used and return base pointer
+// AND fill range with zeros
+void *pmm_allocz(size_t page_count)
+{
+    if (used_pages_count <= 0)
+        return NULL;
+
+    void *pointer = pmm_find_first_free_page_range(page_count);
+
+    if (pointer == NULL)
+        return NULL;
+
+    memset(pointer, 0, PAGE_SIZE * page_count);
+
+    uint64_t index = PAGE_TO_BIT(pointer);
 
     for (size_t i = 0; i < page_count; i++)
         bitmap_set_bit(&pmm_bitmap, index + i);

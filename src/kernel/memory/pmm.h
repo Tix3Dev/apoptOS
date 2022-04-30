@@ -20,6 +20,7 @@
 
 void pmm_init(struct stivale2_struct *stivale2_struct);
 void *pmm_alloc(size_t page_count);
+void *pmm_allocz(size_t page_count);
 void pmm_free(void *pointer, size_t page_count);
 
 #endif
