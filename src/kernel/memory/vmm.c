@@ -50,7 +50,6 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
 
     root_page_table = pmm_allocz(1);
     assert(root_page_table != NULL);
-    memset(root_page_table, 0, PAGE_SIZE);
 
     vmm_map_range(root_page_table, 0, 4 * GB, HIGHER_HALF_DATA_LV4, KERNEL_READ_WRITE);
     vmm_map_range(root_page_table, 0, 2 * GB, HIGHER_HALF_CODE, KERNEL_READ_WRITE);
@@ -96,7 +95,7 @@ uint64_t *vmm_get_or_create_pml(uint64_t *pml, size_t pml_index, uint64_t flags)
 {
     // check present flag
     if (!(pml[pml_index] & 1))
-        pml[pml_index] = phys_to_higher_half_data((uint64_t)pmm_allocz(1)) | flags;
+        pml[pml_index] = (uint64_t)pmm_allocz(1) | flags;
 
     return (uint64_t *)(pml[pml_index] & ~(511));
 }
@@ -135,5 +134,5 @@ void vmm_flush_tlb(void *address)
 
 void vmm_load_page_table(uint64_t *page_table)
 {
-    asm_write_cr(3, higher_half_data_to_phys((uint64_t)page_table));
+    asm_write_cr(3, (uint64_t)page_table);
 }

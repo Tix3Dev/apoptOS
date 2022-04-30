@@ -97,7 +97,7 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
             log(INFO, "PMM bitmap stored between 0x%.8lx and 0x%.8lx\n",
 		    current_entry->base, current_entry->base + current_entry->length - 1);
 
-	    pmm_bitmap.map = (uint8_t *)(phys_to_higher_half_data(current_entry->base));
+	    pmm_bitmap.map = (uint8_t *)current_entry->base;
 
 	    current_entry->base += pmm_bitmap.size;
 	    current_entry->length -= pmm_bitmap.size;
