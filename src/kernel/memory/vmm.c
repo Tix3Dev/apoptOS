@@ -53,13 +53,13 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     memset(root_page_table, 0, PAGE_SIZE);
 
     vmm_map_range(root_page_table, 0, 4 * GB, HIGHER_HALF_DATA_LV4, KERNEL_READ_WRITE);
-    // vmm_map_range(root_page_table, 0, 2 * GB, HIGHER_HALF_CODE, KERNEL_READ_WRITE);
-    // for (uint64_t i = 0; i < memory_map->entries; i++)
-    // {
-    //     current_entry = &memory_map->memmap[i];
+    vmm_map_range(root_page_table, 0, 2 * GB, HIGHER_HALF_CODE, KERNEL_READ_WRITE);
+    for (uint64_t i = 0; i < memory_map->entries; i++)
+    {
+        current_entry = &memory_map->memmap[i];
 
-    //     vmm_map_range(root_page_table, 0, current_entry->length, HIGHER_HALF_DATA_LV4, KERNEL_READ_WRITE);
-    // }
+        vmm_map_range(root_page_table, 0, current_entry->length, HIGHER_HALF_DATA_LV4, KERNEL_READ_WRITE);
+    }
 
     vmm_load_page_table(root_page_table);
 
