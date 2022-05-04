@@ -31,6 +31,7 @@
 #include <libk/serial/debug.h>
 #include <libk/serial/log.h>
 #include <libk/string/string.h>
+#include <libk/testing/assert.h>
 #include <memory/mem.h>
 #include <memory/pmm.h>
 
@@ -97,7 +98,7 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
             log(INFO, "PMM bitmap stored between 0x%.8lx and 0x%.8lx\n",
 		    current_entry->base, current_entry->base + current_entry->length - 1);
 
-	    pmm_bitmap.map = (uint8_t *)current_entry->base;
+	    pmm_bitmap.map = (uint8_t *)phys_to_higher_half_data(current_entry->base);
 
 	    current_entry->base += pmm_bitmap.size;
 	    current_entry->length -= pmm_bitmap.size;
@@ -144,37 +145,23 @@ void *pmm_alloc(size_t page_count)
 
     used_pages_count += page_count;
 
-    return (void *)BIT_TO_PAGE(index);
+    return (void *)phys_to_higher_half_data(BIT_TO_PAGE(index));
 }
 
 // set free memory range to used and return base pointer
 // AND fill range with zeros
 void *pmm_allocz(size_t page_count)
 {
-    if (used_pages_count <= 0)
-        return NULL;
-
-    void *pointer = pmm_find_first_free_page_range(page_count);
-
-    if (pointer == NULL)
-        return NULL;
-
+    void *pointer = pmm_alloc(page_count);
     memset(pointer, 0, PAGE_SIZE * page_count);
 
-    uint64_t index = PAGE_TO_BIT(pointer);
-
-    for (size_t i = 0; i < page_count; i++)
-        bitmap_set_bit(&pmm_bitmap, index + i);
-
-    used_pages_count += page_count;
-
-    return (void *)BIT_TO_PAGE(index);
+    return pointer;
 }
 
 // set status of n pages to unused
 void pmm_free(void *pointer, size_t page_count)
 {
-    uint64_t index = PAGE_TO_BIT(pointer);
+    uint64_t index = higher_half_data_to_phys(PAGE_TO_BIT(pointer));
 
     for (size_t i = 0; i < page_count; i++)
         bitmap_unset_bit(&pmm_bitmap, index + i);
