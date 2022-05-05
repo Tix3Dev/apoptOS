@@ -18,6 +18,7 @@
 /*
 
     Brief file description:
+    Virtual memory management through 4 level paging.
 
 */
 
@@ -42,6 +43,7 @@ void vmm_load_page_table(uint64_t *page_table);
 
 /* core functions */
 
+// create root page table and map important physical memory regions
 void vmm_init(struct stivale2_struct *stivale2_struct)
 {
     struct stivale2_struct_tag_memmap *memory_map = stivale2_get_tag(stivale2_struct,
@@ -51,13 +53,13 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     root_page_table = pmm_allocz(1);
     assert(root_page_table != NULL);
 
-    vmm_map_range(root_page_table, 0, 4 * GB, HIGHER_HALF_DATA_LV4, KERNEL_READ_WRITE);
+    vmm_map_range(root_page_table, 0, 4 * GB, HIGHER_HALF_DATA, KERNEL_READ_WRITE);
     vmm_map_range(root_page_table, 0, 2 * GB, HIGHER_HALF_CODE, KERNEL_READ);
     for (uint64_t i = 0; i < memory_map->entries; i++)
     {
         current_entry = &memory_map->memmap[i];
 
-        vmm_map_range(root_page_table, 0, current_entry->length, HIGHER_HALF_DATA_LV4, KERNEL_READ_WRITE);
+        vmm_map_range(root_page_table, 0, current_entry->length, HIGHER_HALF_DATA, KERNEL_READ_WRITE);
     }
 
     log(INFO, "Replaced bootloader page table at 0x%.16llx\n", asm_read_cr(3));
@@ -67,24 +69,28 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     log(INFO, "VMM initialized\n");
 }
 
+// set a page table entry for a new virtual memory address, which will be mapped to a physical frame
 void vmm_map_page(uint64_t *page_table, uint64_t phys_page, uint64_t virt_page, uint64_t flags)
 {
     uint64_t pt_value = phys_page | flags;
     vmm_set_pt_value(page_table, ALIGN_DOWN(virt_page, 4096), flags, pt_value);
 }
 
+// set a page table entry to zero, in order to "forget" a virtual memory address
 void vmm_unmap_page(uint64_t *page_table, uint64_t virt_page)
 {
     uint64_t pt_value = 0;
     vmm_set_pt_value(page_table, ALIGN_DOWN(virt_page, 4096), 0, pt_value);
 }
 
+// map a whole physical memory region with custom offset
 void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags)
 {
     for (uint64_t i = ALIGN_DOWN(start, 4096); i < ALIGN_UP(end, 4096); i += PAGE_SIZE)
 	vmm_map_page(page_table, i, i + offset, flags);
 }
 
+// unmap a whole physical memory region
 void vmm_unmap_range(uint64_t *page_table, uint64_t start, uint64_t end)
 {
     for (uint64_t i = ALIGN_DOWN(start, 4096); i < ALIGN_UP(end, 4096); i += PAGE_SIZE)
@@ -93,15 +99,18 @@ void vmm_unmap_range(uint64_t *page_table, uint64_t start, uint64_t end)
 
 /* utility functions */
 
+// make use (and if needed alloacte for that) a custom page map level
 uint64_t *vmm_get_or_create_pml(uint64_t *pml, size_t pml_index, uint64_t flags)
 {
-    // check present flag
+    // check present flag - higher half conversion is needed as location
+    // return by pmm_allocz is not mapped yet
     if (!(pml[pml_index] & 1))
-        pml[pml_index] = (uint64_t)pmm_allocz(1) | flags;
+        pml[pml_index] = HIGHER_HALF_DATA_TO_PHYS((uint64_t)pmm_allocz(1)) | flags;
 
     return (uint64_t *)(pml[pml_index] & ~(511));
 }
 
+// set a value in a page table entry and flush translation lookaside buffer
 void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t flags, uint64_t value)
 {
     // index for page mapping level 4
@@ -129,12 +138,15 @@ void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t flags, 
     vmm_flush_tlb((void *)virt_page);
 }
 
+// flush/reload translation lookaside buffer
 void vmm_flush_tlb(void *address)
 {
     asm_invlpg(address);
 }
 
+// load a page table into cr3 to be used
 void vmm_load_page_table(uint64_t *page_table)
 {
-    asm_write_cr(3, (uint64_t)page_table);
+    // higher half conversion is needed as location of page table is not mapped yet
+    asm_write_cr(3, HIGHER_HALF_DATA_TO_PHYS((uint64_t)page_table));
 }

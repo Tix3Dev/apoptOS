@@ -22,59 +22,23 @@
 #ifndef MEM_H
 #define MEM_H
 
-#define HIGHER_HALF_DATA_LV5	0xFF00000000000000UL
-#define HIGHER_HALF_DATA_LV4	0xFFFF800000000000UL
+#define HIGHER_HALF_DATA	0xFFFF800000000000UL
 #define HIGHER_HALF_CODE	0xFFFFFFFF80000000UL
 
 #define GB 0x40000000UL
 
-#define PAGE_SIZE		    4096
-#define TABLES_PER_DIRECTORY	    512
-#define PAGES_PER_TABLE		    512	// TODO: do I need this???
+#define PAGE_SIZE 4096
 
 #define KB_TO_PAGES(kb)		    (((kb) * 1024) / PAGE_SIZE)
 #define ALIGN_DOWN(addr, align)	    ((addr) & ~((align)-1))
 #define ALIGN_UP(addr, align)	    (((addr) + (align)-1) & ~((align)-1))
 
-#define IS_PAGE_ALIGNED(num)	    ((num % PAGE_SIZE) == 0)
-
 #define BIT_TO_PAGE(bit)    ((size_t)bit * PAGE_SIZE)
 #define PAGE_TO_BIT(page)   ((size_t)page / PAGE_SIZE)
 
-// get cr4 and return la57 = bit 12
-static inline bool is_la57_enabled(void)
-{
-    uint64_t cr4 = asm_read_cr(4);
-
-    return (cr4 >> 12) & 1;
-}
-
-/* those functions are important, as KnutOS is a higher half kernel */
-
-static inline uintptr_t phys_to_higher_half_data(uintptr_t address)
-{
-    if (is_la57_enabled())
-	return HIGHER_HALF_DATA_LV5 + address;
-
-    return HIGHER_HALF_DATA_LV4 + address;
-}
-
-static inline uintptr_t phys_to_higher_half_code(uintptr_t address)
-{
-    return HIGHER_HALF_CODE + address;
-}
-
-static inline uintptr_t higher_half_data_to_phys(uintptr_t address)
-{
-    if (is_la57_enabled())
-	return address - HIGHER_HALF_DATA_LV5;
-
-    return address - HIGHER_HALF_DATA_LV4;
-}
-
-static inline uintptr_t higher_half_code_to_phys(uintptr_t address)
-{
-    return address - HIGHER_HALF_CODE;
-}
+#define PHYS_TO_HIGHER_HALF_DATA(address)   (address + HIGHER_HALF_DATA)
+#define PHYS_TO_HIGHER_HALF_CODE(address)   (address + HIGHER_HALF_CODE)
+#define HIGHER_HALF_DATA_TO_PHYS(address)   (address - HIGHER_HALF_DATA)
+#define HIGHER_HALF_CODE_TO_PHYS(address)   (address - HIGHER_HALF_CODE)
 
 #endif

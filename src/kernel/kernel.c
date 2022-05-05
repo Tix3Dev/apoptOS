@@ -98,7 +98,7 @@ void kmain(struct stivale2_struct *stivale2_struct)
 void kinit_all(struct stivale2_struct *stivale2_struct)
 {
     pmm_init(stivale2_struct);
-    //vmm_init(stivale2_struct);
+    vmm_init(stivale2_struct);
     gdt_init();
     idt_init();
 }

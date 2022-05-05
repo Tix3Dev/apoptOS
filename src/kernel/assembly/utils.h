@@ -20,11 +20,13 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+// write a value to a custom CR register
 #define asm_write_cr(reg, value)			\
 ({							\
     asm volatile("mov %0, %%cr" #reg : : "r" (value));	\
 })
 
+// read the value a custom CR register contains
 #define asm_read_cr(reg)				    \
 ({							    \
     uint64_t value = 0;					    \
@@ -54,6 +56,7 @@ static inline void asm_io_wait(void)
     asm_io_inb(0x80);
 }
 
+// load an address into the translation lookaside buffer
 static inline void asm_invlpg(uint64_t *address)
 {
     asm volatile("invlpg (%0)" : : "r" (address));

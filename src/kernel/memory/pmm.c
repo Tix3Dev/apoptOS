@@ -98,7 +98,7 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
             log(INFO, "PMM bitmap stored between 0x%.8lx and 0x%.8lx\n",
 		    current_entry->base, current_entry->base + current_entry->length - 1);
 
-	    pmm_bitmap.map = (uint8_t *)phys_to_higher_half_data(current_entry->base);
+	    pmm_bitmap.map = (uint8_t *)PHYS_TO_HIGHER_HALF_DATA(current_entry->base);
 
 	    current_entry->base += pmm_bitmap.size;
 	    current_entry->length -= pmm_bitmap.size;
@@ -145,7 +145,7 @@ void *pmm_alloc(size_t page_count)
 
     used_pages_count += page_count;
 
-    return (void *)phys_to_higher_half_data(BIT_TO_PAGE(index));
+    return (void *)PHYS_TO_HIGHER_HALF_DATA(BIT_TO_PAGE(index));
 }
 
 // set free memory range to used and return base pointer
@@ -161,7 +161,7 @@ void *pmm_allocz(size_t page_count)
 // set status of n pages to unused
 void pmm_free(void *pointer, size_t page_count)
 {
-    uint64_t index = higher_half_data_to_phys(PAGE_TO_BIT(pointer));
+    uint64_t index = HIGHER_HALF_DATA_TO_PHYS(PAGE_TO_BIT(pointer));
 
     for (size_t i = 0; i < page_count; i++)
         bitmap_unset_bit(&pmm_bitmap, index + i);
