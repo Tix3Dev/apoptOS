@@ -30,8 +30,8 @@
 #define PAGE_SIZE 4096
 
 #define KB_TO_PAGES(kb)		    (((kb) * 1024) / PAGE_SIZE)
-#define ALIGN_DOWN(addr, align)	    ((addr) & ~((align)-1))
-#define ALIGN_UP(addr, align)	    (((addr) + (align)-1) & ~((align)-1))
+#define ALIGN_DOWN(address, align)  ((address) & ~((align)-1))
+#define ALIGN_UP(address, align)    (((address) + (align)-1) & ~((align)-1))
 
 #define BIT_TO_PAGE(bit)    ((size_t)bit * PAGE_SIZE)
 #define PAGE_TO_BIT(page)   ((size_t)page / PAGE_SIZE)
