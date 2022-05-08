@@ -23,8 +23,9 @@
 */
 
 #include <devices/com.h>
-#include <libk/serial/debug.h>
 #include <libk/kprintf/kprintf.h>
+#include <libk/serial/debug.h>
+#include <libk/testing/assert.h>
 
 const char debug_buffer[5120];
 
@@ -45,8 +46,7 @@ void debug(char *fmt, ...)
 // set bash color code
 void debug_set_color(char *color_code)
 {
-    if (color_code[0] != '\e' || color_code[1] != '[')
-        return;
+    assert(color_code[0] == '\e' && color_code[1] == '[');
 
     com_send_string(COM1, color_code);
 }
