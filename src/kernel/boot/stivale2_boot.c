@@ -32,7 +32,7 @@ static struct stivale2_header stivale_hdr =
 {
     .entry_point    = 0,
     .stack	    = (uintptr_t)stack + sizeof(stack),
-    .flags	    = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
+    .flags	    = (1 << 1) | (1 << 2) | (1 << 4),
     .tags	    = 0
 };
 

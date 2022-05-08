@@ -41,6 +41,7 @@ void kinit_all(struct stivale2_struct *stivale2_struct);
 
 /* core functions */
 
+// kernel entry point - call initializations
 void kmain(struct stivale2_struct *stivale2_struct)
 {
     log(INFO, "Kernel started\n");
@@ -55,6 +56,7 @@ void kmain(struct stivale2_struct *stivale2_struct)
 
 /* utility functions */
 
+// initialize all kernel functionalities
 void kinit_all(struct stivale2_struct *stivale2_struct)
 {
     struct stivale2_struct_tag_hhdm *hhdm = stivale2_get_tag(stivale2_struct,

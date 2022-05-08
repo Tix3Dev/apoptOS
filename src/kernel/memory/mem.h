@@ -17,8 +17,6 @@
 
 #include <stdbool.h>
 
-#include <assembly/utils.h>
-
 #ifndef MEM_H
 #define MEM_H
 
