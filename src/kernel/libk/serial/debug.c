@@ -23,7 +23,7 @@
 */
 
 #include <devices/com.h>
-#include <libk/kprintf/kprintf.h>
+#include <libk/printf/printf.h>
 #include <libk/serial/debug.h>
 #include <libk/testing/assert.h>
 
