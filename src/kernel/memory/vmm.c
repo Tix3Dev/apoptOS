@@ -53,9 +53,16 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     root_page_table = pmm_allocz(1);
     assert(root_page_table != NULL);
 
+    // identity map 0x0 - 0x100000000
     vmm_map_range(root_page_table, 0, 4 * GB, 0, KERNEL_READ_WRITE);
+
+    // map 0x0 - 0x100000000 to 0xFFFF800000000000 - 0xFFFF800100000000
     vmm_map_range(root_page_table, 0, 4 * GB, HIGHER_HALF_DATA, KERNEL_READ_WRITE);
+
+    // map 0x0 - 0x80000000 to 0xFFFFFFFF80000000 - 0x0001000000000000
     vmm_map_range(root_page_table, 0, 2 * GB, HIGHER_HALF_CODE, KERNEL_READ);
+    
+    // map all entries of memory map to 0xFFFF800000000000
     for (uint64_t i = 0; i < memory_map->entries; i++)
     {
         current_entry = &memory_map->memmap[i];

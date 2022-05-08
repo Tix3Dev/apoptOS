@@ -56,7 +56,7 @@ void kmain(struct stivale2_struct *stivale2_struct)
 
 /* utility functions */
 
-// initialize all kernel functionalities
+// initialize all kernel parts
 void kinit_all(struct stivale2_struct *stivale2_struct)
 {
     struct stivale2_struct_tag_hhdm *hhdm = stivale2_get_tag(stivale2_struct,
