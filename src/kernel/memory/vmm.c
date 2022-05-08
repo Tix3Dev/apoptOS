@@ -103,8 +103,7 @@ void vmm_unmap_range(uint64_t *page_table, uint64_t start, uint64_t end)
 // make use (and if needed alloacte for that) a custom page map level
 uint64_t *vmm_get_or_create_pml(uint64_t *pml, size_t pml_index, uint64_t flags)
 {
-    // check present flag - higher half conversion is needed as location
-    // return by pmm_allocz is not mapped yet
+    // check present flag
     if (!(pml[pml_index] & 1))
         pml[pml_index] = HIGHER_HALF_DATA_TO_PHYS((uint64_t)pmm_allocz(1)) | flags;
 
@@ -148,6 +147,5 @@ void vmm_flush_tlb(void *address)
 // load a page table into cr3 to be used
 void vmm_load_page_table(uint64_t *page_table)
 {
-    // higher half conversion is needed as location of page table is not mapped yet
     asm_write_cr(3, HIGHER_HALF_DATA_TO_PHYS((uint64_t)page_table));
 }
