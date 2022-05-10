@@ -9,11 +9,13 @@
 
 ## Features
 
+- Higher half kernel
 - Limine bootloader
 - Stivale2 boot protocol
 - GDT and TSS
 - IDT and ISR's
 - Physical memory management -> Bitmap based allocator
+- Virtual memory management -> 4-level paging support
 - Serial communication
 - Basic kernel library
 
