@@ -33,7 +33,7 @@
 #include <libk/string/string.h>
 #include <libk/testing/assert.h>
 #include <memory/mem.h>
-#include <memory/pmm.h>
+#include <memory/physical/pmm.h>
 
 bitmap_t pmm_bitmap;
 static size_t highest_page_top = 0;

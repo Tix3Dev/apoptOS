@@ -29,8 +29,8 @@
 #include <libk/string/string.h>
 #include <libk/testing/assert.h>
 #include <memory/mem.h>
-#include <memory/pmm.h>
-#include <memory/vmm.h>
+#include <memory/physical/pmm.h>
+#include <memory/virtual/vmm.h>
 
 static uint64_t *root_page_table; 
 
