@@ -22,9 +22,7 @@
 
 */
 
-// include c libaries sorted alphabetically
-
-// include project header files sorted alphabetically
+#include <memory/dynamic/slab.h>
 
 /* utility function prototypes */
 
@@ -32,8 +30,35 @@
 
 /* core functions */
 
-//
+void slab_cache_create(const char *name, size_t size,
+	cache_ctor_t constructor, cache_dtor_t deconstructor)
+{
+    //
+}
+
+void slab_cache_destroy(void)
+{
+    //
+}
+
+void slab_cache_alloc(void)
+{
+    //
+}
+
+void slab_cache_free(void)
+{
+    //
+}
 
 /* utility functions */
 
-//
+void slab_cache_grow(void)
+{
+    //
+}
+
+void slab_cache_reap(void)
+{
+    //
+}

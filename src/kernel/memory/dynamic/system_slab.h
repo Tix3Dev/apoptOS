@@ -17,30 +17,11 @@
 
 #include <stddef.h>
 
-#ifndef SLAB_H
-#define SLAB_H
+#ifndef SYSTEM_SLAB_H
+#define SYSTEM_SLAB_H
 
-typedef void (*cache_ctor_t)(size_t);
-typedef void (*cache_dtor_t)(size_t);
+// datatypes / variables
 
-typedef struct slab_bufctl
-{
-    //
-} slab_bufctl_t;
-
-typedef struct slab_object
-{
-    struct slab_bufctl *freelist;
-} slab_object_t;
-
-typedef struct slab_state
-{
-    //
-} slab_state_t;
-
-typedef struct slab_cache
-{
-    //
-} slab_cache_t;
+// core functions
 
 #endif

@@ -15,32 +15,36 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stddef.h>
+/*
 
-#ifndef SLAB_H
-#define SLAB_H
+    Brief file description:
+    General purpose system caches.
 
-typedef void (*cache_ctor_t)(size_t);
-typedef void (*cache_dtor_t)(size_t);
+*/
 
-typedef struct slab_bufctl
+#include <memory/dynamic/system_slab.h>
+
+/* utility function prototypes */
+
+// 
+
+/* core functions */
+
+void system_slab_init(void)
+{
+    // create cache(s)
+}
+
+void system_slab_alloc(size_t size)
+{
+    // only size as parameter, no cache
+}
+
+void system_slab_free(void *ptr)
 {
     //
-} slab_bufctl_t;
+}
 
-typedef struct slab_object
-{
-    struct slab_bufctl *freelist;
-} slab_object_t;
+/* utility functions */
 
-typedef struct slab_state
-{
-    //
-} slab_state_t;
-
-typedef struct slab_cache
-{
-    //
-} slab_cache_t;
-
-#endif
+//
