@@ -50,19 +50,19 @@ void idt_init(void)
 
     // exceptions
     for (; i < 32; i++)
-	create_descriptor(i, INT_GATE);
+        create_descriptor(i, INT_GATE);
 
     // initialize PIC before setting up PIC lines
     pic_remap();
 
     // standard ISA IRQ's
     for (; i < 48; i++)
-	create_descriptor(i, INT_GATE);
+        create_descriptor(i, INT_GATE);
 
     // remaining IRQ's
     for (; i < 256; i++)
-	create_descriptor(i, INT_GATE);
-    
+        create_descriptor(i, INT_GATE);
+
     idt_pointer.limit = sizeof(idt) - 1;
     idt_pointer.base = (uint64_t)&idt;
 

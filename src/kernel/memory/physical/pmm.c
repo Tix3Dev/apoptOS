@@ -50,33 +50,33 @@ void *pmm_find_first_free_page_range(size_t page_count);
 void pmm_init(struct stivale2_struct *stivale2_struct)
 {
     struct stivale2_struct_tag_memmap *memory_map = stivale2_get_tag(stivale2_struct,
-	    STIVALE2_STRUCT_TAG_MEMMAP_ID);
+            STIVALE2_STRUCT_TAG_MEMMAP_ID);
     struct stivale2_mmap_entry *current_entry;
 
     size_t current_page_top = 0;
 
     /* handle memory map passed by stivale2 */
-    
+
     log(INFO, "Memory map layout:\n");
 
     for (uint64_t i = 0; i < memory_map->entries; i++)
     {
-	current_entry = &memory_map->memmap[i];
+        current_entry = &memory_map->memmap[i];
 
-	debug_set_color(TERM_PURPLE);
+        debug_set_color(TERM_PURPLE);
         debug("Memory map entry No. %.16d: Base: 0x%.16llx | Length: 0x%.16llx | Type: %s\n",
               i, current_entry->base, current_entry->length, get_memmap_entry_type_string(current_entry->type));
-	debug_set_color(TERM_COLOR_RESET);
+        debug_set_color(TERM_COLOR_RESET);
 
-	if (current_entry->type != STIVALE2_MMAP_USABLE &&
-		current_entry->type != STIVALE2_MMAP_BOOTLOADER_RECLAIMABLE &&
-		current_entry->type != STIVALE2_MMAP_KERNEL_AND_MODULES)
-	    continue;
+        if (current_entry->type != STIVALE2_MMAP_USABLE &&
+                current_entry->type != STIVALE2_MMAP_BOOTLOADER_RECLAIMABLE &&
+                current_entry->type != STIVALE2_MMAP_KERNEL_AND_MODULES)
+            continue;
 
-	current_page_top = current_entry->base + current_entry->length;
+        current_page_top = current_entry->base + current_entry->length;
 
-	if (current_page_top > highest_page_top)
-	    highest_page_top = current_page_top;
+        if (current_page_top > highest_page_top)
+            highest_page_top = current_page_top;
     }
 
     used_pages_count = KB_TO_PAGES(highest_page_top);
@@ -87,24 +87,24 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
 
     for (uint64_t i = 0; i < memory_map->entries; i++)
     {
-	current_entry = &memory_map->memmap[i];
+        current_entry = &memory_map->memmap[i];
 
-	if (current_entry->type != STIVALE2_MMAP_USABLE)
-	    continue;
+        if (current_entry->type != STIVALE2_MMAP_USABLE)
+            continue;
 
-	if (current_entry->length >= pmm_bitmap.size)
-	{
-	    log(INFO, "Found big enough memory map entry to host the PMM bitmap\n");
+        if (current_entry->length >= pmm_bitmap.size)
+        {
+            log(INFO, "Found big enough memory map entry to host the PMM bitmap\n");
             log(INFO, "PMM bitmap stored between 0x%.8lx and 0x%.8lx\n",
-		    current_entry->base, current_entry->base + current_entry->length - 1);
+                current_entry->base, current_entry->base + current_entry->length - 1);
 
-	    pmm_bitmap.map = (uint8_t *)PHYS_TO_HIGHER_HALF_DATA(current_entry->base);
+            pmm_bitmap.map = (uint8_t *)PHYS_TO_HIGHER_HALF_DATA(current_entry->base);
 
-	    current_entry->base += pmm_bitmap.size;
-	    current_entry->length -= pmm_bitmap.size;
+            current_entry->base += pmm_bitmap.size;
+            current_entry->length -= pmm_bitmap.size;
 
-	    break;
-	}
+            break;
+        }
     }
 
     /* set values in bitmap */
@@ -115,10 +115,10 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
     // set all usable entries to free
     for (uint64_t i = 0; i < memory_map->entries; i++)
     {
-	current_entry = &memory_map->memmap[i];
+        current_entry = &memory_map->memmap[i];
 
-	if (current_entry->type == STIVALE2_MMAP_USABLE)
-	    pmm_free((void *)current_entry->base, current_entry->length / PAGE_SIZE);
+        if (current_entry->type == STIVALE2_MMAP_USABLE)
+            pmm_free((void *)current_entry->base, current_entry->length / PAGE_SIZE);
     }
 
     // reserve the null pointer by setting it to free
@@ -178,20 +178,28 @@ const char *get_memmap_entry_type_string(uint32_t type)
     {
         case STIVALE2_MMAP_USABLE:
             return "Usable";
+
         case STIVALE2_MMAP_RESERVED:
             return "Reserved";
+
         case STIVALE2_MMAP_ACPI_RECLAIMABLE:
             return "ACPI Reclaimable";
+
         case STIVALE2_MMAP_ACPI_NVS:
             return "ACPI Non Volatile Storage";
+
         case STIVALE2_MMAP_BAD_MEMORY:
             return "Bad Memory";
+
         case STIVALE2_MMAP_BOOTLOADER_RECLAIMABLE:
             return "Bootloader Reclaimable";
+
         case STIVALE2_MMAP_KERNEL_AND_MODULES:
             return "Kernel And Modules";
+
         case STIVALE2_MMAP_FRAMEBUFFER:
             return "Framebuffer";
+
         default:
             return "Unknown";
     }
@@ -202,14 +210,14 @@ void *pmm_find_first_free_page_range(size_t page_count)
 {
     for (size_t all_bits_i = 0; all_bits_i < PAGE_TO_BIT(highest_page_top); all_bits_i++)
     {
-	for (size_t page_count_i = 0; page_count_i < page_count; page_count_i++)
-	{
-	    if (bitmap_check_bit(&pmm_bitmap, all_bits_i + PAGE_TO_BIT(page_count_i)))
-		break;
+        for (size_t page_count_i = 0; page_count_i < page_count; page_count_i++)
+        {
+            if (bitmap_check_bit(&pmm_bitmap, all_bits_i + PAGE_TO_BIT(page_count_i)))
+                break;
 
-	    if (page_count_i == page_count - 1)
-		return (void *)BIT_TO_PAGE(all_bits_i);
-	}
+            if (page_count_i == page_count - 1)
+                return (void *)BIT_TO_PAGE(all_bits_i);
+        }
     }
 
     return NULL;

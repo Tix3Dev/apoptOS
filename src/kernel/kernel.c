@@ -47,7 +47,7 @@ void kinit_all(struct stivale2_struct *stivale2_struct);
 void kmain(struct stivale2_struct *stivale2_struct)
 {
     log(INFO, "Kernel started\n");
-    
+
     kinit_all(stivale2_struct);
 
     log(INFO, "All kernels parts initialized\n");
@@ -62,13 +62,13 @@ void kmain(struct stivale2_struct *stivale2_struct)
 void kinit_all(struct stivale2_struct *stivale2_struct)
 {
     struct stivale2_struct_tag_hhdm *hhdm = stivale2_get_tag(stivale2_struct,
-	    STIVALE2_STRUCT_TAG_HHDM_ID);
+                                            STIVALE2_STRUCT_TAG_HHDM_ID);
     log(INFO, "Verified HHDM address 0x%.16llx\n", hhdm->addr);
     assert(hhdm->addr == HIGHER_HALF_DATA);
 
     pmm_init(stivale2_struct);
     vmm_init(stivale2_struct);
-    
+
     gdt_init();
     idt_init();
 

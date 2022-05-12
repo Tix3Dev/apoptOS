@@ -32,7 +32,7 @@
 #include <memory/physical/pmm.h>
 #include <memory/virtual/vmm.h>
 
-static uint64_t *root_page_table; 
+static uint64_t *root_page_table;
 
 /* utility function prototypes */
 
@@ -47,7 +47,7 @@ void vmm_load_page_table(uint64_t *page_table);
 void vmm_init(struct stivale2_struct *stivale2_struct)
 {
     struct stivale2_struct_tag_memmap *memory_map = stivale2_get_tag(stivale2_struct,
-	    STIVALE2_STRUCT_TAG_MEMMAP_ID);
+            STIVALE2_STRUCT_TAG_MEMMAP_ID);
     struct stivale2_mmap_entry *current_entry;
 
     root_page_table = pmm_allocz(1);
@@ -61,7 +61,7 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
 
     // map 0x0 - 0x80000000 to 0xFFFFFFFF80000000 - 0x0001000000000000
     vmm_map_range(root_page_table, 0, 2 * GiB, HIGHER_HALF_CODE, KERNEL_READ);
-    
+
     // map all entries of memory map to 0xFFFF800000000000
     for (uint64_t i = 0; i < memory_map->entries; i++)
     {
@@ -95,14 +95,14 @@ void vmm_unmap_page(uint64_t *page_table, uint64_t virt_page)
 void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags)
 {
     for (uint64_t i = ALIGN_DOWN(start, 4096); i < ALIGN_UP(end, 4096); i += PAGE_SIZE)
-	vmm_map_page(page_table, i, i + offset, flags);
+        vmm_map_page(page_table, i, i + offset, flags);
 }
 
 // unmap a whole physical memory region
 void vmm_unmap_range(uint64_t *page_table, uint64_t start, uint64_t end)
 {
     for (uint64_t i = ALIGN_DOWN(start, 4096); i < ALIGN_UP(end, 4096); i += PAGE_SIZE)
-	vmm_unmap_page(page_table, i);
+        vmm_unmap_page(page_table, i);
 }
 
 uint64_t *vmm_get_root_page_table(void)

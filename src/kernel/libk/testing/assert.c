@@ -29,5 +29,5 @@
 void assert_impl(char *file, int line_nr, bool condition, char *condition_str)
 {
     if (!condition)
-	log(PANIC, "Assert failed at: %s:%d with %s as the condition\n", file, line_nr, condition_str);
+        log(PANIC, "Assert failed at: %s:%d with %s as the condition\n", file, line_nr, condition_str);
 }

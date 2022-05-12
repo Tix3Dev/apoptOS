@@ -32,7 +32,7 @@ void slab_cache_reap(void);
 /* core functions */
 
 void slab_cache_create(const char *name, size_t size,
-	cache_ctor_t constructor, cache_dtor_t deconstructor)
+                       cache_ctor_t constructor, cache_dtor_t deconstructor)
 {
     //
 }

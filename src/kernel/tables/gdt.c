@@ -100,6 +100,6 @@ void gdt_init(void)
     gdt_pointer.base	    = (uint64_t)&gdt;
 
     _load_gdt_and_tss_asm((uintptr_t)&gdt_pointer);
-    
+
     log(INFO, "GDT initialized\n");
 }

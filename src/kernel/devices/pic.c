@@ -76,7 +76,7 @@ void pic_set_mask(uint8_t irq_line)
     uint8_t value;
 
     if (irq_line < 8)
-	port = PIC1_DATA;
+        port = PIC1_DATA;
     else
     {
         port = PIC2_DATA;

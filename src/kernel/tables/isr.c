@@ -56,7 +56,7 @@ static const char *exceptions[] =
     "— : Intel reserved. Do not use."
 };
 
-static const char *isa_irqs[] = 
+static const char *isa_irqs[] =
 {
     "Programmable Interrupt Timer",
     "Keyboard",
@@ -83,7 +83,7 @@ uint64_t isr_handler(uint64_t rsp)
     // handle exceptions
     if (cpu->isr_number < 32)
     {
-	debug_set_color(TERM_RED);
+        debug_set_color(TERM_RED);
         debug("\n────────────────────────\n");
         debug("⚠ EXCEPTION OCCURRED! ⚠\n\n");
         debug("⤷ ISR-No. %d: %s\n", cpu->isr_number, exceptions[cpu->isr_number]);
@@ -103,16 +103,16 @@ uint64_t isr_handler(uint64_t rsp)
 
         debug_set_color(TERM_COLOR_RESET);
 
-	for (;;)
-	    asm volatile("cli; hlt");
+        for (;;)
+            asm volatile("cli; hlt");
     }
     // handle ISA IRQ's
     else if (cpu->isr_number >= 32 && cpu->isr_number < 48)
     {
-	// check for specific IRQ, like keyboard interrupts
-	// otherwise continue here:
-	
-	debug_set_color(TERM_RED);
+        // check for specific IRQ, like keyboard interrupts
+        // otherwise continue here:
+
+        debug_set_color(TERM_RED);
         debug("\n────────────────────────\n");
         debug("⚠ UNKNOWN HARDWARE INTERRUPT OCCURRED! ⚠\n\n");
         debug("⤷ ISR-No. %d: %s\n", cpu->isr_number, isa_irqs[cpu->isr_number - 32]);
@@ -130,15 +130,15 @@ uint64_t isr_handler(uint64_t rsp)
               cpu->rsp, cpu->rflags, cpu->cs,  cpu->rip);
 
         debug_set_color(TERM_COLOR_RESET);
-	
-	pic_signal_eoi(cpu->isr_number);
+
+        pic_signal_eoi(cpu->isr_number);
     }
     // handle syscalls
     else if (cpu->isr_number == 128)
     {
-	// TODO syscalls
+        // TODO syscalls
 
-	debug_set_color(TERM_RED);
+        debug_set_color(TERM_RED);
         debug("\n────────────────────────\n");
         debug("⚠ SYSCALL OCCURRED - UNHANDLED FOR NOW! ⚠\n\n");
         debug("⤷ ISR-No. %d\n", cpu->isr_number);
@@ -161,7 +161,7 @@ uint64_t isr_handler(uint64_t rsp)
     // handle unknown interrupts
     else
     {
-	debug_set_color(TERM_RED);
+        debug_set_color(TERM_RED);
         debug("\n────────────────────────\n");
         debug("⚠ UNKNOWN INTERRUPT OCCURRED! ⚠\n\n");
         debug("⤷ ISR-No. %d\n", cpu->isr_number);
@@ -180,8 +180,8 @@ uint64_t isr_handler(uint64_t rsp)
 
         debug_set_color(TERM_COLOR_RESET);
 
-	for (;;)
-	    asm volatile("cli; hlt");
+        for (;;)
+            asm volatile("cli; hlt");
     }
 
     return rsp;
