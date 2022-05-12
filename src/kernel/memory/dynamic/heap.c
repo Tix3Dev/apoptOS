@@ -15,32 +15,28 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stddef.h>
+/*
 
-#ifndef SLAB_H
-#define SLAB_H
+    Brief file description:
+    blah
 
-typedef void (*cache_ctor_t)(size_t);
-typedef void (*cache_dtor_t)(size_t);
+*/
 
-typedef struct slab_object
+#include <memory/dynamic/heap.h>
+#include <memory/virtual/vmm.h>
+#include <memory/mem.h>
+
+/* utility function prototypes */
+
+// 
+
+/* core functions */
+
+void heap_init(void)
 {
-    void *freelist;
-} slab_t;
+    vmm_map_range(root_page_table, 0, HEAP_ADDR + HEAP`
+}
 
-typedef struct slab_state
-{
-    struct slab_t *slabs;
-} slab_state_t;
+/* utility functions */
 
-typedef struct slab_cache
-{
-    struct slab_state *full;
-    struct slab_state *empty;
-    struct slab_state *partial;
-
-    cache_ctor_t constructor;
-    cache_dtor_t deconstructor;
-} slab_cache_t;
-
-#endif
+//

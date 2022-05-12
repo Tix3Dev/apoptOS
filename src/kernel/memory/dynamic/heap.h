@@ -15,32 +15,11 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stddef.h>
+#ifndef HEAP_H
+#define HEAP_H
 
-#ifndef SLAB_H
-#define SLAB_H
+// datatypes / variables
 
-typedef void (*cache_ctor_t)(size_t);
-typedef void (*cache_dtor_t)(size_t);
-
-typedef struct slab_object
-{
-    void *freelist;
-} slab_t;
-
-typedef struct slab_state
-{
-    struct slab_t *slabs;
-} slab_state_t;
-
-typedef struct slab_cache
-{
-    struct slab_state *full;
-    struct slab_state *empty;
-    struct slab_state *partial;
-
-    cache_ctor_t constructor;
-    cache_dtor_t deconstructor;
-} slab_cache_t;
+// core functions
 
 #endif
