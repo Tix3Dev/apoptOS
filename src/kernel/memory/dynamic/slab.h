@@ -23,14 +23,14 @@
 typedef void (*cache_ctor_t)(size_t);
 typedef void (*cache_dtor_t)(size_t);
 
-typedef struct slab_object
+typedef struct slab
 {
-    void *freelist;
+    void *objects; // or freelist?
 } slab_t;
 
 typedef struct slab_state
 {
-    struct slab_t *slabs;
+    struct slab *slabs;
 } slab_state_t;
 
 typedef struct slab_cache

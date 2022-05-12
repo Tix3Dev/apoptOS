@@ -54,13 +54,13 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     assert(root_page_table != NULL);
 
     // identity map 0x0 - 0x100000000
-    vmm_map_range(root_page_table, 0, 4 * GB, 0, KERNEL_READ_WRITE);
+    vmm_map_range(root_page_table, 0, 4 * GiB, 0, KERNEL_READ_WRITE);
 
     // map 0x0 - 0x100000000 to 0xFFFF800000000000 - 0xFFFF800100000000
-    vmm_map_range(root_page_table, 0, 4 * GB, HIGHER_HALF_DATA, KERNEL_READ_WRITE);
+    vmm_map_range(root_page_table, 0, 4 * GiB, HIGHER_HALF_DATA, KERNEL_READ_WRITE);
 
     // map 0x0 - 0x80000000 to 0xFFFFFFFF80000000 - 0x0001000000000000
-    vmm_map_range(root_page_table, 0, 2 * GB, HIGHER_HALF_CODE, KERNEL_READ);
+    vmm_map_range(root_page_table, 0, 2 * GiB, HIGHER_HALF_CODE, KERNEL_READ);
     
     // map all entries of memory map to 0xFFFF800000000000
     for (uint64_t i = 0; i < memory_map->entries; i++)
@@ -103,6 +103,11 @@ void vmm_unmap_range(uint64_t *page_table, uint64_t start, uint64_t end)
 {
     for (uint64_t i = ALIGN_DOWN(start, 4096); i < ALIGN_UP(end, 4096); i += PAGE_SIZE)
 	vmm_unmap_page(page_table, i);
+}
+
+uint64_t *vmm_get_root_page_table(void)
+{
+    return root_page_table;
 }
 
 /* utility functions */

@@ -22,21 +22,15 @@
 
 */
 
+#include <boot/stivale2.h>
+#include <libk/serial/log.h>
 #include <memory/dynamic/heap.h>
 #include <memory/virtual/vmm.h>
 #include <memory/mem.h>
 
-/* utility function prototypes */
-
-// 
-
-/* core functions */
-
 void heap_init(void)
 {
-    vmm_map_range(root_page_table, 0, HEAP_ADDR + HEAP`
+    vmm_map_range(vmm_get_root_page_table(), 0, HEAP_ADDR_END, HEAP_ADDR_START, KERNEL_READ_WRITE);
+
+    log(INFO, "Initialized heap - Mapped its virtual memory region\n");
 }
-
-/* utility functions */
-
-//

@@ -26,7 +26,8 @@
 
 /* utility function prototypes */
 
-// 
+void slab_cache_grow(void);
+void slab_cache_reap(void);
 
 /* core functions */
 
@@ -43,7 +44,11 @@ void slab_cache_destroy(void)
 
 void slab_cache_alloc(void)
 {
-    //
+    // use free object from partial state
+    // if not existing use free object from empty state
+    // if not existing create empty slab
+
+    // after using a free object, check if state of slab has to be changed
 }
 
 void slab_cache_free(void)

@@ -18,10 +18,11 @@
 /*
 
     Brief file description:
-    General purpose system caches.
+    Blah
 
 */
 
+#include <libk/serial/log.h>
 #include <memory/dynamic/system_slab.h>
 
 /* utility function prototypes */
@@ -32,7 +33,7 @@
 
 void system_slab_init(void)
 {
-    // create cache(s)
+    log(INFO, "Initialized general purpose system slab cache\n");
 }
 
 void system_slab_alloc(size_t size)

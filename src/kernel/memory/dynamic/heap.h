@@ -18,8 +18,6 @@
 #ifndef HEAP_H
 #define HEAP_H
 
-// datatypes / variables
-
-// core functions
+void heap_init(void);
 
 #endif

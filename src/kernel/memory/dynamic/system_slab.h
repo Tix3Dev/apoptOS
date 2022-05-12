@@ -20,8 +20,8 @@
 #ifndef SYSTEM_SLAB_H
 #define SYSTEM_SLAB_H
 
-// datatypes / variables
-
-// core functions
+void system_slab_init(void);
+void system_slab_alloc(size_t size);
+void system_slab_free(void *ptr);
 
 #endif

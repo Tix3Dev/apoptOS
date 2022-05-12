@@ -30,6 +30,8 @@
 #include <libk/serial/log.h>
 #include <libk/testing/assert.h>
 #include <memory/mem.h>
+#include <memory/dynamic/heap.h>
+#include <memory/dynamic/system_slab.h>
 #include <memory/physical/pmm.h>
 #include <memory/virtual/vmm.h>
 #include <tables/gdt.h>
@@ -66,6 +68,10 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
 
     pmm_init(stivale2_struct);
     vmm_init(stivale2_struct);
+    
     gdt_init();
     idt_init();
+
+    heap_init();
+    system_slab_init();
 }
