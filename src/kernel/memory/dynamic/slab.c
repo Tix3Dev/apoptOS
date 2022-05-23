@@ -22,7 +22,10 @@
 
 */
 
+#include <boot/stivale2.h>
+// #include <libk/testing/assert.h>
 #include <memory/dynamic/slab.h>
+#include <memory/physical/pmm.h>
 
 /* utility function prototypes */
 
@@ -31,10 +34,21 @@ void slab_cache_reap(void);
 
 /* core functions */
 
-void slab_cache_create(const char *name, size_t size,
+slab_cache_t *slab_cache_create(const char *name, size_t slab_size,
                        cache_ctor_t constructor, cache_dtor_t deconstructor)
 {
-    //
+    // assert: power of two, greater than 0, page aligned if over 4096
+
+    slab_cache_t *cache = (slab_cache_t *)pmm_alloc(1);
+
+    cache->name = name;
+    cache->slab_size = slab_size;
+    cache->constructor = constructor;
+    cache->deconstructor = deconstructor;
+
+    cache->slabs = NULL;
+
+    return cache;
 }
 
 void slab_cache_destroy(void)
@@ -42,18 +56,29 @@ void slab_cache_destroy(void)
     //
 }
 
-void slab_cache_alloc(void)
+void *slab_cache_alloc(slab_cache_t *cache) // TODO: add flags
 {
-    // use free object from partial state
-    // if not existing use free object from empty state
-    // if not existing create empty slab
-
-    // after using a free object, check if state of slab has to be changed
+    // check if cache exists
+    //
+    // check if slabs exist
+    //
+    // iterate over all slabs, check if freelist exists - if yes:
+    //	remove bufctl from freelist
+    //	return it's address
+    // if no:
+    //	continue
+    //
+    // grow cache if allowed
 }
 
-void slab_cache_free(void)
+void slab_cache_free(slab_cache_t *cache, void *pointer)
 {
+    // check if cache exists
     //
+    // check if pointer exists
+    // 
+    // iterate over slabs, check if freelist exists - if yes:
+    //	add ptr to freelist
 }
 
 /* utility functions */

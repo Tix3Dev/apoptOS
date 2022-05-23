@@ -17,30 +17,40 @@
 
 #include <stddef.h>
 
+#include <libk/data_structs/linked_list.h>
+
 #ifndef SLAB_H
 #define SLAB_H
 
 typedef void (*cache_ctor_t)(size_t);
 typedef void (*cache_dtor_t)(size_t);
 
-typedef struct slab
+// TODO: flags
+
+typedef struct
 {
-    void *objects; // or freelist?
+    slist_t next;
+
+    void *pointer;
+} slab_bufctl_t;
+
+typedef struct
+{
+    slist_t next;
+    slist_t prev;
+
+    slab_bufctl_t *freelist;
 } slab_t;
 
-typedef struct slab_state
+typedef struct
 {
-    struct slab *slabs;
-} slab_state_t;
-
-typedef struct slab_cache
-{
-    struct slab_state *full;
-    struct slab_state *empty;
-    struct slab_state *partial;
+    const char *name;
+    size_t slab_size;
 
     cache_ctor_t constructor;
     cache_dtor_t deconstructor;
+
+    slab_t *slabs;
 } slab_cache_t;
 
 #endif
