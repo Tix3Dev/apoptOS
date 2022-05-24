@@ -50,7 +50,7 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
             STIVALE2_STRUCT_TAG_MEMMAP_ID);
     struct stivale2_mmap_entry *current_entry;
 
-    root_page_table = pmm_allocz(1);
+    root_page_table = PHYS_TO_HIGHER_HALF_DATA(pmm_allocz(1));
     assert(root_page_table != NULL);
 
     // identity map 0x0 - 0x100000000
@@ -117,7 +117,7 @@ uint64_t *vmm_get_or_create_pml(uint64_t *pml, size_t pml_index, uint64_t flags)
 {
     // check present flag
     if (!(pml[pml_index] & 1))
-        pml[pml_index] = HIGHER_HALF_DATA_TO_PHYS((uint64_t)pmm_allocz(1)) | flags;
+        pml[pml_index] = (uint64_t)pmm_allocz(1) | flags;
 
     return (uint64_t *)(pml[pml_index] & ~(511));
 }
