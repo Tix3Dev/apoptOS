@@ -23,21 +23,31 @@
 */
 
 #include <boot/stivale2.h>
-// #include <libk/testing/assert.h>
+#include <libk/testing/assert.h>
 #include <memory/dynamic/slab.h>
 #include <memory/physical/pmm.h>
 
+
+
+
+// TODO: add flags!!!
+
+
+
+
 /* utility function prototypes */
 
-void slab_cache_grow(void);
+void slab_cache_grow(slab_cache_t *cache, size_t count);
 void slab_cache_reap(void);
+bool is_power_of_two(int num);
 
 /* core functions */
 
 slab_cache_t *slab_cache_create(const char *name, size_t slab_size,
                        cache_ctor_t constructor, cache_dtor_t deconstructor)
 {
-    // assert: power of two, greater than 0, page aligned if over 4096
+    assert(slab_size <= 512); // only support small slab sizes (PAGE_SIZE / 8)
+    assert(is_power_of_two(slab_size));
 
     slab_cache_t *cache = (slab_cache_t *)pmm_alloc(1);
 
@@ -56,7 +66,7 @@ void slab_cache_destroy(void)
     //
 }
 
-void *slab_cache_alloc(slab_cache_t *cache) // TODO: add flags
+void *slab_cache_alloc(slab_cache_t *cache)
 {
     // check if cache exists
     //
@@ -68,7 +78,7 @@ void *slab_cache_alloc(slab_cache_t *cache) // TODO: add flags
     // if no:
     //	continue
     //
-    // grow cache if allowed
+    // grow cache if allowed (flags)
 }
 
 void slab_cache_free(slab_cache_t *cache, void *pointer)
@@ -83,12 +93,29 @@ void slab_cache_free(slab_cache_t *cache, void *pointer)
 
 /* utility functions */
 
-void slab_cache_grow(void)
+void slab_cache_grow(slab_cache_t *cache, size_t count)
 {
+    // allocate whole page for bufctl
     //
+    // put slab at end of allocated bufctl (ptr + PAGE_SIZE - sizeof slab)
+    //
+    // bufctl_count = (PAGE_SIZE-1) / cache->slab_size
+    //
+    // for i in bufctl_count
+    //	create_bufctl
+    //
+    // insert slab into list
+    //
+    // create_bufctl()
+    //	insert bufctl into list
 }
 
 void slab_cache_reap(void)
 {
     //
+}
+
+bool is_power_of_two(int num)
+{
+    return (num > 0) && ((num & (num - 1)) == 0);
 }

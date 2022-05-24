@@ -31,6 +31,7 @@
 #include <libk/testing/assert.h>
 #include <memory/mem.h>
 #include <memory/dynamic/heap.h>
+#include <memory/dynamic/slab.h>
 #include <memory/physical/pmm.h>
 #include <memory/virtual/vmm.h>
 #include <tables/gdt.h>
@@ -50,6 +51,14 @@ void kmain(struct stivale2_struct *stivale2_struct)
     kinit_all(stivale2_struct);
 
     log(INFO, "All kernels parts initialized\n");
+
+
+    /* heap testing start */
+
+    slab_cache_create("test filesystem cache", 256, NULL, NULL);
+
+    /* heap testing end */
+
 
     for (;;)
         asm volatile("hlt");

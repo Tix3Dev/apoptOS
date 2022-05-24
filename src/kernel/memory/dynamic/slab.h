@@ -15,6 +15,7 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include <libk/data_structs/linked_list.h>
@@ -52,5 +53,11 @@ typedef struct
 
     slab_t *slabs;
 } slab_cache_t;
+
+slab_cache_t *slab_cache_create(const char *name, size_t slab_size,
+                       cache_ctor_t constructor, cache_dtor_t deconstructor);
+void slab_cache_destroy(void);
+void *slab_cache_alloc(slab_cache_t *cache);
+void slab_cache_free(slab_cache_t *cache, void *pointer);
 
 #endif
