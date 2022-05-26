@@ -38,6 +38,8 @@
 bool slab_cache_grow(slab_cache_t *cache, size_t count);
 void slab_cache_reap(void);
 bool is_power_of_two(int num);
+slab_bufctl_t *slab_create_bufctl(void);
+slab_t *slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl);
 
 /* core functions */
 
@@ -98,15 +100,15 @@ void slab_cache_dump(slab_cache_t *cache)
 {
     debug("slab cache dump for '%s'\n", cache->name);
 
-    list_foreach(slab, next, cache->slabs)
-    {
-	debug("slab at %p\n", slab);
+    // list_foreach(slab, next, cache->slabs)
+    // {
+    //     debug("slab at %p\n", slab);
 
-	list_foreach(out, next, slab->freelist)
-	{
-	    debug("\tfreelist entry: %llx\n", out->pointer);
-	}
-    }
+    //     list_foreach(out, next, slab->freelist)
+    //     {
+    //         debug("\tfreelist entry: %llx\n", out->pointer);
+    //     }
+    // }
 }
 
 /* utility functions */
@@ -130,34 +132,45 @@ bool slab_cache_grow(slab_cache_t *cache, size_t count)
 
     for (size_t i = 0; i < count; i++)
     {
-	slab_bufctl_t *bufctl = (slab_bufctl_t *)pmm_alloc(1);
-
-	if (!bufctl)
-	    return false;
-
-	bufctl->next = (slist_t){};
-
-	slab_t *slab = (slab_t *)(((uintptr_t)bufctl - PAGE_SIZE) - sizeof(slab_t));
-
-	slab->next = (slist_t){};
-
-	slab->freelist = bufctl;
-
-	if (!cache->slabs)
-	    cache->slabs = slab;
-	else
-	{
-	    slab_t *tail = NULL;
-
-	    list_foreach(out, next, cache->slabs)
-		tail = out;
-
-	    list_set_next(slab, next, tail);
-
-	    tail->next = (slist_t){};
-	}
-
+	slab_bufctl_t *bufctl = slab_create_bufctl();
 	
+	slab_t *slab = slab_create_slab(cache, bufctl);
+	
+    }
+}
+
+slab_bufctl_t *slab_create_bufctl(void)
+{
+    slab_bufctl_t *bufctl = (slab_bufctl_t *)pmm_alloc(1);
+
+    if (!bufctl)
+	return false;
+
+    bufctl->next = :ULL;
+    
+    return bufctl;
+}
+
+slab_t *slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
+{
+    slab_t *slab = (slab_t *)(((uintptr_t)bufctl - PAGE_SIZE) - sizeof(slab_t));
+
+    slab->next = NULL;
+
+    slab->freelist = bufctl;
+
+    if (!cache->slabs)
+	cache->slabs = slab;
+    else
+    {
+	slab_t *tail = NULL;
+
+	list_foreach(out, next, cache->slabs)
+	    tail = out;
+
+	list_set_next(slab, next, tail);
+
+	tail->next = (slist_t){};
     }
 }
 
