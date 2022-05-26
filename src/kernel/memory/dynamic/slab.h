@@ -18,8 +18,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include <libk/data_structs/linked_list.h>
-
 #ifndef SLAB_H
 #define SLAB_H
 
@@ -28,17 +26,16 @@ typedef void (*cache_dtor_t)(size_t);
 
 // TODO: flags
 
-typedef struct
+typedef struct slab_bufctl
 {
-    slist_t next;
+    struct slab_bufctl *next;
 
     void *pointer;
 } slab_bufctl_t;
 
-typedef struct
+typedef struct slab
 {
-    slist_t next;
-    slist_t prev;
+    struct slab *next;
 
     slab_bufctl_t *freelist;
 } slab_t;
@@ -59,5 +56,6 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size,
 void slab_cache_destroy(void);
 void *slab_cache_alloc(slab_cache_t *cache);
 void slab_cache_free(slab_cache_t *cache, void *pointer);
+void slab_cache_dump(slab_cache_t *cache);
 
 #endif

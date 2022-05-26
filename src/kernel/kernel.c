@@ -55,7 +55,9 @@ void kmain(struct stivale2_struct *stivale2_struct)
 
     /* heap testing start */
 
-    slab_cache_create("test filesystem cache", 256, NULL, NULL);
+    slab_cache_t *dummy1 = slab_cache_create("test filesystem cache", 256, NULL, NULL);
+
+    slab_cache_dump(dummy1);
 
     /* heap testing end */
 
@@ -80,5 +82,5 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
     gdt_init();
     idt_init();
 
-    heap_init();
+    // heap_init();
 }

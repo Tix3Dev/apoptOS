@@ -30,25 +30,25 @@
 
 /* core functions */
 
-void heap_init(void)
-{
-    vmm_map_range(vmm_get_root_page_table(), 0, HEAP_ADDR_END, HEAP_ADDR_START, KERNEL_READ_WRITE);
-
-    log(INFO, "Initialized heap virtual memory region\n");
-
-    // create system slab
-    
-    log(INFO, "Initialized general purpose system slab cache\n");
-
-    log(INFO, "Initialized heap\n");
-}
-
-void *heap_alloc(size_t size)
-{
-    //
-}
-
-void heap_free(void *pointer)
-{
-    //
-}
+// void heap_init(void)
+// {
+//     vmm_map_range(vmm_get_root_page_table(), 0, HEAP_ADDR_END, HEAP_ADDR_START, KERNEL_READ_WRITE);
+// 
+//     log(INFO, "Initialized heap virtual memory region\n");
+// 
+//     // create system slab
+//     
+//     log(INFO, "Initialized general purpose system slab cache\n");
+// 
+//     log(INFO, "Initialized heap\n");
+// }
+// 
+// void *heap_alloc(size_t size)
+// {
+//     //
+// }
+// 
+// void heap_free(void *pointer)
+// {
+//     //
+// }
