@@ -100,15 +100,25 @@ void slab_cache_dump(slab_cache_t *cache)
 {
     debug("slab cache dump for '%s'\n", cache->name);
 
-    // list_foreach(slab, next, cache->slabs)
-    // {
-    //     debug("slab at %p\n", slab);
+    slab_t *head = cache->slabs;
 
-    //     list_foreach(out, next, slab->freelist)
-    //     {
-    //         debug("\tfreelist entry: %llx\n", out->pointer);
-    //     }
-    // }
+    for (;;)
+    {
+	if (!head)
+	    break;
+
+	for (;;)
+	{
+	    if (!head->freelist)
+		continue;
+
+	    debug("slab ptr: %p | bufctl ptr: %p\n", head->freelist);
+
+	    head->freelist = head->freelist->next;
+	}
+
+	head = head->next;
+    }
 }
 
 /* utility functions */
@@ -136,6 +146,10 @@ bool slab_cache_grow(slab_cache_t *cache, size_t count)
 	
 	slab_t *slab = slab_create_slab(cache, bufctl);
 	
+	size_t bufctl_count = (PAGE_SIZE - sizeof(slab_cache_t)) / cache->slab_size;
+
+	for (size_t j = 0; j < bufctl_count; j++)
+	    slab_init_bufctls(cache, bufctl, j);
     }
 }
 
@@ -146,7 +160,7 @@ slab_bufctl_t *slab_create_bufctl(void)
     if (!bufctl)
 	return false;
 
-    bufctl->next = :ULL;
+    bufctl->next = NULL;
     
     return bufctl;
 }
@@ -162,16 +176,19 @@ slab_t *slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
     if (!cache->slabs)
 	cache->slabs = slab;
     else
-    {
-	slab_t *tail = NULL;
+	cache->slabs->next = slab;
+}
 
-	list_foreach(out, next, cache->slabs)
-	    tail = out;
+void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
+{
+    slab_bufctl_t *new_bufctl = (uintptr_t)bufctl + cache->size * i;
+    new_bufctl->pointer = *new_bufctl; // TODO
 
-	list_set_next(slab, next, tail);
+    if (!cache->slabs->freelist)
+	cache->slabs->freelist = new_bufctl;
+    // else
 
-	tail->next = (slist_t){};
-    }
+
 }
 
 // void slab_cache_reap(void)
