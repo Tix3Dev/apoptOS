@@ -72,8 +72,10 @@ void kmain(struct stivale2_struct *stivale2_struct)
 
     debug("\nAllocation tests:\n\n");
 
-//     for (int i = 0; i < 31; i++)
-// 	slab_cache_alloc(dummy1);
+    void *ptrs[31] = {};
+    
+    for (int i = 0; i < 31; i++)
+	ptrs[i] = slab_cache_alloc(dummy1);
 
     void *d1ptr1 = slab_cache_alloc(dummy1);
     void *d1ptr2 = slab_cache_alloc(dummy1);
@@ -97,6 +99,9 @@ void kmain(struct stivale2_struct *stivale2_struct)
     slab_cache_free(dummy1, d1ptr1);
     slab_cache_free(dummy1, d1ptr2);
     slab_cache_free(dummy1, d1ptr3);
+
+    for (int i = 0; i < 31; i++)
+	slab_cache_free(dummy1, ptrs[i]);
 
     slab_cache_dump(dummy1);
 

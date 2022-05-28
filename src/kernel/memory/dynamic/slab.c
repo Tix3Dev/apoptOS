@@ -61,7 +61,7 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size)
 
     cache->slabs = NULL;
 
-    slab_cache_grow(cache, 1);
+    slab_cache_grow(cache, 2);
 
     return cache;
 }
