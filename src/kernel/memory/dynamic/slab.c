@@ -62,7 +62,7 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size,
 
     cache->slabs = NULL;
 
-    slab_cache_grow(cache, 1);
+    slab_cache_grow(cache, 3);
 
     return cache;
 }
@@ -97,31 +97,32 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size,
 //     //	add ptr to freelist
 // }
 
-static int i = 0;
-
 void slab_cache_dump(slab_cache_t *cache)
 {
-    debug("%d - slab cache dump for '%s'\n", i++, cache->name);
+    debug("Dump for cache with name '%s'\n", cache->name);
 
-    slab_t *head = cache->slabs;
+    cache->slabs = cache->slabs_head;
 
-    for (;;)
+    for (int slab_count = 0;; slab_count++)
     {
-	if (!head)
+	if (!cache->slabs)
 	    break;
 
-	debug("slab ptr: %p\n", head);
-	for (;;)
+	cache->slabs->freelist = cache->slabs->freelist_head;
+
+	debug("\tSlab no. %d is at %p\n", slab_count, cache->slabs);
+
+	for (int bufctl_count = 0;; bufctl_count++)
 	{
-	    if (!head->freelist)
+	    if (!cache->slabs->freelist)
 		goto done;
 
-	    debug("\tbufctl ptr: %p\n", head->freelist);
+	    debug("\t\tBufctl no. %d\t has pointer: %p\n", bufctl_count, cache->slabs->freelist);
 
-	    head->freelist = head->freelist->next;
+	    cache->slabs->freelist = cache->slabs->freelist->next;
 	}
 done:
-	head = head->next;
+	cache->slabs = cache->slabs->next;
     }
 }
 
@@ -141,13 +142,8 @@ bool slab_cache_grow(slab_cache_t *cache, size_t count)
 	
 	size_t bufctl_count = (PAGE_SIZE - sizeof(slab_cache_t)) / cache->slab_size;
 
-	debug("expected bufctl_count: %d\n", bufctl_count);
 	for (size_t j = 0; j < bufctl_count; j++)
-	{
 	    slab_init_bufctls(cache, bufctl, j);
-	    slab_cache_dump(cache);
-	    debug("\n");
-	}
     }
 
     return true;
@@ -173,11 +169,14 @@ void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
 
     slab->next = NULL;
 
-    // slab->freelist = bufctl;
     slab->freelist = NULL;
 
     if (!cache->slabs)
+    {
+	debug("Cache with name %s: First slab created - head set\n", cache->name);
+	cache->slabs_head = slab;
 	cache->slabs = slab;
+    }
     else
     {
 	cache->slabs->next = slab;
@@ -185,32 +184,23 @@ void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
     }
 }
 
-// hmmm
+// okay
 void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
 {
     slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
     new_bufctl->pointer = new_bufctl; // TODO
 
     if (!cache->slabs->freelist)
+    {
+	debug("Cache with name %s: First bufctl in current slab created - head set\n", cache->name);
+	cache->slabs->freelist_head = new_bufctl;
 	cache->slabs->freelist = new_bufctl;
+    }
     else
     {
         cache->slabs->freelist->next = new_bufctl;
         cache->slabs->freelist = cache->slabs->freelist->next;
-        
-        // new_bufctl->next = cache->slabs->freelist;
-        // cache->slabs->freelist = new_bufctl;
     }
- 
-    // if (cache->slabs->freelist != NULL)
-    // {
-    //     new_bufctl->next = cache->slabs->freelist;
-    //     cache->slabs->freelist = new_bufctl;
-    // }
-
-
-    // cache->slabs->freelist->next = new_bufctl;
-    // cache->slabs->freelist = new_bufctl;
 }
 
 void slab_cache_reap(void)

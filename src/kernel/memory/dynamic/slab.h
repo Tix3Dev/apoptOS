@@ -37,6 +37,7 @@ typedef struct slab
 {
     struct slab *next;
 
+    slab_bufctl_t *freelist_head;
     slab_bufctl_t *freelist;
 } slab_t;
 
@@ -48,6 +49,7 @@ typedef struct
     cache_ctor_t constructor;
     cache_dtor_t deconstructor;
 
+    slab_t *slabs_head;
     slab_t *slabs;
 } slab_cache_t;
 
