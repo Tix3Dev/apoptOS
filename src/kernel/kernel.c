@@ -55,7 +55,7 @@ void kmain(struct stivale2_struct *stivale2_struct)
 
     /* heap testing start */
 
-    slab_cache_t *dummy1 = slab_cache_create("test filesystem cache", 64, NULL, NULL);
+    slab_cache_t *dummy1 = slab_cache_create("test filesystem cache", 128, NULL, NULL);
     
     // slab_cache_t *dummy1 = (slab_cache_t *)pmm_alloc(1);
     // dummy1->name = "fs";
