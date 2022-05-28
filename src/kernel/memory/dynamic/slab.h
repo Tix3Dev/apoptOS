@@ -21,9 +21,6 @@
 #ifndef SLAB_H
 #define SLAB_H
 
-typedef void (*cache_ctor_t)(size_t);
-typedef void (*cache_dtor_t)(size_t);
-
 // TODO: flags
 
 typedef struct slab_bufctl
@@ -37,6 +34,8 @@ typedef struct slab
 {
     struct slab *next;
 
+    size_t bufctl_count;
+
     slab_bufctl_t *freelist_head;
     slab_bufctl_t *freelist;
 } slab_t;
@@ -45,16 +44,13 @@ typedef struct
 {
     const char *name;
     size_t slab_size;
-
-    cache_ctor_t constructor;
-    cache_dtor_t deconstructor;
+    size_t bufctl_count_max;
 
     slab_t *slabs_head;
     slab_t *slabs;
 } slab_cache_t;
 
-slab_cache_t *slab_cache_create(const char *name, size_t slab_size,
-                       cache_ctor_t constructor, cache_dtor_t deconstructor);
+slab_cache_t *slab_cache_create(const char *name, size_t slab_size);
 void slab_cache_destroy(void);
 void *slab_cache_alloc(slab_cache_t *cache);
 void slab_cache_free(slab_cache_t *cache, void *pointer);

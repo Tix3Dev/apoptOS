@@ -37,6 +37,15 @@
 #include <tables/gdt.h>
 #include <tables/idt.h>
 
+
+
+
+
+#include <libk/serial/debug.h>
+
+
+
+
 /* utility function prototypes */
 
 void kinit_all(struct stivale2_struct *stivale2_struct);
@@ -55,40 +64,34 @@ void kmain(struct stivale2_struct *stivale2_struct)
 
     /* heap testing start */
 
-    slab_cache_t *dummy1 = slab_cache_create("test filesystem cache", 128, NULL, NULL);
-    slab_cache_t *dummy2 = slab_cache_create("test heap cache", 256, NULL, NULL);
+    slab_cache_t *dummy1 = slab_cache_create("test filesystem cache", 128);
+    // slab_cache_t *dummy2 = slab_cache_create("test heap cache", 256);
     
-    // slab_cache_t *dummy1 = (slab_cache_t *)pmm_alloc(1);
-    // dummy1->name = "fs";
-    // dummy1->slab_size = 128;
-    // dummy1->constructor = NULL;
-    // dummy1->deconstructor = NULL;
+    slab_cache_dump(dummy1);
+    // slab_cache_dump(dummy2);
 
+    debug("\nAllocation tests:\n\n");
 
-    // slab_bufctl_t freelist4_2 = {NULL, (void *)0x012};
-    // slab_bufctl_t freelist4_1 = {&freelist4_2, (void *)0x012};
-    // slab_bufctl_t freelist4_0 = {&freelist4_1, (void *)0x012};
-    // slab_t slab4 = {NULL, &freelist4_0};
+//     for (int i = 0; i < 31; i++)
+// 	slab_cache_alloc(dummy1);
 
-    // slab_bufctl_t freelist3_2 = {NULL, (void *)0x012};
-    // slab_bufctl_t freelist3_1 = {&freelist3_2, (void *)0x012};
-    // slab_bufctl_t freelist3_0 = {&freelist3_1, (void *)0x012};
-    // slab_t slab3 = {&slab4, &freelist3_0};
+    void *d1ptr1 = slab_cache_alloc(dummy1);
+    void *d1ptr2 = slab_cache_alloc(dummy1);
+    void *d1ptr3 = slab_cache_alloc(dummy1);
 
-    // slab_bufctl_t freelist2_2 = {NULL, (void *)0x012};
-    // slab_bufctl_t freelist2_1 = {&freelist2_2, (void *)0x012};
-    // slab_bufctl_t freelist2_0 = {&freelist2_1, (void *)0x012};
-    // slab_t slab2 = {&slab3, &freelist2_0};
+    debug("d1ptr1: %p\n", d1ptr1);
+    debug("d1ptr2: %p\n", d1ptr2);
+    debug("d1ptr3: %p\n", d1ptr3);
 
-    // slab_bufctl_t freelist1_2 = {NULL, (void *)0x012};
-    // slab_bufctl_t freelist1_1 = {&freelist1_2, (void *)0x012};
-    // slab_bufctl_t freelist1_0 = {&freelist1_1, (void *)0x012};
-    // slab_t slab1 = {&slab2, &freelist1_0};
+    // void *d2ptr1 = slab_cache_alloc(dummy2);
+    // void *d2ptr2 = slab_cache_alloc(dummy2);
+    // void *d2ptr3 = slab_cache_alloc(dummy2);
 
-    // dummy1->slabs = &slab1;
+    // debug("d2ptr1: %p\n", d2ptr1);
+    // debug("d2ptr2: %p\n", d2ptr2);
+    // debug("d2ptr3: %p\n", d2ptr3);
 
     slab_cache_dump(dummy1);
-    slab_cache_dump(dummy2);
     // slab_cache_dump(dummy2);
 
     /* heap testing end */

@@ -44,8 +44,8 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
 
 /* core functions */
 
-slab_cache_t *slab_cache_create(const char *name, size_t slab_size,
-                       cache_ctor_t constructor, cache_dtor_t deconstructor)
+// okay
+slab_cache_t *slab_cache_create(const char *name, size_t slab_size)
 {
     assert(slab_size <= 512); // only support small slab sizes (PAGE_SIZE / 8)
     assert(is_power_of_two(slab_size));
@@ -57,12 +57,11 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size,
 
     cache->name = name;
     cache->slab_size = slab_size;
-    cache->constructor = constructor;
-    cache->deconstructor = deconstructor;
+    cache->bufctl_count_max = (PAGE_SIZE - sizeof(slab_cache_t)) / cache->slab_size;
 
     cache->slabs = NULL;
 
-    slab_cache_grow(cache, 3);
+    slab_cache_grow(cache, 1);
 
     return cache;
 }
@@ -71,32 +70,60 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size,
 // {
 //     //
 // }
-// 
+
+void *slab_cache_alloc(slab_cache_t *cache)
+{
+    if (!cache)
+	return NULL; // TODO: flags
+    
+    cache->slabs = cache->slabs_head;
+
+    for (;;)
+    {
+	if (!cache->slabs)
+	    return NULL;
+
+	if (cache->slabs->freelist_head)
+	    break;
+
+	cache->slabs = cache->slabs->next;
+    }
+
+    void *pointer = cache->slabs->freelist_head;
+
+    cache->slabs->freelist_head = cache->slabs->freelist_head->next;
+    cache->slabs->bufctl_count--;
+
+    return pointer;
+}
+
+
 // void *slab_cache_alloc(slab_cache_t *cache)
 // {
-//     // check if cache exists
-//     //
-//     // check if slabs exist
-//     //
-//     // iterate over all slabs, check if freelist exists - if yes:
-//     //	remove bufctl from freelist
-//     //	return it's address
-//     // if no:
-//     //	continue
-//     //
-//     // grow cache if allowed (flags)
-// }
+//     if (!cache)
+// 	return NULL;
 // 
-// void slab_cache_free(slab_cache_t *cache, void *pointer)
-// {
-//     // check if cache exists
-//     //
-//     // check if pointer exists
-//     // 
-//     // iterate over slabs, check if freelist exists - if yes:
-//     //	add ptr to freelist
+//     cache->slabs = cache->slabs_head;
+// 
+//     if (!cache->slabs)
+// 	return NULL;
+// 
+// 
 // }
 
+void slab_cache_free(slab_cache_t *cache, void *pointer)
+{
+    // check if cache exists
+    //
+    // check if pointer exists
+    // 
+    // iterate over slabs, check if freelist exists - if yes:
+    //	add ptr to freelist
+
+
+}
+
+// okay
 void slab_cache_dump(slab_cache_t *cache)
 {
     debug("Dump for cache with name '%s'\n", cache->name);
@@ -129,6 +156,9 @@ done:
 /* utility functions */
 
 // okay - flags instead of bool
+//
+//
+// TODO: ensure that slabs and bufctl pointer is tail and not head or in between
 bool slab_cache_grow(slab_cache_t *cache, size_t count)
 {
     for (size_t i = 0; i < count; i++)
@@ -140,9 +170,7 @@ bool slab_cache_grow(slab_cache_t *cache, size_t count)
 	
 	slab_create_slab(cache, bufctl);
 	
-	size_t bufctl_count = (PAGE_SIZE - sizeof(slab_cache_t)) / cache->slab_size;
-
-	for (size_t j = 0; j < bufctl_count; j++)
+	for (size_t j = 0; j < cache->bufctl_count_max; j++)
 	    slab_init_bufctls(cache, bufctl, j);
     }
 
@@ -169,11 +197,13 @@ void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
 
     slab->next = NULL;
 
+    slab->bufctl_count = cache->bufctl_count_max;
+
+    slab->freelist_head = NULL;
     slab->freelist = NULL;
 
     if (!cache->slabs)
     {
-	debug("Cache with name %s: First slab created - head set\n", cache->name);
 	cache->slabs_head = slab;
 	cache->slabs = slab;
     }
@@ -188,11 +218,10 @@ void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
 void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
 {
     slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
-    new_bufctl->pointer = new_bufctl; // TODO
+    new_bufctl->pointer = new_bufctl;
 
     if (!cache->slabs->freelist)
     {
-	debug("Cache with name %s: First bufctl in current slab created - head set\n", cache->name);
 	cache->slabs->freelist_head = new_bufctl;
 	cache->slabs->freelist = new_bufctl;
     }

@@ -45,7 +45,7 @@
 // 
 // void *heap_alloc(size_t size)
 // {
-//     //
+//     // return slab_alloc + heap_offset
 // }
 // 
 // void heap_free(void *pointer)
