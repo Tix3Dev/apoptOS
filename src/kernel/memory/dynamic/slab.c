@@ -97,30 +97,28 @@ void *slab_cache_alloc(slab_cache_t *cache)
     return pointer;
 }
 
-
-// void *slab_cache_alloc(slab_cache_t *cache)
-// {
-//     if (!cache)
-// 	return NULL;
-// 
-//     cache->slabs = cache->slabs_head;
-// 
-//     if (!cache->slabs)
-// 	return NULL;
-// 
-// 
-// }
-
 void slab_cache_free(slab_cache_t *cache, void *pointer)
 {
-    // check if cache exists
-    //
-    // check if pointer exists
-    // 
-    // iterate over slabs, check if freelist exists - if yes:
-    //	add ptr to freelist
+    if (!cache)
+	return;
 
+    cache->slabs = cache->slabs_head;
 
+    for (;;)
+    {
+	if (!cache->slabs)
+	    return;
+
+	if (cache->slabs->bufctl_count < cache->bufctl_count_max)
+	    break;
+	
+	cache->slabs = cache->slabs->next;
+    }
+
+    ((slab_bufctl_t *)pointer)->next = cache->slabs->freelist_head;
+    cache->slabs->freelist_head = (slab_bufctl_t *)pointer;
+
+    cache->slabs->bufctl_count++;
 }
 
 // okay

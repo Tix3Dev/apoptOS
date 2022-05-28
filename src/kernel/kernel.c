@@ -94,6 +94,12 @@ void kmain(struct stivale2_struct *stivale2_struct)
     slab_cache_dump(dummy1);
     // slab_cache_dump(dummy2);
 
+    slab_cache_free(dummy1, d1ptr1);
+    slab_cache_free(dummy1, d1ptr2);
+    slab_cache_free(dummy1, d1ptr3);
+
+    slab_cache_dump(dummy1);
+
     /* heap testing end */
 
 
