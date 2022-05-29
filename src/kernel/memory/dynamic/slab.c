@@ -63,8 +63,7 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t
 
     cache->slabs = NULL;
 
-    // TODO: why can't do >2 ???
-    slab_cache_grow(cache, 2, flags);
+    slab_cache_grow(cache, 5, flags);
 
     return cache;
 }
@@ -97,6 +96,67 @@ void slab_cache_destroy(slab_cache_t *cache, slab_flags_t flags)
 
     memset(cache, 0, sizeof(slab_cache_t));
     pmm_free((void *)cache, 1);
+}
+
+void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
+{
+    if (!cache && (flags & SLAB_PANIC))
+	log(PANIC, "Slab cache grow (name missing): Cache doesn't exist\n");
+
+    if (!cache)
+	return;
+
+    cache->slabs = cache->slabs_head;
+
+    for (size_t i = 0; i < count; i++)
+    {
+        slab_bufctl_t *bufctl = slab_create_bufctl();
+
+        if (!bufctl && (flags & SLAB_PANIC))
+	    log(PANIC, "Slab cache grow ('%s'): Couldn't create bufctl\n", cache->name);
+
+        if (!bufctl)
+            return;
+        
+        slab_create_slab(cache, bufctl);
+        
+        for (size_t j = 0; j < cache->bufctl_count_max; j++)
+            slab_init_bufctls(cache, bufctl, j);
+    }
+}
+
+void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
+{
+    if (!cache && (flags & SLAB_PANIC))
+	log(PANIC, "Slab cache reap (name missing): Cache doesn't exist\n");
+
+    if (!cache)
+	return;
+
+    cache->slabs = cache->slabs_head;
+
+    // if (cache->slabs->bufctl_count == cache->bufctl_count_max)
+    // {
+    //     cache->slabs_head = cache->slabs->next;
+
+    //     pmm_free((void *)cache->slabs->freelist_head, 1);
+    // }
+
+    // for (;;)
+    // {
+    //     if (!cache->slabs || !cache->slabs->next)
+    //         return;
+
+    //     if (cache->slabs->next->bufctl_count == cache->bufctl_count_max)
+    //     {
+    //         slab_t *free_slab = cache->slabs->next;
+    //         cache->slabs->next = cache->slabs->next->next;
+
+    //         pmm_free((void *)free_slab, 1);
+    //     }
+
+    //     cache->slabs = cache->slabs->next;
+    // }
 }
 
 void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags)
@@ -171,69 +231,6 @@ void slab_cache_free(slab_cache_t *cache, void *pointer, slab_flags_t flags)
     cache->slabs->bufctl_count++;
 }
 
-void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
-{
-    if (!cache && (flags & SLAB_PANIC))
-	log(PANIC, "Slab cache grow (name missing): Cache doesn't exist\n");
-
-    if (!cache)
-	return;
-
-    for (size_t i = 0; i < count; i++)
-    {
-	cache->slabs = cache->slabs_head;
-
-        slab_bufctl_t *bufctl = slab_create_bufctl();
-
-        if (!bufctl && (flags & SLAB_PANIC))
-	    log(PANIC, "Slab cache grow ('%s'): Couldn't create bufctl\n", cache->name);
-
-        if (!bufctl)
-            return;
-        
-        slab_create_slab(cache, bufctl);
-        
-        for (size_t j = 0; j < cache->bufctl_count_max; j++)
-            slab_init_bufctls(cache, bufctl, j);
-    }
-}
-
-void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
-{
-    if (!cache && (flags & SLAB_PANIC))
-	log(PANIC, "Slab cache reap (name missing): Cache doesn't exist\n");
-
-    if (!cache)
-	return;
-
-    cache->slabs = cache->slabs_head;
-
-    if (cache->slabs->bufctl_count == cache->bufctl_count_max)
-    {
-	cache->slabs_head = cache->slabs->next;
-
-	pmm_free((void *)cache->slabs->freelist_head, 1);
-    }
-    else
-    {
-	for (;;)
-	{
-	    if (!cache->slabs || !cache->slabs->next)
-		return;
-
-	    if (cache->slabs->next->bufctl_count == cache->bufctl_count_max)
-	    {
-		slab_t *free_slab = cache->slabs->next;
-		cache->slabs->next = cache->slabs->next->next;
-
-		pmm_free((void *)free_slab, 1);
-	    }
- 
-	    cache->slabs = cache->slabs->next;
-	}
-    }
-}
-
 void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
 {
     if (!cache->slabs && (flags & SLAB_PANIC))
@@ -298,6 +295,7 @@ void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
 
     if (!cache->slabs)
     {
+	debug("\nomg first time\n\n");
 	cache->slabs_head = slab;
 	cache->slabs = slab;
     }

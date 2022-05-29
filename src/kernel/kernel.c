@@ -64,7 +64,7 @@ void kmain(struct stivale2_struct *stivale2_struct)
 
     /* heap testing start */
 
-    slab_cache_t *dummy1 = slab_cache_create("test filesystem cache", 128, SLAB_PANIC);
+    slab_cache_t *dummy1 = slab_cache_create("test filesystem cache", 512, SLAB_PANIC);
     
     debug("---before allocation---\n");
     slab_cache_dump(dummy1, SLAB_PANIC);
