@@ -21,8 +21,6 @@
 #ifndef SLAB_H
 #define SLAB_H
 
-// TODO: flags
-
 typedef struct slab_bufctl
 {
     struct slab_bufctl *next;
@@ -50,9 +48,15 @@ typedef struct
     slab_t *slabs;
 } slab_cache_t;
 
-slab_cache_t *slab_cache_create(const char *name, size_t slab_size);
+typedef enum
+{
+    SLAB_PANIC = 1,
+    SLAB_AUTO_GROW = (1 << 1)
+} slab_flags_t;
+
+slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t flags);
 void slab_cache_destroy(void);
-void *slab_cache_alloc(slab_cache_t *cache);
+void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags);
 void slab_cache_free(slab_cache_t *cache, void *pointer);
 void slab_cache_dump(slab_cache_t *cache);
 

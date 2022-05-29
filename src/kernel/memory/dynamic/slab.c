@@ -24,6 +24,7 @@
 
 #include <boot/stivale2.h>
 #include <libk/serial/debug.h>
+#include <libk/serial/log.h>
 #include <libk/testing/assert.h>
 #include <memory/dynamic/slab.h>
 #include <memory/physical/pmm.h>
@@ -35,7 +36,7 @@
 
 /* utility function prototypes */
 
-bool slab_cache_grow(slab_cache_t *cache, size_t count);
+void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags);
 void slab_cache_reap(void);
 bool is_power_of_two(int num);
 slab_bufctl_t *slab_create_bufctl(void);
@@ -44,13 +45,15 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
 
 /* core functions */
 
-// okay
-slab_cache_t *slab_cache_create(const char *name, size_t slab_size)
+slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t flags)
 {
     assert(slab_size <= 512); // only support small slab sizes (PAGE_SIZE / 8)
     assert(is_power_of_two(slab_size));
 
     slab_cache_t *cache = (slab_cache_t *)pmm_alloc(1);
+
+    if (!cache && (flags & SLAB_PANIC))
+	log(PANIC, "Slab cache create ('%s'): Couldn't allocate memory\n", name);
 
     if (!cache)
 	return NULL;
@@ -61,7 +64,7 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size)
 
     cache->slabs = NULL;
 
-    slab_cache_grow(cache, 2);
+    slab_cache_grow(cache, 1, flags);
 
     return cache;
 }
@@ -71,15 +74,28 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size)
 //     //
 // }
 
-void *slab_cache_alloc(slab_cache_t *cache)
+void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags)
 {
+    if (!cache && (flags & SLAB_PANIC))
+	log(PANIC, "Slab cache alloc (name missing): Cache doesn't exist\n");
+
     if (!cache)
-	return NULL; // TODO: flags
+	return NULL;
     
     cache->slabs = cache->slabs_head;
 
     for (;;)
     {
+	if (!cache->slabs && (flags & SLAB_AUTO_GROW))
+	{
+	    slab_cache_grow(cache, 1, flags);
+
+	    return slab_cache_alloc(cache, flags);
+	}
+
+	if (!cache->slabs && (flags & SLAB_PANIC))
+	    log(PANIC, "Slab cache alloc ('%s'): Found no allocatable memory\n", cache->name);
+
 	if (!cache->slabs)
 	    return NULL;
 
@@ -115,13 +131,15 @@ void slab_cache_free(slab_cache_t *cache, void *pointer)
 	cache->slabs = cache->slabs->next;
     }
 
-    ((slab_bufctl_t *)pointer)->next = cache->slabs->freelist_head;
-    cache->slabs->freelist_head = (slab_bufctl_t *)pointer;
+    slab_bufctl_t *new_bufctl = (slab_bufctl_t *)pointer;
 
+    new_bufctl->next = cache->slabs->freelist_head;
+    new_bufctl->pointer = (void *)new_bufctl; // just for sanity (would work without)
+
+    cache->slabs->freelist_head = new_bufctl;
     cache->slabs->bufctl_count++;
 }
 
-// okay
 void slab_cache_dump(slab_cache_t *cache)
 {
     debug("Dump for cache with name '%s'\n", cache->name);
@@ -135,14 +153,16 @@ void slab_cache_dump(slab_cache_t *cache)
 
 	cache->slabs->freelist = cache->slabs->freelist_head;
 
-	debug("\tSlab no. %d is at %p\n", slab_count, cache->slabs);
+	debug("\tSlab no. %d is at 0x%p\n", slab_count, cache->slabs);
 
 	for (int bufctl_count = 0;; bufctl_count++)
 	{
 	    if (!cache->slabs->freelist)
 		goto done;
 
-	    debug("\t\tBufctl no. %d\t has pointer: %p\n", bufctl_count, cache->slabs->freelist);
+	    // debug("\t\tBufctl no. %d\t at \t0x%p\n", bufctl_count, cache->slabs->freelist);
+	    // debug("\t\t\tHas pointer: \t0x%p\n", cache->slabs->freelist->pointer);
+	    debug("\t\tBufctl no. %d\t has pointer 0x%p\n", bufctl_count, cache->slabs->freelist->pointer);
 
 	    cache->slabs->freelist = cache->slabs->freelist->next;
 	}
@@ -153,29 +173,27 @@ done:
 
 /* utility functions */
 
-// okay - flags instead of bool
-//
-//
-// TODO: ensure that slabs and bufctl pointer is tail and not head or in between
-bool slab_cache_grow(slab_cache_t *cache, size_t count)
+void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
 {
     for (size_t i = 0; i < count; i++)
     {
-	slab_bufctl_t *bufctl = slab_create_bufctl();
+	cache->slabs = cache->slabs_head;
 
-	if (!bufctl)
-	    return false;
-	
-	slab_create_slab(cache, bufctl);
-	
-	for (size_t j = 0; j < cache->bufctl_count_max; j++)
-	    slab_init_bufctls(cache, bufctl, j);
+        slab_bufctl_t *bufctl = slab_create_bufctl();
+
+        if (!bufctl && (flags & SLAB_PANIC))
+	    log(PANIC, "Slab cache grow ('%s'): Couldn't create bufctl\n", cache->name);
+
+        if (!bufctl)
+            return;
+        
+        slab_create_slab(cache, bufctl);
+        
+        for (size_t j = 0; j < cache->bufctl_count_max; j++)
+            slab_init_bufctls(cache, bufctl, j);
     }
-
-    return true;
 }
 
-// okay
 slab_bufctl_t *slab_create_bufctl(void)
 {
     slab_bufctl_t *bufctl = (slab_bufctl_t *)pmm_alloc(1);
@@ -188,7 +206,6 @@ slab_bufctl_t *slab_create_bufctl(void)
     return bufctl;
 }
 
-// okay
 void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
 {
     slab_t *slab = (slab_t *)(((uintptr_t)bufctl + PAGE_SIZE) - sizeof(slab_t));
@@ -212,7 +229,6 @@ void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
     }
 }
 
-// okay
 void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
 {
     slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
