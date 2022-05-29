@@ -16,6 +16,7 @@
 - IDT and ISR's
 - Physical memory management -> Bitmap based allocator
 - Virtual memory management -> 4-level paging support
+- Heap memory -> Slab allocator
 - Serial communication
 - Basic kernel library
 
