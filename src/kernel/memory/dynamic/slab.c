@@ -187,7 +187,7 @@ void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
     {
 	for (;;)
 	{
-	    if (!cache->slabs->next)
+	    if (!cache->slabs || !cache->slabs->next)
 		return;
 
 	    if (cache->slabs->next->bufctl_count == cache->bufctl_count_max)
