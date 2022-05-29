@@ -25,6 +25,7 @@
 #include <boot/stivale2.h>
 #include <libk/serial/debug.h>
 #include <libk/serial/log.h>
+#include <libk/string/string.h>
 #include <libk/testing/assert.h>
 #include <memory/dynamic/slab.h>
 #include <memory/physical/pmm.h>
@@ -68,10 +69,35 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t
     return cache;
 }
 
-// void slab_cache_destroy(void)
-// {
-//     //
-// }
+void slab_cache_destroy(slab_cache_t *cache, slab_flags_t flags)
+{
+    if (!cache && (flags & SLAB_PANIC))
+	log(PANIC, "Slab cache destroy (name missing): Cache doesn't exist\n");
+
+    if (!cache)
+	return;
+
+    cache->slabs = cache->slabs_head;
+
+    for (;;)
+    {
+	if (!cache->slabs)
+	    break;
+
+	if ((cache->slabs->bufctl_count != cache->bufctl_count_max) && (flags & SLAB_PANIC))
+	    log(PANIC, "Slab cache destroy ('%s'): A slab wasn't compeltely free\n", cache->name);
+
+	if (cache->slabs->bufctl_count != cache->bufctl_count_max)
+	    return;
+
+	pmm_free((void *)cache->slabs->freelist_head, 1);
+
+	cache->slabs = cache->slabs->next;
+    }
+
+    memset(cache, 0, sizeof(slab_cache_t));
+    pmm_free((void *)cache, 1);
+}
 
 void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags)
 {
@@ -93,7 +119,7 @@ void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags)
 	}
 
 	if (!cache->slabs && (flags & SLAB_PANIC))
-	    log(PANIC, "Slab cache alloc ('%s'): Found no allocatable memory\n", cache->name);
+	    log(PANIC, "Slab cache alloc ('%s'): Couldn't find allocatable memory\n", cache->name);
 
 	if (!cache->slabs)
 	    return NULL;
@@ -112,9 +138,11 @@ void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags)
     return pointer;
 }
 
-// TODO: add flags
-void slab_cache_free(slab_cache_t *cache, void *pointer)
+void slab_cache_free(slab_cache_t *cache, void *pointer, slab_flags_t flags)
 {
+    if (!cache && (flags & SLAB_PANIC))
+	log(PANIC, "Slab cache free (name missing): Cache doesn't exist\n");
+
     if (!cache)
 	return;
 
@@ -122,6 +150,9 @@ void slab_cache_free(slab_cache_t *cache, void *pointer)
 
     for (;;)
     {
+	if (!cache->slabs && (flags & SLAB_PANIC))
+	    log(PANIC, "Slab cache free ('%s'): Couldn't find a slab for the to be freed pointer\n", cache->name);
+
 	if (!cache->slabs)
 	    return;
 
@@ -203,8 +234,14 @@ void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
     }
 }
 
-void slab_cache_dump(slab_cache_t *cache)
+void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
 {
+    if (!cache->slabs && (flags & SLAB_PANIC))
+	log(PANIC, "Slab cache dump (name missing): Slabs don't exist\n");
+
+    if (!cache->slabs)
+	return;
+
     debug("Dump for cache with name '%s'\n", cache->name);
 
     cache->slabs = cache->slabs_head;

@@ -65,11 +65,9 @@ void kmain(struct stivale2_struct *stivale2_struct)
     /* heap testing start */
 
     slab_cache_t *dummy1 = slab_cache_create("test filesystem cache", 128, SLAB_PANIC);
-    // slab_cache_t *dummy2 = slab_cache_create("test heap cache", 256);
     
     debug("---before allocation---\n");
-    slab_cache_dump(dummy1);
-    // slab_cache_dump(dummy2);
+    slab_cache_dump(dummy1, SLAB_PANIC);
 
     debug("---now allocating---\n");
 
@@ -88,30 +86,26 @@ void kmain(struct stivale2_struct *stivale2_struct)
     debug("d1ptr2: 0x%p\n", d1ptr2);
     debug("d1ptr3: 0x%p\n", d1ptr3);
 
-    // void *d2ptr1 = slab_cache_alloc(dummy2);
-    // void *d2ptr2 = slab_cache_alloc(dummy2);
-    // void *d2ptr3 = slab_cache_alloc(dummy2);
-
-    // debug("d2ptr1: %p\n", d2ptr1);
-    // debug("d2ptr2: %p\n", d2ptr2);
-    // debug("d2ptr3: %p\n", d2ptr3);
-
     debug("---after allocation and before reap---\n");
-    slab_cache_dump(dummy1);
+    slab_cache_dump(dummy1, SLAB_PANIC);
 
     slab_cache_reap(dummy1, SLAB_PANIC);
-    debug("---before freeing and after reap---\n");
-    // slab_cache_dump(dummy2);
+    debug("---after reap---\n");
+    slab_cache_dump(dummy1, SLAB_PANIC);
 
 //     for (int i = 0; i < 31; i++)
 // 	slab_cache_free(dummy1, ptrs[i]);
 
-    slab_cache_free(dummy1, d1ptr1);
-    slab_cache_free(dummy1, d1ptr2);
-    slab_cache_free(dummy1, d1ptr3);
+    slab_cache_free(dummy1, d1ptr1, SLAB_PANIC);
+    slab_cache_free(dummy1, d1ptr2, SLAB_PANIC);
+    slab_cache_free(dummy1, d1ptr3, SLAB_PANIC);
 
     debug("--after freeing---\n");
-    slab_cache_dump(dummy1);
+    slab_cache_dump(dummy1, SLAB_PANIC);
+
+    slab_cache_destroy(dummy1, SLAB_PANIC);
+    debug("--after destroying cache---\n");
+    slab_cache_dump(dummy1, SLAB_PANIC);
 
     /* heap testing end */
 
