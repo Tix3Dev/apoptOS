@@ -63,7 +63,7 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t
 
     cache->slabs = NULL;
 
-    slab_cache_grow(cache, 6, flags);
+    slab_cache_grow(cache, 1, flags);
 
     return cache;
 }
@@ -135,38 +135,10 @@ void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
 
     cache->slabs = cache->slabs_head;
 
-    // if (cache->slabs->bufctl_count == cache->bufctl_count_max)
-    // {
-    //     cache->slabs_head = cache->slabs->next;
-
-    //     pmm_free((void *)cache->slabs->freelist_head, 1);
-    // }
-
-    // for (;;)
-    // {
-    //     if (!cache->slabs || !cache->slabs->next)
-    //         return;
-
-    //     if (cache->slabs->next->bufctl_count == cache->bufctl_count_max)
-    //     {
-    //         slab_t *free_slab = cache->slabs->next;
-    //         cache->slabs->next = cache->slabs->next->next;
-
-    //         pmm_free((void *)free_slab, 1);
-    //     }
-
-    //     cache->slabs = cache->slabs->next;
-    // }
-
     slab_t *prev = cache->slabs_head;
-    // slab_t *free_slab = cache->slabs_head;
 
-    int i = 0;
-    // for (int i = 0; i < 5; i++)
     for (;;)
     {
-	debug("%d\n", i++);
-	// debug("%d\n", i);
 	if (!cache->slabs)
 	{
 	    cache->slabs = cache->slabs_head;
@@ -178,22 +150,11 @@ void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
 	    if (cache->slabs == cache->slabs_head)
 		cache->slabs_head = cache->slabs->next;
 
-	    // prev->next = cache->slabs->next;
-	    // debug("\tprev: 0x%p\n", prev);
-	    // free_slab = cache->slabs;
-	    // debug("\tfree_slab: 0x%p\n", free_slab);
-	    // cache->slabs = cache->slabs->next;
-	    // debug("\tcache->slabs: 0x%p\n", cache->slabs);
-
 	    prev->next = cache->slabs->next;
-	    debug("\tprev: %p\n", prev);
-	    debug("\tprev->next: %p\n", prev->next);
 
 	    pmm_free((void *)cache->slabs, 1);
 
 	    cache->slabs = prev->next;
-	    debug("\tcache->slabs_head: %p\n", cache->slabs_head);
-	    debug("\tcache->slabs: %p\n", cache->slabs);
 
 	    continue;
 	}
