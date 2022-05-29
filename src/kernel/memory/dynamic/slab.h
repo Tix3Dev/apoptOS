@@ -58,6 +58,8 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t
 void slab_cache_destroy(void);
 void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags);
 void slab_cache_free(slab_cache_t *cache, void *pointer);
+void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags);
+void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags);
 void slab_cache_dump(slab_cache_t *cache);
 
 #endif

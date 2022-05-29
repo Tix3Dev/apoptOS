@@ -36,12 +36,10 @@
 
 /* utility function prototypes */
 
-void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags);
-void slab_cache_reap(void);
-bool is_power_of_two(int num);
 slab_bufctl_t *slab_create_bufctl(void);
 void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl);
 void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index);
+bool is_power_of_two(int num);
 
 /* core functions */
 
@@ -64,7 +62,8 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t
 
     cache->slabs = NULL;
 
-    slab_cache_grow(cache, 1, flags);
+    // TODO: why can't do >2 ???
+    slab_cache_grow(cache, 2, flags);
 
     return cache;
 }
@@ -113,6 +112,7 @@ void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags)
     return pointer;
 }
 
+// TODO: add flags
 void slab_cache_free(slab_cache_t *cache, void *pointer)
 {
     if (!cache)
@@ -138,6 +138,69 @@ void slab_cache_free(slab_cache_t *cache, void *pointer)
 
     cache->slabs->freelist_head = new_bufctl;
     cache->slabs->bufctl_count++;
+}
+
+void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
+{
+    if (!cache && (flags & SLAB_PANIC))
+	log(PANIC, "Slab cache grow (name missing): Cache doesn't exist\n");
+
+    if (!cache)
+	return;
+
+    for (size_t i = 0; i < count; i++)
+    {
+	cache->slabs = cache->slabs_head;
+
+        slab_bufctl_t *bufctl = slab_create_bufctl();
+
+        if (!bufctl && (flags & SLAB_PANIC))
+	    log(PANIC, "Slab cache grow ('%s'): Couldn't create bufctl\n", cache->name);
+
+        if (!bufctl)
+            return;
+        
+        slab_create_slab(cache, bufctl);
+        
+        for (size_t j = 0; j < cache->bufctl_count_max; j++)
+            slab_init_bufctls(cache, bufctl, j);
+    }
+}
+
+void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
+{
+    if (!cache && (flags & SLAB_PANIC))
+	log(PANIC, "Slab cache reap (name missing): Cache doesn't exist\n");
+
+    if (!cache)
+	return;
+
+    cache->slabs = cache->slabs_head;
+
+    if (cache->slabs->bufctl_count == cache->bufctl_count_max)
+    {
+	cache->slabs_head = cache->slabs->next;
+
+	pmm_free((void *)cache->slabs->freelist_head, 1);
+    }
+    else
+    {
+	for (;;)
+	{
+	    if (!cache->slabs->next)
+		return;
+
+	    if (cache->slabs->next->bufctl_count == cache->bufctl_count_max)
+	    {
+		slab_t *free_slab = cache->slabs->next;
+		cache->slabs->next = cache->slabs->next->next;
+
+		pmm_free((void *)free_slab, 1);
+	    }
+ 
+	    cache->slabs = cache->slabs->next;
+	}
+    }
 }
 
 void slab_cache_dump(slab_cache_t *cache)
@@ -172,27 +235,6 @@ done:
 }
 
 /* utility functions */
-
-void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
-{
-    for (size_t i = 0; i < count; i++)
-    {
-	cache->slabs = cache->slabs_head;
-
-        slab_bufctl_t *bufctl = slab_create_bufctl();
-
-        if (!bufctl && (flags & SLAB_PANIC))
-	    log(PANIC, "Slab cache grow ('%s'): Couldn't create bufctl\n", cache->name);
-
-        if (!bufctl)
-            return;
-        
-        slab_create_slab(cache, bufctl);
-        
-        for (size_t j = 0; j < cache->bufctl_count_max; j++)
-            slab_init_bufctls(cache, bufctl, j);
-    }
-}
 
 slab_bufctl_t *slab_create_bufctl(void)
 {
@@ -244,11 +286,6 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
         cache->slabs->freelist->next = new_bufctl;
         cache->slabs->freelist = cache->slabs->freelist->next;
     }
-}
-
-void slab_cache_reap(void)
-{
-    //
 }
 
 bool is_power_of_two(int num)

@@ -73,12 +73,12 @@ void kmain(struct stivale2_struct *stivale2_struct)
 
     debug("---now allocating---\n");
 
-    void *ptrs[31] = {};
-    
-    for (int i = 0; i < 31; i++)
-	ptrs[i] = slab_cache_alloc(dummy1, SLAB_PANIC);
-
-    debug("duh\n");
+//     void *ptrs[31] = {};
+//     
+//     for (int i = 0; i < 31; i++)
+// 	ptrs[i] = slab_cache_alloc(dummy1, SLAB_PANIC);
+// 
+//     debug("duh\n");
 
     void *d1ptr1 = slab_cache_alloc(dummy1, SLAB_PANIC | SLAB_AUTO_GROW);
     void *d1ptr2 = slab_cache_alloc(dummy1, SLAB_PANIC | SLAB_AUTO_GROW);
@@ -96,12 +96,15 @@ void kmain(struct stivale2_struct *stivale2_struct)
     // debug("d2ptr2: %p\n", d2ptr2);
     // debug("d2ptr3: %p\n", d2ptr3);
 
-    debug("---after allocation---\n");
+    debug("---after allocation and before reap---\n");
     slab_cache_dump(dummy1);
+
+    slab_cache_reap(dummy1, SLAB_PANIC);
+    debug("---before freeing and after reap---\n");
     // slab_cache_dump(dummy2);
 
-    for (int i = 0; i < 31; i++)
-	slab_cache_free(dummy1, ptrs[i]);
+//     for (int i = 0; i < 31; i++)
+// 	slab_cache_free(dummy1, ptrs[i]);
 
     slab_cache_free(dummy1, d1ptr1);
     slab_cache_free(dummy1, d1ptr2);
