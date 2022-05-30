@@ -26,7 +26,7 @@
 
 #define GiB 0x40000000UL
 
-#define HEAP_MAX_SIZE	(1024 * GiB) // 1 TiB
+#define HEAP_MAX_SIZE	(4 * GiB)
 #define HEAP_ADDR_END	(HIGHER_HALF_END)
 #define HEAP_ADDR_START	(HEAP_ADDR_END - HEAP_MAX_SIZE)
 

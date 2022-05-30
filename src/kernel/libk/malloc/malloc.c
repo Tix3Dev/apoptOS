@@ -32,7 +32,10 @@
 
 /* core functions */
 
-//
+void malloc_heap_init(void)
+{
+    //
+}
 
 /* utility functions */
 
