@@ -18,7 +18,12 @@
 /*
 
     Brief file description:
-    blah
+    Memory allocator mainly intended for heap memory management.
+    Based on some of the principles of the slab allocator, e.g. implemented by
+    Jeff Bonwick (https://people.eecs.berkeley.edu/~kubitron/courses/cs194-24-S14/hand-outs/bonwick_slab.pdf).
+    Though this allocator does only work for small slab sizes (<= 512), as this is the best for keeping
+    the same slab layout for every size. It also doesn't make use of slab states (free, used and partial)
+    for the sake of simplicity.
 
 */
 
@@ -31,19 +36,16 @@
 #include <memory/physical/pmm.h>
 #include <memory/mem.h>
 
-
-// TODO: add flags!!!
-
-
 /* utility function prototypes */
 
-slab_bufctl_t *slab_create_bufctl(void);
+slab_bufctl_t *slab_create_bufctl_buffer(void);
 void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl);
 void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index);
 bool is_power_of_two(int num);
 
 /* core functions */
 
+// create a cache and grow one slab
 slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t flags)
 {
     assert(slab_size <= 512); // only support small slab sizes (PAGE_SIZE / 8)
@@ -68,6 +70,7 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t
     return cache;
 }
 
+// try to delete all slabs in a cache + delete cache itself
 void slab_cache_destroy(slab_cache_t *cache, slab_flags_t flags)
 {
     if (!cache && (flags & SLAB_PANIC))
@@ -98,6 +101,7 @@ void slab_cache_destroy(slab_cache_t *cache, slab_flags_t flags)
     pmm_free((void *)cache, 1);
 }
 
+// allocate one page, put bufctls + slab into it (per count)
 void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
 {
     if (!cache && (flags & SLAB_PANIC))
@@ -110,7 +114,7 @@ void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
 
     for (size_t i = 0; i < count; i++)
     {
-        slab_bufctl_t *bufctl = slab_create_bufctl();
+        slab_bufctl_t *bufctl = slab_create_bufctl_buffer();
 
         if (!bufctl && (flags & SLAB_PANIC))
 	    log(PANIC, "Slab cache grow ('%s'): Couldn't create bufctl\n", cache->name);
@@ -125,6 +129,7 @@ void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
     }
 }
 
+// find and delete all unused slabs
 void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
 {
     if (!cache && (flags & SLAB_PANIC))
@@ -140,10 +145,7 @@ void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
     for (;;)
     {
 	if (!cache->slabs)
-	{
-	    cache->slabs = cache->slabs_head;
 	    return;
-	}
 
 	if (cache->slabs->bufctl_count == cache->bufctl_count_max)
 	{
@@ -164,6 +166,7 @@ void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
     }
 }
 
+// find a slab with a freelist, remove bufctl from freelist, return address
 void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags)
 {
     if (!cache && (flags & SLAB_PANIC))
@@ -203,6 +206,8 @@ void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags)
     return pointer;
 }
 
+// find slab with open spot (slab->bufctl_count < bufctl_count_max), insert new
+// bufctl at beginning of freelist
 void slab_cache_free(slab_cache_t *cache, void *pointer, slab_flags_t flags)
 {
     if (!cache && (flags & SLAB_PANIC))
@@ -236,8 +241,11 @@ void slab_cache_free(slab_cache_t *cache, void *pointer, slab_flags_t flags)
     cache->slabs->bufctl_count++;
 }
 
+// print hierarchy of cache (including slabs + bufctls + it's addresses)
 void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
 {
+    cache->slabs = cache->slabs_head;
+
     if (!cache->slabs && (flags & SLAB_PANIC))
 	log(PANIC, "Slab cache dump (name missing): Slabs don't exist\n");
 
@@ -245,8 +253,6 @@ void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
 	return;
 
     debug("Dump for cache with name '%s'\n", cache->name);
-
-    cache->slabs = cache->slabs_head;
 
     for (int slab_count = 0;; slab_count++)
     {
@@ -262,8 +268,6 @@ void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
 	    if (!cache->slabs->freelist)
 		goto done;
 
-	    // debug("\t\tBufctl no. %d\t at \t0x%p\n", bufctl_count, cache->slabs->freelist);
-	    // debug("\t\t\tHas pointer: \t0x%p\n", cache->slabs->freelist->pointer);
 	    debug("\t\tBufctl no. %d\t has pointer 0x%p\n", bufctl_count, cache->slabs->freelist->pointer);
 
 	    cache->slabs->freelist = cache->slabs->freelist->next;
@@ -275,7 +279,8 @@ done:
 
 /* utility functions */
 
-slab_bufctl_t *slab_create_bufctl(void)
+// allocate one page for all bufctls in that slab + slab structure itself
+slab_bufctl_t *slab_create_bufctl_buffer(void)
 {
     slab_bufctl_t *bufctl = (slab_bufctl_t *)pmm_alloc(1);
 
@@ -287,6 +292,7 @@ slab_bufctl_t *slab_create_bufctl(void)
     return bufctl;
 }
 
+// put slab structure at end of bufctl buffer, add to linked list of slabs
 void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
 {
     slab_t *slab = (slab_t *)(((uintptr_t)bufctl + PAGE_SIZE) - sizeof(slab_t));
@@ -300,7 +306,6 @@ void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
 
     if (!cache->slabs)
     {
-	debug("\nomg first time\n\n");
 	cache->slabs_head = slab;
 	cache->slabs = slab;
     }
@@ -311,6 +316,7 @@ void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
     }
 }
 
+// position bufctl at index in bufctl buffer, add it to freelist
 void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
 {
     slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
@@ -328,6 +334,7 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
     }
 }
 
+// return if num is power of two
 bool is_power_of_two(int num)
 {
     return (num > 0) && ((num & (num - 1)) == 0);
