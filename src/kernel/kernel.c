@@ -30,21 +30,11 @@
 #include <libk/serial/log.h>
 #include <libk/testing/assert.h>
 #include <memory/mem.h>
-#include <memory/dynamic/heap.h>
 #include <memory/dynamic/slab.h>
 #include <memory/physical/pmm.h>
 #include <memory/virtual/vmm.h>
 #include <tables/gdt.h>
 #include <tables/idt.h>
-
-
-
-
-
-#include <libk/serial/debug.h>
-
-
-
 
 /* utility function prototypes */
 
@@ -60,55 +50,6 @@ void kmain(struct stivale2_struct *stivale2_struct)
     kinit_all(stivale2_struct);
 
     log(INFO, "All kernels parts initialized\n");
-
-
-    /* heap testing start */
-
-    slab_cache_t *dummy1 = slab_cache_create("test filesystem cache", 128, SLAB_PANIC);
-    
-    debug("---before allocation---\n");
-    slab_cache_dump(dummy1, SLAB_PANIC);
-
-    debug("---now allocating---\n");
-
-//     void *ptrs[31] = {};
-//     
-//     for (int i = 0; i < 31; i++)
-// 	ptrs[i] = slab_cache_alloc(dummy1, SLAB_PANIC);
-// 
-//     debug("duh\n");
-
-    void *d1ptr1 = slab_cache_alloc(dummy1, SLAB_PANIC | SLAB_AUTO_GROW);
-    void *d1ptr2 = slab_cache_alloc(dummy1, SLAB_PANIC | SLAB_AUTO_GROW);
-    void *d1ptr3 = slab_cache_alloc(dummy1, SLAB_PANIC | SLAB_AUTO_GROW);
-
-    debug("d1ptr1: 0x%p\n", d1ptr1);
-    debug("d1ptr2: 0x%p\n", d1ptr2);
-    debug("d1ptr3: 0x%p\n", d1ptr3);
-
-    debug("---after allocation and before reap---\n");
-    slab_cache_dump(dummy1, SLAB_PANIC);
-
-    // slab_cache_reap(dummy1, SLAB_PANIC);
-    // debug("---after reap---\n");
-    // slab_cache_dump(dummy1, SLAB_PANIC);
-
-//     for (int i = 0; i < 31; i++)
-// 	slab_cache_free(dummy1, ptrs[i]);
-
-    slab_cache_free(dummy1, d1ptr1, SLAB_PANIC);
-    slab_cache_free(dummy1, d1ptr2, SLAB_PANIC);
-    slab_cache_free(dummy1, d1ptr3, SLAB_PANIC);
-
-    debug("--after freeing---\n");
-    slab_cache_dump(dummy1, SLAB_PANIC);
-
-    slab_cache_destroy(dummy1, SLAB_PANIC);
-    debug("--after destroying cache---\n");
-    slab_cache_dump(dummy1, SLAB_PANIC);
-
-    /* heap testing end */
-
 
     for (;;)
         asm volatile("hlt");
@@ -129,6 +70,4 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
 
     gdt_init();
     idt_init();
-
-    // heap_init();
 }
