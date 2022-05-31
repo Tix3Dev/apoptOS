@@ -15,11 +15,13 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <stddef.h>
+
 #ifndef MALLOC_H
 #define MALLOC_H
 
-// datatypes / variables
-
-// core functions
+void malloc_heap_init(void);
+void malloc(size_t size);
+void free(void *pointer);
 
 #endif

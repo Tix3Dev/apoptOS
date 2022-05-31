@@ -59,9 +59,8 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     // map 0x0 - 0x100000000 to 0xFFFF800000000000 - 0xFFFF800100000000
     vmm_map_range(root_page_table, 0, 4 * GiB, HIGHER_HALF_DATA, KERNEL_READ_WRITE);
 
-    // TODO blah
-    // problem doesn't lie in ALIGN_UP/DOWN
-    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, HEAP_ADDR_START, KERNEL_READ_WRITE);
+    // map 0x0 - 0x100000000 to 0xFFFF900000000000 - 0xFFFF900100000000
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, HEAP_START_ADDR, KERNEL_READ_WRITE);
 
     // map 0x0 - 0x80000000 to 0xFFFFFFFF80000000 - 0x0001000000000000
     vmm_map_range(root_page_table, 0, 2 * GiB, HIGHER_HALF_CODE, KERNEL_READ);
