@@ -27,6 +27,7 @@
 
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
+#include <libk/malloc/malloc.h>
 #include <libk/serial/log.h>
 #include <libk/testing/assert.h>
 #include <memory/mem.h>
