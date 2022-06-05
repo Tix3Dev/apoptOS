@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdint.h>
-
 #ifndef UTILS_H
 #define UTILS_H
+
+#include <stdint.h>
 
 // write a value to a custom CR register
 #define asm_write_cr(reg, value)			\

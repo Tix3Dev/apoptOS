@@ -15,11 +15,11 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdbool.h>
-#include <stddef.h>
-
 #ifndef SLAB_H
 #define SLAB_H
+
+#include <stdbool.h>
+#include <stddef.h>
 
 typedef struct slab_bufctl
 {
@@ -50,8 +50,8 @@ typedef struct
 
 typedef enum
 {
-    SLAB_PANIC = 1,
-    SLAB_AUTO_GROW = (1 << 1)
+    SLAB_PANIC	    = (1 << 0),
+    SLAB_AUTO_GROW  = (1 << 1)
 } slab_flags_t;
 
 slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t flags);

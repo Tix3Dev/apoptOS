@@ -15,14 +15,14 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stddef.h>
-#include <stdint.h>
-
 #ifndef VMM_H
 #define VMM_H
 
+#include <stddef.h>
+#include <stdint.h>
+
 // privilege of a page table entry (PTE)
-#define PTE_PRESENT	    1
+#define PTE_PRESENT	    (1 << 0)
 #define PTE_READ_WRITE	    (1 << 1)
 #define PTE_USER_SUPERVISOR (1 << 2)
 #define PTE_WRITE_THROUGH   (1 << 3)

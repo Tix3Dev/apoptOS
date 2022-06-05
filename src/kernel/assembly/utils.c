@@ -21,5 +21,3 @@
     Provides C implementations for assembly instructions.
 
 */
-
-#include <assembly/utils.h>

@@ -15,11 +15,11 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stddef.h>
-#include <stdint.h>
-
 #ifndef PMM_H
 #define PMM_H
+
+#include <stddef.h>
+#include <stdint.h>
 
 void pmm_init(struct stivale2_struct *stivale2_struct);
 void *pmm_alloc(size_t page_count);

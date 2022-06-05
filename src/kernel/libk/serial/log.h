@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdarg.h>
-
 #ifndef LOG_H
 #define LOG_H
+
+#include <stdarg.h>
 
 #define log(...) log_impl(__FILE__, __LINE__, __VA_ARGS__);
 

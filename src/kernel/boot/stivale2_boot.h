@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stddef.h>
-
 #ifndef STIVALE2_BOOT_H
 #define STIVALE2_BOOT_H
+
+#include <stddef.h>
 
 void *stivale2_get_tag(struct stivale2_struct *stivale2_struct, uint64_t id);
 

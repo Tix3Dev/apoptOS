@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdbool.h>
-
 #ifndef COM_H
 #define COM_H
+
+#include <stdbool.h>
 
 typedef enum
 {

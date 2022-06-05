@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdarg.h>
-
 #ifndef DEBUG_H
 #define DEBUG_H
+
+#include <stdarg.h>
 
 // bash color codes
 #define TERM_BLACK	    "\e[0;30m"

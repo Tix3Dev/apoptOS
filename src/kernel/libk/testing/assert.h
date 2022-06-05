@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdbool.h>
-
 #ifndef ASSERT_H
 #define ASSERT_H
+
+#include <stdbool.h>
 
 #define assert(condition) assert_impl(__FILE__, __LINE__, condition, #condition)
 

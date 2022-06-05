@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdint.h>
-
 #ifndef CPU_H
 #define CPU_H
+
+#include <stdint.h>
 
 typedef struct
 {

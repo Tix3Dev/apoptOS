@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdint.h>
-
 #ifndef GDT_H
 #define GDT_H
+
+#include <stdint.h>
 
 #define GDT_NULL_DESCRIPTOR 0
 #define GDT_KERNEL_CODE	    1

@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdint.h>
-
 #ifndef PIC_H
 #define PIC_H
+
+#include <stdint.h>
 
 #define PIC1		0x20	    // I/O base address for master PIC
 #define PIC2		0xA0	    // I/O base address for slave PIC

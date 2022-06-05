@@ -15,11 +15,11 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stddef.h>
-#include <stdint.h>
-
 #ifndef STRING_H
 #define STRING_H
+
+#include <stddef.h>
+#include <stdint.h>
 
 void *memset(void *pointer, uint32_t value, size_t size);
 

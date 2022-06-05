@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdbool.h>
-
 #ifndef MEM_H
 #define MEM_H
+
+#include <stdbool.h>
 
 #define HIGHER_HALF_DATA	0xFFFF800000000000UL
 #define HIGHER_HALF_CODE	0xFFFFFFFF80000000UL

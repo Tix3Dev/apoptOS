@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdint.h>
-
 #ifndef IDT_H
 #define IDT_H
+
+#include <stdint.h>
 
 #define INT_GATE 0x8E
 

@@ -15,10 +15,10 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stddef.h>
-
 #ifndef MALLOC_H
 #define MALLOC_H
+
+#include <stddef.h>
 
 typedef struct
 {

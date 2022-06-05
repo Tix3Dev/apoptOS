@@ -84,27 +84,27 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
 void vmm_map_page(uint64_t *page_table, uint64_t phys_page, uint64_t virt_page, uint64_t flags)
 {
     uint64_t pt_value = phys_page | flags;
-    vmm_set_pt_value(page_table, ALIGN_DOWN(virt_page, 4096), flags, pt_value);
+    vmm_set_pt_value(page_table, ALIGN_DOWN(virt_page, PAGE_SIZE), flags, pt_value);
 }
 
 // set a page table entry to zero, in order to "forget" a virtual memory address
 void vmm_unmap_page(uint64_t *page_table, uint64_t virt_page)
 {
     uint64_t pt_value = 0;
-    vmm_set_pt_value(page_table, ALIGN_DOWN(virt_page, 4096), 0, pt_value);
+    vmm_set_pt_value(page_table, ALIGN_DOWN(virt_page, PAGE_SIZE), 0, pt_value);
 }
 
 // map a whole physical memory region with custom offset
 void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags)
 {
-    for (uint64_t i = ALIGN_DOWN(start, 4096); i < ALIGN_UP(end, 4096); i += PAGE_SIZE)
+    for (uint64_t i = ALIGN_DOWN(start, PAGE_SIZE); i < ALIGN_UP(end, PAGE_SIZE); i += PAGE_SIZE)
         vmm_map_page(page_table, i, i + offset, flags);
 }
 
 // unmap a whole physical memory region
 void vmm_unmap_range(uint64_t *page_table, uint64_t start, uint64_t end)
 {
-    for (uint64_t i = ALIGN_DOWN(start, 4096); i < ALIGN_UP(end, 4096); i += PAGE_SIZE)
+    for (uint64_t i = ALIGN_DOWN(start, PAGE_SIZE); i < ALIGN_UP(end, PAGE_SIZE); i += PAGE_SIZE)
         vmm_unmap_page(page_table, i);
 }
 

@@ -15,11 +15,11 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdint.h>
-#include <stddef.h>
-
 #ifndef BITMAP_H
 #define BITMAP_H
+
+#include <stdint.h>
+#include <stddef.h>
 
 typedef struct
 {
