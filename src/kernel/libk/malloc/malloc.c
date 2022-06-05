@@ -76,7 +76,6 @@ void *malloc(size_t size)
 	size_t new_size = ALIGN_UP(size + PAGE_SIZE, PAGE_SIZE);
 
 	size_t page_count = new_size / PAGE_SIZE;
-	debug("malloc page count: %d\n", page_count);
 	pointer = pmm_allocz(page_count);
 
 	malloc_metadata_t *metadata = pointer;
@@ -93,6 +92,8 @@ void free(void *pointer)
     if (!pointer)
 	return;
 
+    pointer = pointer - HEAP_START_ADDR;
+
     if (((uint64_t)pointer & 0xFFF) != 0)
     {
 	malloc_metadata_t *metadata = pointer - sizeof(malloc_metadata_t);
@@ -105,8 +106,7 @@ void free(void *pointer)
 	malloc_metadata_t *metadata = pointer - PAGE_SIZE;
 	size_t page_count = metadata->size;
 
-	debug("free page count: %d\n", page_count);
-	pmm_free(pointer, page_count);
+	pmm_free(metadata, page_count);
     }
 }
 
