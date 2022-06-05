@@ -36,6 +36,16 @@
 #include <tables/gdt.h>
 #include <tables/idt.h>
 
+
+
+
+
+#include <libk/malloc/malloc.h>
+#include <libk/serial/debug.h>
+
+
+
+
 /* utility function prototypes */
 
 void kinit_all(struct stivale2_struct *stivale2_struct);
@@ -50,6 +60,57 @@ void kmain(struct stivale2_struct *stivale2_struct)
     kinit_all(stivale2_struct);
 
     log(INFO, "All kernels parts initialized\n");
+
+    /* malloc test start */
+    
+    // slab allocations
+
+    void *ptr1 = malloc(30);
+    debug("ptr1: %p\n", ptr1);
+    void *ptr2 = malloc(30);
+    debug("ptr2: %p\n", ptr2);
+
+    free(ptr1);
+    free(ptr2);
+
+    void *ptr3 = malloc(30);
+    debug("ptr3: %p\n", ptr3);
+    void *ptr4 = malloc(30);
+    debug("ptr4: %p\n", ptr4);
+
+    // pmm allocations
+
+    void *ptr5 = malloc(5111);
+    debug("ptr5: %p\n", ptr5);
+    void *ptr6 = malloc(5111);
+    debug("ptr6: %p\n", ptr6);
+
+    free(ptr5);
+    free(ptr6);
+
+    void *ptr7 = malloc(5111);
+    debug("ptr7: %p\n", ptr7);
+    void *ptr8 = malloc(5111);
+    debug("ptr8: %p\n", ptr8);
+
+    debug("\n");
+
+    void *lol1 = pmm_alloc(2);
+    debug("lol1: %p\n", lol1);
+    void *lol2 = pmm_alloc(2);
+    debug("lol2: %p\n", lol2);
+
+    pmm_free(lol1, 2);
+    pmm_free(lol2, 2);
+
+    void *lol3 = pmm_alloc(2);
+    debug("lol3: %p\n", lol3);
+    void *lol4 = pmm_alloc(2);
+    debug("lol4: %p\n", lol4);
+
+
+    /* malloc test end */
+
 
     for (;;)
         asm volatile("hlt");
@@ -70,4 +131,6 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
 
     gdt_init();
     idt_init();
+
+    malloc_heap_init();
 }

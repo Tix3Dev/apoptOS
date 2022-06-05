@@ -20,8 +20,13 @@
 #ifndef MALLOC_H
 #define MALLOC_H
 
+typedef struct
+{
+    uint16_t size; // slab cache index or page count
+} malloc_metadata_t;
+
 void malloc_heap_init(void);
-void malloc(size_t size);
+void *malloc(size_t size);
 void free(void *pointer);
 
 #endif
