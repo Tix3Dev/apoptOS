@@ -14,9 +14,9 @@
 - Stivale2 boot protocol
 - GDT and TSS
 - IDT and ISR's
-- Physical memory management -> Bitmap based allocator
+- Physical memory management -> Bitmap based allocator & Slab allocator
 - Virtual memory management -> 4-level paging support
-- Heap memory -> Slab allocator
+- Heap memory -> `malloc` and `free`
 - Serial communication
 - Basic kernel library
 
