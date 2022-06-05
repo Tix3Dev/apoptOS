@@ -18,7 +18,10 @@
 /*
 
     Brief file description:
-    blah
+    Combine slab allocator with pmm allocator for custom sized allocations, making them
+    optimized. There are 8 caches for sizes ranging from 4 to 512. 2 isn't used (as it's
+    commonly found in other slab allocators), as metadata with size 2 will always be stored.
+    Note that it might be better for specific tasks to use the neccessary allocators by hand.
 
 */
 
@@ -28,13 +31,6 @@
 #include <memory/physical/pmm.h>
 #include <memory/mem.h>
 
-
-
-
-#include <libk/serial/debug.h>
-
-
-
 static slab_cache_t *slab_caches[8];
 
 /* utility function prototypes */
@@ -43,6 +39,7 @@ size_t get_slab_cache_index(size_t size);
 
 /* core functions */
 
+// create caches that malloc will be able to use
 void malloc_heap_init(void)
 {
     slab_caches[0] = slab_cache_create("heap slab size 4", 4, SLAB_PANIC | SLAB_AUTO_GROW);
@@ -55,6 +52,8 @@ void malloc_heap_init(void)
     slab_caches[7] = slab_cache_create("heap slab size 512", 512, SLAB_PANIC | SLAB_AUTO_GROW);
 }
 
+// allocate memory depending on the size, store metadata for free()
+// return a vmm address
 void *malloc(size_t size)
 {
     void *pointer;
@@ -87,6 +86,7 @@ void *malloc(size_t size)
     return pointer + HEAP_START_ADDR;
 }
 
+// free memory depending on the address, extract size from metadata
 void free(void *pointer)
 {
     if (!pointer)
@@ -112,6 +112,9 @@ void free(void *pointer)
 
 /* utility functions */
 
+// match arbitrary size to specific index for caches
+// very efficient (three conditions only) algorithm, compromising
+// looks of code
 size_t get_slab_cache_index(size_t size)
 {
     if (size <= 32)
