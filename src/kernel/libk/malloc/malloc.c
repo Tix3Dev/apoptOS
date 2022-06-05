@@ -61,27 +61,27 @@ void *malloc(size_t size)
 
     if (size <= 512)
     {
-	size_t new_size = size + sizeof(malloc_metadata_t);
+        size_t new_size = size + sizeof(malloc_metadata_t);
 
-	size_t index = get_slab_cache_index(new_size);
-	pointer = slab_cache_alloc(slab_caches[index], SLAB_PANIC);
+        size_t index = get_slab_cache_index(new_size);
+        pointer = slab_cache_alloc(slab_caches[index], SLAB_PANIC);
 
-	malloc_metadata_t *metadata = pointer;
-	metadata->size = index;
+        malloc_metadata_t *metadata = pointer;
+        metadata->size = index;
 
-	pointer += sizeof(malloc_metadata_t);
+        pointer += sizeof(malloc_metadata_t);
     }
     else
     {
-	size_t new_size = ALIGN_UP(size + PAGE_SIZE, PAGE_SIZE);
+        size_t new_size = ALIGN_UP(size + PAGE_SIZE, PAGE_SIZE);
 
-	size_t page_count = new_size / PAGE_SIZE;
-	pointer = pmm_allocz(page_count);
+        size_t page_count = new_size / PAGE_SIZE;
+        pointer = pmm_allocz(page_count);
 
-	malloc_metadata_t *metadata = pointer;
-	metadata->size = page_count;
+        malloc_metadata_t *metadata = pointer;
+        metadata->size = page_count;
 
-	pointer += PAGE_SIZE;
+        pointer += PAGE_SIZE;
     }
 
     return pointer + HEAP_START_ADDR;
@@ -90,23 +90,23 @@ void *malloc(size_t size)
 void free(void *pointer)
 {
     if (!pointer)
-	return;
+        return;
 
     pointer = pointer - HEAP_START_ADDR;
 
     if (((uint64_t)pointer & 0xFFF) != 0)
     {
-	malloc_metadata_t *metadata = pointer - sizeof(malloc_metadata_t);
-	size_t index = metadata->size;
+        malloc_metadata_t *metadata = pointer - sizeof(malloc_metadata_t);
+        size_t index = metadata->size;
 
-	slab_cache_free(slab_caches[index], metadata, SLAB_PANIC);
+        slab_cache_free(slab_caches[index], metadata, SLAB_PANIC);
     }
     else
     {
-	malloc_metadata_t *metadata = pointer - PAGE_SIZE;
-	size_t page_count = metadata->size;
+        malloc_metadata_t *metadata = pointer - PAGE_SIZE;
+        size_t page_count = metadata->size;
 
-	pmm_free(metadata, page_count);
+        pmm_free(metadata, page_count);
     }
 }
 
@@ -116,52 +116,36 @@ size_t get_slab_cache_index(size_t size)
 {
     if (size <= 32)
     {
-	if (size <= 8)
-	{
-	    if (size <= 4)
-	    {
-		return 0;
-	    }
-	    else
-	    {
-		return 1;
-	    }
-	}
-	else
-	{
-	    if (size <= 16)
-	    {
-		return 2;
-	    }
-	    else
-	    {
-		return 3;
-	    }
-	}
+        if (size <= 8)
+        {
+            if (size <= 4)
+                return 0;
+            else
+                return 1;
+        }
+        else
+        {
+            if (size <= 16)
+                return 2;
+            else
+                return 3;
+        }
     }
     else
     {
-	if (size <= 128)
-	{
-	    if (size <= 64)
-	    {
-		return 4;
-	    }
-	    else
-	    {
-		return 5;
-	    }
-	}
-	else
-	{
-	    if (size <= 256)
-	    {
-		return 6;
-	    }
-	    else
-	    {
-		return 7;
-	    }
-	}
+        if (size <= 128)
+        {
+            if (size <= 64)
+                return 4;
+            else
+                return 5;
+        }
+        else
+        {
+            if (size <= 256)
+                return 6;
+            else
+                return 7;
+        }
     }
 }

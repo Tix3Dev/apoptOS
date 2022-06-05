@@ -62,7 +62,7 @@ void kmain(struct stivale2_struct *stivale2_struct)
     log(INFO, "All kernels parts initialized\n");
 
     /* malloc test start */
-    
+
     // slab allocations
 
     void *ptr1 = malloc(30);
