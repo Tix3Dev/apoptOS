@@ -32,8 +32,6 @@
 #include <memory/physical/pmm.h>
 #include <memory/mem.h>
 
-#include <libk/serial/debug.h>
-
 static slab_cache_t *slab_caches[8];
 
 /* utility function prototypes */
