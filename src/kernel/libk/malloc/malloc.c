@@ -32,6 +32,8 @@
 #include <memory/physical/pmm.h>
 #include <memory/mem.h>
 
+#include <libk/serial/debug.h>
+
 static slab_cache_t *slab_caches[8];
 
 /* utility function prototypes */
@@ -71,12 +73,10 @@ void *malloc(size_t size)
 
         malloc_metadata_t *metadata = pointer;
         metadata->size = index;
-
-        pointer += sizeof(malloc_metadata_t);
     }
     else
     {
-        size_t new_size = ALIGN_UP(size + PAGE_SIZE, PAGE_SIZE);
+        size_t new_size = ALIGN_UP(size + sizeof(malloc_metadata_t), PAGE_SIZE);
 
         size_t page_count = new_size / PAGE_SIZE;
         pointer = pmm_allocz(page_count);
@@ -84,10 +84,9 @@ void *malloc(size_t size)
         malloc_metadata_t *metadata = pointer;
         metadata->size = page_count;
 
-        pointer += PAGE_SIZE;
     }
 
-    return pointer + HEAP_START_ADDR;
+    return pointer + sizeof(malloc_metadata_t) + HEAP_START_ADDR;
 }
 
 // free memory depending on the address, extract size from metadata
@@ -96,18 +95,18 @@ void free(void *pointer)
     if (!pointer)
         return;
 
-    pointer = pointer - HEAP_START_ADDR;
+    pointer = pointer - HEAP_START_ADDR - sizeof(malloc_metadata_t);
 
     if (((uint64_t)pointer & 0xFFF) != 0)
     {
-        malloc_metadata_t *metadata = pointer - sizeof(malloc_metadata_t);
+        malloc_metadata_t *metadata = pointer;
         size_t index = metadata->size;
 
         slab_cache_free(slab_caches[index], metadata, SLAB_PANIC);
     }
     else
     {
-        malloc_metadata_t *metadata = pointer - PAGE_SIZE;
+        malloc_metadata_t *metadata = pointer;
         size_t page_count = metadata->size;
 
         pmm_free(metadata, page_count);
