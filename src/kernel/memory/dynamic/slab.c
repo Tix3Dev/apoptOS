@@ -51,7 +51,7 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t
     assert(slab_size <= 512); // only support small slab sizes (PAGE_SIZE / 8)
     assert(is_power_of_two(slab_size));
 
-    slab_cache_t *cache = (slab_cache_t *)pmm_alloc(1);
+    slab_cache_t *cache = (slab_cache_t *)pmm_allocz(1);
 
     if (!cache && (flags & SLAB_PANIC))
         log(PANIC, "Slab cache create ('%s'): Couldn't allocate memory\n", name);
@@ -283,7 +283,7 @@ done:
 // allocate one page for all bufctls in that slab + slab structure itself
 slab_bufctl_t *slab_create_bufctl_buffer(void)
 {
-    slab_bufctl_t *bufctl = (slab_bufctl_t *)pmm_alloc(1);
+    slab_bufctl_t *bufctl = (slab_bufctl_t *)pmm_allocz(1);
 
     if (!bufctl)
         return NULL;
