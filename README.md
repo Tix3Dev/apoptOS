@@ -34,7 +34,7 @@
 
 - Write:
   - Clean code
-  - A [blog](), documenting learning process
+  - A [blog](https://tix3dev.github.io/apoptos-series-1), documenting learning process
 
 ## Dependencies
 
