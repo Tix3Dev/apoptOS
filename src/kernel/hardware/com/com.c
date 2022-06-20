@@ -22,8 +22,8 @@
 
 */
 
-#include <assembly/utils.h>
-#include <devices/com.h>
+#include <utility/utils.h>
+#include <hardware/com/com.h>
 
 /* utility function prototypes */
 

@@ -22,8 +22,8 @@
 
 */
 
-#include <assembly/utils.h>
-#include <devices/pic.h>
+#include <utility/utils.h>
+#include <hardware/pic/pic.h>
 
 /* core functions */
 

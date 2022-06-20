@@ -25,11 +25,11 @@
 
 */
 
-#include <devices/pic.h>
+#include <hardware/pic/pic.h>
 #include <libk/serial/log.h>
 #include <tables/idt.h>
 
-#include <assembly/utils.h>
+#include <utility/utils.h>
 
 extern void _load_idt_asm(uint64_t idt_ptr);
 extern uintptr_t _isr_vector_asm[];

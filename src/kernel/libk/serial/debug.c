@@ -22,7 +22,7 @@
 
 */
 
-#include <devices/com.h>
+#include <hardware/com/com.h>
 #include <libk/printf/printf.h>
 #include <libk/serial/debug.h>
 #include <libk/testing/assert.h>

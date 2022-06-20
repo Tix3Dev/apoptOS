@@ -22,7 +22,7 @@
 
 */
 
-#include <assembly/utils.h>
+#include <utility/utils.h>
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
 #include <libk/serial/log.h>

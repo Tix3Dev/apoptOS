@@ -15,8 +15,8 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <core/cpu.h>
-#include <devices/pic.h>
+#include <hardware/cpu.h>
+#include <hardware/pic/pic.h>
 #include <libk/serial/debug.h>
 #include <libk/serial/log.h>
 
