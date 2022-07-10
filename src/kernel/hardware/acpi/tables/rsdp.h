@@ -15,15 +15,28 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef ACPI_H
-#define ACPI_H
+#ifndef RSDP_H
+#define RSDP_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
-#include <hardware/acpi/tables/sdt.h>
+typedef struct __attribute__((__packed__)) 
+{
+    char	signature[8];
+    uint8_t 	checksum;
+    char    	oemid[6];
+    uint8_t 	revision;
+    uint32_t	rsdt_address;
+    uint32_t	length;
+    uint64_t	xsdt_address;
+    uint8_t	extended_checksum;
+    uint8_t	reserved[3];
 
-void acpi_init(struct stivale2_struct *stivale2_struct);
-bool acpi_verify_sdt(sdt_t *sdt, const char *signature);
-sdt_t *acpi_find_sdt_table(const char *signature);
+} rsdp_struct_t;
+
+void rsdp_init(uint64_t rsdp_address);
+rsdp_struct_t *get_rsdp_struct(void);
+bool has_xsdt(void);
 
 #endif

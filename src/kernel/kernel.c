@@ -27,6 +27,7 @@
 
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
+#include <hardware/acpi/acpi.h>
 #include <libk/malloc/malloc.h>
 #include <libk/serial/log.h>
 #include <libk/testing/assert.h>
@@ -73,4 +74,6 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
     idt_init();
 
     malloc_heap_init();
+
+    acpi_init(stivale2_struct);
 }

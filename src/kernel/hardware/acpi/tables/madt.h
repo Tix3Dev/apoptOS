@@ -15,15 +15,9 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef ACPI_H
-#define ACPI_H
+#ifndef MADT_H
+#define MADT_H
 
-#include <stdbool.h>
 
-#include <hardware/acpi/tables/sdt.h>
-
-void acpi_init(struct stivale2_struct *stivale2_struct);
-bool acpi_verify_sdt(sdt_t *sdt, const char *signature);
-sdt_t *acpi_find_sdt_table(const char *signature);
 
 #endif
