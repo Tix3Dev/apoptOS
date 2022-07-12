@@ -51,7 +51,7 @@ void kmain(struct stivale2_struct *stivale2_struct)
 
     kinit_all(stivale2_struct);
 
-    log(INFO, "All kernels parts initialized\n");
+    log(INFO, "All kernel parts initialized\n");
 
     for (;;)
         asm volatile("hlt");

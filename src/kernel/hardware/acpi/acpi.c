@@ -47,10 +47,10 @@ void acpi_init(struct stivale2_struct *stivale2_struct)
 
     // rsdt = (rsdt_structure_t *)PHYS_TO_HIGHER_HALF_DATA((uintptr_t)get_rsdp_struct()->rsdt_address);
 
-    // // having a RSDT is equivalent to having ACPI supported
+    // having a RSDT is equivalent to having ACPI supported
     // if (acpi_verify_sdt(&rsdt->header, "RSDT") != 0)
     //     log(PANIC, "No ACPI was found on this computer!\n");
-
+    
     // madt_init();
 
     log(INFO, "ACPI initialized\n");
