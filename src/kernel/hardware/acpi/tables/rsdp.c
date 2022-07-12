@@ -18,7 +18,7 @@
 /*
 
     Brief file description:
-    blah
+    Initialize root system descriptor pointer and get basic ACPI informations.
 
 */
 
@@ -35,31 +35,36 @@ void rsdp_verify_checksum(uint64_t rsdp_address);
 
 /* core functions */
 
+// verify first 20 bytes of RSDP, set global rsdp struct and check ACPI version
 void rsdp_init(uint64_t rsdp_address)
 {
     rsdp_verify_checksum(rsdp_address);
 
-    // debug_set_color(TERM_PURPLE);
+    rsdp = (rsdp_struct_t *)rsdp_address;
 
-    // if (rsdp->revision >= 2)
-    // {
-    //     has_xsdt_var = true;
+    debug_set_color(TERM_PURPLE);
 
-    //     debug(INFO, "ACPI Version 2.0 or above is used\n");
-    // }
-    // else
-    // {
-    //     debug(INFO, "ACPI Version 1.0 is used\n");
-    // }
+    if (rsdp->revision >= 2)
+    {
+        has_xsdt_var = true;
 
-    // debug_set_color(TERM_COLOR_RESET);
+        log(INFO, "ACPI Version 2.0 or above is used\n");
+    }
+    else
+    {
+        log(INFO, "ACPI Version 1.0 is used\n");
+    }
+
+    debug_set_color(TERM_COLOR_RESET);
 }
 
+// return global RSDP struct
 rsdp_struct_t *get_rsdp_struct(void)
 {
     return rsdp;
 }
 
+// return whether or not XSDT is used (i.e. ACPI version 2.0 is used or not)
 bool has_xsdt(void)
 {
     return has_xsdt_var;
@@ -67,31 +72,16 @@ bool has_xsdt(void)
 
 /* utility functions */
 
+// sum up first 20 bytes of RSDP, if zero verification was successful
 void rsdp_verify_checksum(uint64_t rsdp_address)
 {
     uint8_t checksum = 0;
     uint8_t *ptr = (uint8_t *)rsdp_address;
-    uint8_t current_byte;
-
-    log(INFO, "Verifying RSDP checksum:\n");
-
-    debug_set_color(TERM_PURPLE);
-
-    debug("20 first bytes are being checked: ");
 
     for (uint8_t i = 0; i < 20; i++)
-    {
-        current_byte = ptr[i];
-        debug("%x ", current_byte);
+        checksum += ptr[i];
 
-        checksum += current_byte;
-    }
-
-    debug("\n");
-
-    debug_set_color(TERM_COLOR_RESET);
-
-    if ((checksum & 0xFF) == 0x00)
+    if ((checksum & 0xFF) == 0)
     {
         log(INFO, "RSDP checksum is verified\n");
     }
