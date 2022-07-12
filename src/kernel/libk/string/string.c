@@ -36,3 +36,22 @@ void *memset(void *pointer, uint32_t value, size_t size)
 
     return pointer;
 }
+
+// compare first n bytes at pointer1 with first n bytes at pointer2
+// return value is based of fist non-matching character (e.g. abc aBc -> b/B) and
+// < 0 when string1 is less than string2
+// > 0 when string1 is greater than string2
+// = 0 when string1 is equal to string2
+int memcmp(const void *pointer1, const void *pointer2, size_t n)
+{
+    const unsigned char *ptr1 = pointer1;
+    const unsigned char *ptr2 = pointer2;
+
+    for (size_t i = 0; i < n; i++, ptr1++, ptr2++)
+    {
+        if (*ptr1 != *ptr2)
+            return (*ptr1 - *ptr2);
+    }
+
+    return 0;
+}

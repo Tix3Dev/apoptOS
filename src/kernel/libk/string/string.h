@@ -22,5 +22,6 @@
 #include <stdint.h>
 
 void *memset(void *pointer, uint32_t value, size_t size);
+int memcmp(const void *pointer1, const void *pointer2, size_t n);
 
 #endif
