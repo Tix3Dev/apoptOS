@@ -57,7 +57,9 @@ void com_send_char(com_port_t port, char c)
 void com_send_string(com_port_t port, char *str)
 {
     for (int i = 0; str[i] != '\0'; i++)
+    {
         com_send_char(port, str[i]);
+    }
 }
 
 // get information from a given COM port

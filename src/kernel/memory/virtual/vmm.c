@@ -99,14 +99,18 @@ void vmm_unmap_page(uint64_t *page_table, uint64_t virt_page)
 void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags)
 {
     for (uint64_t i = ALIGN_DOWN(start, PAGE_SIZE); i < ALIGN_UP(end, PAGE_SIZE); i += PAGE_SIZE)
+    {
         vmm_map_page(page_table, i, i + offset, flags);
+    }
 }
 
 // unmap a whole physical memory region
 void vmm_unmap_range(uint64_t *page_table, uint64_t start, uint64_t end)
 {
     for (uint64_t i = ALIGN_DOWN(start, PAGE_SIZE); i < ALIGN_UP(end, PAGE_SIZE); i += PAGE_SIZE)
+    {
         vmm_unmap_page(page_table, i);
+    }
 }
 
 uint64_t *vmm_get_root_page_table(void)
@@ -121,7 +125,9 @@ uint64_t *vmm_get_or_create_pml(uint64_t *pml, size_t pml_index, uint64_t flags)
 {
     // check present flag
     if (!(pml[pml_index] & 1))
+    {
         pml[pml_index] = (uint64_t)pmm_allocz(1) | flags;
+    }
 
     return (uint64_t *)(pml[pml_index] & ~(511));
 }

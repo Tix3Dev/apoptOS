@@ -104,7 +104,9 @@ uint64_t isr_handler(uint64_t rsp)
         debug_set_color(TERM_COLOR_RESET);
 
         for (;;)
+        {
             asm volatile("cli; hlt");
+        }
     }
     // handle ISA IRQ's
     else if (cpu->isr_number >= 32 && cpu->isr_number < 48)
@@ -181,7 +183,9 @@ uint64_t isr_handler(uint64_t rsp)
         debug_set_color(TERM_COLOR_RESET);
 
         for (;;)
+        {
             asm volatile("cli; hlt");
+        }
     }
 
     return rsp;

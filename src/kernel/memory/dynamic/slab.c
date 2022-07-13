@@ -55,10 +55,14 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t
     slab_cache_t *cache = (slab_cache_t *)pmm_allocz(1);
 
     if (!cache && (flags & SLAB_PANIC))
+    {
         log(PANIC, "Slab cache create ('%s'): Couldn't allocate memory\n", name);
+    }
 
     if (!cache)
+    {
         return NULL;
+    }
 
     cache->name = name;
     cache->slab_size = slab_size;
@@ -75,23 +79,33 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t
 void slab_cache_destroy(slab_cache_t *cache, slab_flags_t flags)
 {
     if (!cache && (flags & SLAB_PANIC))
+    {
         log(PANIC, "Slab cache destroy (name missing): Cache doesn't exist\n");
+    }
 
     if (!cache)
+    {
         return;
+    }
 
     cache->slabs = cache->slabs_head;
 
     for (;;)
     {
         if (!cache->slabs)
+        {
             break;
+        }
 
         if ((cache->slabs->bufctl_count != cache->bufctl_count_max) && (flags & SLAB_PANIC))
+        {
             log(PANIC, "Slab cache destroy ('%s'): A slab wasn't compeltely free\n", cache->name);
+        }
 
         if (cache->slabs->bufctl_count != cache->bufctl_count_max)
+        {
             return;
+        }
 
         pmm_free((void *)cache->slabs->freelist_head, 1);
 
@@ -106,10 +120,14 @@ void slab_cache_destroy(slab_cache_t *cache, slab_flags_t flags)
 void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
 {
     if (!cache && (flags & SLAB_PANIC))
+    {
         log(PANIC, "Slab cache grow (name missing): Cache doesn't exist\n");
+    }
 
     if (!cache)
+    {
         return;
+    }
 
     cache->slabs = cache->slabs_head;
 
@@ -118,15 +136,21 @@ void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
         slab_bufctl_t *bufctl = slab_create_bufctl_buffer();
 
         if (!bufctl && (flags & SLAB_PANIC))
+        {
             log(PANIC, "Slab cache grow ('%s'): Couldn't create bufctl\n", cache->name);
+        }
 
         if (!bufctl)
+        {
             return;
+        }
 
         slab_create_slab(cache, bufctl);
 
         for (size_t j = 0; j < cache->bufctl_count_max; j++)
+        {
             slab_init_bufctls(cache, bufctl, j);
+        }
     }
 }
 
@@ -134,10 +158,14 @@ void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
 void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
 {
     if (!cache && (flags & SLAB_PANIC))
+    {
         log(PANIC, "Slab cache reap (name missing): Cache doesn't exist\n");
+    }
 
     if (!cache)
+    {
         return;
+    }
 
     cache->slabs = cache->slabs_head;
 
@@ -146,12 +174,16 @@ void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
     for (;;)
     {
         if (!cache->slabs)
+        {
             return;
+        }
 
         if (cache->slabs->bufctl_count == cache->bufctl_count_max)
         {
             if (cache->slabs == cache->slabs_head)
+            {
                 cache->slabs_head = cache->slabs->next;
+            }
 
             prev->next = cache->slabs->next;
 
@@ -171,10 +203,14 @@ void slab_cache_reap(slab_cache_t *cache, slab_flags_t flags)
 void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags)
 {
     if (!cache && (flags & SLAB_PANIC))
+    {
         log(PANIC, "Slab cache alloc (name missing): Cache doesn't exist\n");
+    }
 
     if (!cache)
+    {
         return NULL;
+    }
 
     cache->slabs = cache->slabs_head;
 
@@ -188,13 +224,19 @@ void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags)
         }
 
         if (!cache->slabs && (flags & SLAB_PANIC))
+        {
             log(PANIC, "Slab cache alloc ('%s'): Couldn't find allocatable memory\n", cache->name);
+        }
 
         if (!cache->slabs)
+        {
             return NULL;
+        }
 
         if (cache->slabs->freelist_head)
+        {
             break;
+        }
 
         cache->slabs = cache->slabs->next;
     }
@@ -212,23 +254,33 @@ void *slab_cache_alloc(slab_cache_t *cache, slab_flags_t flags)
 void slab_cache_free(slab_cache_t *cache, void *pointer, slab_flags_t flags)
 {
     if (!cache && (flags & SLAB_PANIC))
+    {
         log(PANIC, "Slab cache free (name missing): Cache doesn't exist\n");
+    }
 
     if (!cache)
+    {
         return;
+    }
 
     cache->slabs = cache->slabs_head;
 
     for (;;)
     {
         if (!cache->slabs && (flags & SLAB_PANIC))
+        {
             log(PANIC, "Slab cache free ('%s'): Couldn't find a slab for the to be freed pointer\n", cache->name);
+        }
 
         if (!cache->slabs)
+        {
             return;
+        }
 
         if (cache->slabs->bufctl_count < cache->bufctl_count_max)
+        {
             break;
+        }
 
         cache->slabs = cache->slabs->next;
     }
@@ -248,17 +300,23 @@ void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
     cache->slabs = cache->slabs_head;
 
     if (!cache->slabs && (flags & SLAB_PANIC))
+    {
         log(PANIC, "Slab cache dump (name missing): Slabs don't exist\n");
+    }
 
     if (!cache->slabs)
+    {
         return;
+    }
 
     debug("Dump for cache with name '%s'\n", cache->name);
 
     for (int slab_count = 0;; slab_count++)
     {
         if (!cache->slabs)
+        {
             break;
+        }
 
         cache->slabs->freelist = cache->slabs->freelist_head;
 
@@ -267,7 +325,9 @@ void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
         for (int bufctl_count = 0;; bufctl_count++)
         {
             if (!cache->slabs->freelist)
+            {
                 goto done;
+            }
 
             debug("\t\tBufctl no. %d\t has pointer 0x%p\n", bufctl_count, cache->slabs->freelist->pointer);
 
@@ -287,7 +347,9 @@ slab_bufctl_t *slab_create_bufctl_buffer(void)
     slab_bufctl_t *bufctl = (slab_bufctl_t *)pmm_allocz(1);
 
     if (!bufctl)
+    {
         return NULL;
+    }
 
     bufctl->next = NULL;
 

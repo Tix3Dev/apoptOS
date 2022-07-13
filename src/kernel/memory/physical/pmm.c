@@ -72,12 +72,16 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
         if (current_entry->type != STIVALE2_MMAP_USABLE &&
                 current_entry->type != STIVALE2_MMAP_BOOTLOADER_RECLAIMABLE &&
                 current_entry->type != STIVALE2_MMAP_KERNEL_AND_MODULES)
+        {
             continue;
+        }
 
         current_page_top = current_entry->base + current_entry->length;
 
         if (current_page_top > highest_page_top)
+        {
             highest_page_top = current_page_top;
+        }
     }
 
     used_pages_count = KB_TO_PAGES(highest_page_top);
@@ -91,7 +95,9 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
         current_entry = &memory_map->memmap[i];
 
         if (current_entry->type != STIVALE2_MMAP_USABLE)
+        {
             continue;
+        }
 
         if (current_entry->length >= pmm_bitmap.size)
         {
@@ -119,7 +125,9 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
         current_entry = &memory_map->memmap[i];
 
         if (current_entry->type == STIVALE2_MMAP_USABLE)
+        {
             pmm_free((void *)current_entry->base, current_entry->length / PAGE_SIZE);
+        }
     }
 
     // reserve the null pointer by setting it to free
@@ -132,17 +140,23 @@ void pmm_init(struct stivale2_struct *stivale2_struct)
 void *pmm_alloc(size_t page_count)
 {
     if (used_pages_count <= 0)
+    {
         return NULL;
+    }
 
     void *pointer = pmm_find_first_free_page_range(page_count);
 
     if (pointer == NULL)
+    {
         return NULL;
+    }
 
     uint64_t index = PAGE_TO_BIT(pointer);
 
     for (size_t i = 0; i < page_count; i++)
+    {
         bitmap_set_bit(&pmm_bitmap, index + i);
+    }
 
     used_pages_count += page_count;
 
@@ -165,7 +179,9 @@ void pmm_free(void *pointer, size_t page_count)
     uint64_t index = PAGE_TO_BIT(pointer);
 
     for (size_t i = 0; i < page_count; i++)
+    {
         bitmap_unset_bit(&pmm_bitmap, index + i);
+    }
 
     used_pages_count -= page_count;
 }
@@ -214,10 +230,14 @@ void *pmm_find_first_free_page_range(size_t page_count)
         for (size_t page_count_i = 0; page_count_i < page_count; page_count_i++)
         {
             if (bitmap_check_bit(&pmm_bitmap, all_bits_i + PAGE_TO_BIT(page_count_i)))
+            {
                 break;
+            }
 
             if (page_count_i == page_count - 1)
+            {
                 return (void *)BIT_TO_PAGE(all_bits_i);
+            }
         }
     }
 

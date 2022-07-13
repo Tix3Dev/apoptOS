@@ -55,7 +55,9 @@ void log_impl(char *file, int line_nr, log_status_t status, char *fmt, ...)
         debug("[PANIC]   | %s:%d -> %s", file, line_nr, (char *)log_buffer);
 
         for (;;)
+        {
             asm volatile("cli; hlt");
+        }
     }
     else if (status == SUCCESS)
     {

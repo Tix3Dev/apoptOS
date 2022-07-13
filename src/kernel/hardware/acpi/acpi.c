@@ -52,7 +52,9 @@ void acpi_init(struct stivale2_struct *stivale2_struct)
 
     // having a RSDT is equivalent to having ACPI supported
     if (!acpi_verify_sdt(&rsdt->header, "RSDT"))
+    {
         log(PANIC, "No ACPI was found on this computer!\n");
+    }
 
     madt_init();
 
@@ -77,7 +79,9 @@ sdt_t *acpi_find_sdt(const char *signature)
         current_entry = (sdt_t *)(uintptr_t)rsdt->entries[i];
 
         if (acpi_verify_sdt(current_entry, signature))
+        {
             return (sdt_t *)PHYS_TO_HIGHER_HALF_DATA((uintptr_t)current_entry);
+        }
     }
 
     log(PANIC, "Could not find SDT with signature '%s'!\n", signature);
@@ -94,7 +98,9 @@ bool acpi_verify_sdt_checksum(sdt_t *sdt, const char *signature)
     uint8_t *ptr = (uint8_t *)sdt;
 
     for (uint8_t i = 0; i < sdt->length; i++)
+    {
         checksum += ptr[i];
+    }
 
     checksum = checksum & 0xFF;
 

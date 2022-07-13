@@ -92,7 +92,9 @@ void *malloc(size_t size)
 void free(void *pointer)
 {
     if (!pointer)
+    {
         return;
+    }
 
     pointer = pointer - HEAP_START_ADDR - sizeof(malloc_metadata_t);
 
@@ -124,16 +126,24 @@ size_t get_slab_cache_index(size_t size)
         if (size <= 8)
         {
             if (size <= 4)
+            {
                 return 0;
+            }
             else
+            {
                 return 1;
+            }
         }
         else
         {
             if (size <= 16)
+            {
                 return 2;
+            }
             else
+            {
                 return 3;
+            }
         }
     }
     else
@@ -141,16 +151,24 @@ size_t get_slab_cache_index(size_t size)
         if (size <= 128)
         {
             if (size <= 64)
+            {
                 return 4;
+            }
             else
+            {
                 return 5;
+            }
         }
         else
         {
             if (size <= 256)
+            {
                 return 6;
+            }
             else
+            {
                 return 7;
+            }
         }
     }
 }

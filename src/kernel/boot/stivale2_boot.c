@@ -46,10 +46,14 @@ void *stivale2_get_tag(struct stivale2_struct *stivale2_struct, uint64_t id)
     for (;;)
     {
         if (current_tag == NULL)
+        {
             return NULL;
+        }
 
         if (current_tag->identifier == id)
+        {
             return current_tag;
+        }
 
         current_tag = (void *)current_tag->next;
     }

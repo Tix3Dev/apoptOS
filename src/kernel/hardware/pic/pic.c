@@ -77,7 +77,9 @@ void pic_set_mask(uint8_t irq_line)
     uint8_t value;
 
     if (irq_line < 8)
+    {
         port = PIC1_DATA;
+    }
     else
     {
         port = PIC2_DATA;
@@ -95,7 +97,9 @@ void pic_clear_mask(uint8_t irq_line)
     uint8_t value;
 
     if (irq_line < 8)
+    {
         port = PIC1_DATA;
+    }
     else
     {
         port = PIC2_DATA;
@@ -111,7 +115,9 @@ void pic_signal_eoi(uint64_t isr_number)
 {
     // check if IRQ comes from slave PIC
     if (isr_number >= 40)
+    {
         asm_io_outb(PIC2_COMMAND, 0x20);
+    }
 
     // IRQ comes from master (and from slave) PIC
     asm_io_outb(PIC1_COMMAND, 0x20);
