@@ -81,12 +81,14 @@ void rsdp_verify_checksum(uint64_t rsdp_address)
     for (uint8_t i = 0; i < 20; i++)
         checksum += ptr[i];
 
-    if ((checksum & 0xFF) == 0)
+    checksum = checksum & 0xFF;
+
+    if (checksum == 0)
     {
         log(INFO, "RSDP checksum is verified\n");
     }
     else
     {
-        log(PANIC, "RSDP checksum isn't 0! Checksum: 0x%x\n", checksum & 0xFF);
+        log(PANIC, "RSDP checksum isn't 0! Checksum: 0x%x\n", checksum);
     }
 }

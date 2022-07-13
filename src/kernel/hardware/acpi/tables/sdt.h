@@ -18,6 +18,8 @@
 #ifndef SDT_H
 #define SDT_H
 
+#include <stdint.h>
+
 typedef struct __attribute__((__packed__))
 {
     char	signature[4];
