@@ -18,6 +18,6 @@
 #ifndef MADT_H
 #define MADT_H
 
-
+void madt_init(void);
 
 #endif

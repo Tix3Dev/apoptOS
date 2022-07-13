@@ -22,7 +22,10 @@
 
 */
 
+#include <boot/stivale2.h>
 #include <hardware/acpi/tables/madt.h>
+#include <hardware/acpi/acpi.h>
+#include <libk/serial/log.h>
 
 /* utility function prototypes */
 
@@ -30,7 +33,13 @@
 
 /* core functions */
 
-//
+void madt_init(void)
+{
+    void *madt = (void *)acpi_find_sdt("APIC");
+    log(WARNING, "APIC from MADT: 0x%llx\n", madt);
+
+    log(INFO, "MADT initialized\n");
+}
 
 /* utility functions */
 
