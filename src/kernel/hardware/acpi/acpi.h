@@ -24,6 +24,6 @@
 
 void acpi_init(struct stivale2_struct *stivale2_struct);
 bool acpi_verify_sdt(sdt_t *sdt, const char *signature);
-sdt_t *acpi_find_sdt_table(const char *signature);
+sdt_t *acpi_find_sdt(const char *signature);
 
 #endif
