@@ -52,9 +52,7 @@ void rsdp_init(uint64_t rsdp_address)
         log(INFO, "ACPI Version 2.0 or above is used\n");
     }
     else
-    {
         log(INFO, "ACPI Version 1.0 is used\n");
-    }
 
     debug_set_color(TERM_COLOR_RESET);
 }
@@ -85,11 +83,7 @@ void rsdp_verify_checksum(uint64_t rsdp_address)
     checksum = checksum & 0xFF;
 
     if (checksum == 0)
-    {
         log(INFO, "RSDP checksum is verified\n");
-    }
     else
-    {
         log(PANIC, "RSDP checksum isn't 0! Checksum: 0x%x\n", checksum);
-    }
 }
