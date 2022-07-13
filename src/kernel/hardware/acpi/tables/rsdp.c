@@ -47,7 +47,9 @@ void rsdp_init(uint64_t rsdp_address)
 
     if (rsdp->revision >= 2)
     {
-        has_xsdt_var = true;
+	// we can't directly set it to true as APIC version 2.0 could be used but
+	// somehow XSDT could be missing
+	has_xsdt_var = rsdp->xsdt_address ? true : false;
 
         log(INFO, "ACPI Version 2.0 or above is used\n");
     }

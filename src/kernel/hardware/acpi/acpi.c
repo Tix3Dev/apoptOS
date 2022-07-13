@@ -33,7 +33,7 @@
 #include <libk/string/string.h>
 #include <memory/mem.h>
 
-static rsdt_structure_t *rsdt;
+static rsdt_structure_t *rsdt; // can also represent xsdt, if supported
 
 /* utility function prototypes */
 
@@ -41,6 +41,7 @@ bool acpi_verify_sdt_checksum(sdt_t *sdt, const char *signature);
 
 /* core functions */
 
+// get RSDT entries and use it to initialize MADT
 void acpi_init(struct stivale2_struct *stivale2_struct)
 {
     struct stivale2_struct_tag_rsdp *rsdp_tag = stivale2_get_tag(stivale2_struct,
@@ -48,12 +49,25 @@ void acpi_init(struct stivale2_struct *stivale2_struct)
 
     rsdp_init(rsdp_tag->rsdp);
 
-    rsdt = (rsdt_structure_t *)PHYS_TO_HIGHER_HALF_DATA((uintptr_t)get_rsdp_struct()->rsdt_address);
-
-    // having a RSDT is equivalent to having ACPI supported
-    if (!acpi_verify_sdt(&rsdt->header, "RSDT"))
+    if (has_xsdt())
     {
-        log(PANIC, "No ACPI was found on this computer!\n");
+	rsdt = (rsdt_structure_t *)PHYS_TO_HIGHER_HALF_DATA((uintptr_t)get_rsdp_struct()->xsdt_address);
+
+	// last and final check to verify ACPI is supported
+	if (!acpi_verify_sdt(&rsdt->header, "XSDT"))
+	{
+	    log(PANIC, "No ACPI was found on this computer!\n");
+	}
+    }
+    else
+    {
+	rsdt = (rsdt_structure_t *)PHYS_TO_HIGHER_HALF_DATA((uintptr_t)get_rsdp_struct()->rsdt_address);
+
+	// last and final check to verify ACPI is supported
+	if (!acpi_verify_sdt(&rsdt->header, "RSDT"))
+	{
+	    log(PANIC, "No ACPI was found on this computer!\n");
+	}
     }
 
     madt_init();
