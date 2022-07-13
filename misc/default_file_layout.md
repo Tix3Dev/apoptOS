@@ -1,7 +1,8 @@
 C files:
 ```c
 /*
-	This file is part of a modern x86_64 UNIX-like microkernel which is called apoptOS
+	This file is part of a modern x86_64 UNIX-like microkernel-based
+    operating system which is called apoptOS
 	Everything is openly developed on GitHub: https://github.com/Tix3Dev/apoptOS
 
 	Copyright (C) 2022  Yves Vollmeier <https://github.com/Tix3Dev>
@@ -44,7 +45,8 @@ C files:
 C header files:
 ```h
 /*
-	This file is part of a modern x86_64 UNIX-like microkernel which is called apoptOS
+	This file is part of a modern x86_64 UNIX-like microkernel-based
+    operating system which is called apoptOS
 	Everything is openly developed on GitHub: https://github.com/Tix3Dev/apoptOS
 
 	Copyright (C) 2022  Yves Vollmeier <https://github.com/Tix3Dev>
