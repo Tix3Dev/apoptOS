@@ -1,6 +1,6 @@
 /*
 	This file is part of a modern x86_64 UNIX-like microkernel-based
-    operating system which is called apoptOS
+	operating system which is called apoptOS
 	Everything is openly developed on GitHub: https://github.com/Tix3Dev/apoptOS
 
 	Copyright (C) 2022  Yves Vollmeier <https://github.com/Tix3Dev>
@@ -66,6 +66,7 @@ bool acpi_verify_sdt(sdt_t *sdt, const char *signature)
            acpi_verify_sdt_checksum(sdt, signature);
 }
 
+// search array of entries in RSDT for SDT header with the desired signature
 sdt_t *acpi_find_sdt(const char *signature)
 {
     size_t entry_count = (rsdt->header.length - sizeof(rsdt->header)) / (has_xsdt() ? 8 : 4);
