@@ -27,6 +27,12 @@ typedef struct __attribute__((__packed__))
 {
     sdt_t header;
     uint32_t entries[];
-} rsdt_structure_t;
+} rsdt_t;
+
+typedef struct __attribute__((__packed__)) 
+{
+    sdt_t header;
+    uint64_t entries[];
+} xsdt_t;
 
 #endif

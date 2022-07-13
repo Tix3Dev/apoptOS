@@ -33,7 +33,8 @@
 #include <libk/string/string.h>
 #include <memory/mem.h>
 
-static rsdt_structure_t *rsdt; // can also represent xsdt, if supported
+static rsdt_t *rsdt;
+static xsdt_t *xsdt;
 
 /* utility function prototypes */
 
@@ -51,17 +52,17 @@ void acpi_init(struct stivale2_struct *stivale2_struct)
 
     if (has_xsdt())
     {
-	rsdt = (rsdt_structure_t *)PHYS_TO_HIGHER_HALF_DATA((uintptr_t)get_rsdp_struct()->xsdt_address);
+	xsdt = (xsdt_t *)PHYS_TO_HIGHER_HALF_DATA(get_rsdp_struct()->xsdt_address);
 
 	// last and final check to verify ACPI is supported
-	if (!acpi_verify_sdt(&rsdt->header, "XSDT"))
+	if (!acpi_verify_sdt(&xsdt->header, "XSDT"))
 	{
 	    log(PANIC, "No ACPI was found on this computer!\n");
 	}
     }
     else
     {
-	rsdt = (rsdt_structure_t *)PHYS_TO_HIGHER_HALF_DATA((uintptr_t)get_rsdp_struct()->rsdt_address);
+	rsdt = (rsdt_t *)PHYS_TO_HIGHER_HALF_DATA(get_rsdp_struct()->rsdt_address);
 
 	// last and final check to verify ACPI is supported
 	if (!acpi_verify_sdt(&rsdt->header, "RSDT"))
@@ -85,12 +86,22 @@ bool acpi_verify_sdt(sdt_t *sdt, const char *signature)
 // search array of entries in RSDT for SDT header with the desired signature
 sdt_t *acpi_find_sdt(const char *signature)
 {
-    size_t entry_count = (rsdt->header.length - sizeof(rsdt->header)) / (has_xsdt() ? 8 : 4);
+    size_t entry_count;
+
+    if (has_xsdt())
+    {
+        entry_count = (xsdt->header.length - sizeof(xsdt->header)) / 8;
+    }
+    else
+    {
+        entry_count = (rsdt->header.length - sizeof(rsdt->header)) / 4;
+    }
+
     sdt_t *current_entry;
 
     for (size_t i = 0; i < entry_count; i++)
     {
-        current_entry = (sdt_t *)(uintptr_t)rsdt->entries[i];
+        current_entry = (sdt_t *)(has_xsdt() ? xsdt->entries[i] : rsdt->entries[i]);
 
         if (acpi_verify_sdt(current_entry, signature))
         {
