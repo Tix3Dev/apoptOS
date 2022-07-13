@@ -15,10 +15,12 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <hardware/acpi/tables/sdt.h>
-
 #ifndef RSDT_H
 #define RSDT_H
+
+#include <stdint.h>
+
+#include <hardware/acpi/tables/sdt.h>
 
 typedef struct __attribute__((__packed__)) 
 {
