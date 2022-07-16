@@ -19,6 +19,10 @@
 #ifndef MADT_H
 #define MADT_H
 
+#include <stddef.h>
+
+#include <hardware/acpi/tables/sdt.h>
+
 typedef struct __attribute__((__packed__))
 {
     uint8_t type;
@@ -64,9 +68,21 @@ typedef struct __attribute__((__packed__))
     sdt_t header;
     uint32_t lapic_address;
     uint32_t flags;
-    madt_entries_t entries[];
+    madt_header_t entries[];
 } madt_t;
 
 void madt_init(void);
+
+extern madt_t *madt;
+
+extern madt_lapic_t	**madt_lapics;
+extern madt_ioapic_t	**madt_ioapics;
+extern madt_iso_t	**madt_isos;
+extern madt_lapic_nmi_t	**madt_lapic_nmis;
+
+extern size_t madt_lapics_i;
+extern size_t madt_ioapics_i;
+extern size_t madt_isos_i;
+extern size_t madt_lapic_nmis_i;
 
 #endif

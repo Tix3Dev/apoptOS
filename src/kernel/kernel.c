@@ -28,6 +28,9 @@
 
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
+
+#include <hardware/acpi/tables/madt.h>
+
 #include <hardware/acpi/acpi.h>
 #include <libk/malloc/malloc.h>
 #include <libk/serial/log.h>
@@ -79,4 +82,30 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
     malloc_heap_init();
 
     acpi_init(stivale2_struct);
+
+    log(INFO, "MADT test\n");
+
+    for (size_t i = 0; i < madt_lapics_i; i++)
+    {
+	log(WARNING, "madt_lapics: %d\n", i);
+	log(WARNING, "-> %llx\n\n", madt_lapics[i]);
+    }
+
+    for (size_t i = 0; i < madt_ioapics_i; i++)
+    {
+	log(WARNING, "madt_ioapics: %d\n", i);
+	log(WARNING, "-> %llx\n\n", madt_ioapics[i]);
+    }
+
+    for (size_t i = 0; i < madt_isos_i; i++)
+    {
+	log(WARNING, "madt_isos: %d\n", i);
+	log(WARNING, "-> %llx\n\n", madt_isos[i]);
+    }
+
+    for (size_t i = 0; i < madt_lapic_nmis_i; i++)
+    {
+	log(WARNING, "madt_lapic_nmis: %d\n", i);
+	log(WARNING, "-> %llx\n\n", madt_lapic_nmis[i]);
+    }
 }
