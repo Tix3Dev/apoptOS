@@ -19,7 +19,7 @@
 /*
 
     Brief file description:
-    Iterate through all Multiple APIC Description Table entries and 
+    Iterate through all Multiple APIC Description Table entries and
     make them global to access.
 
 */
@@ -51,7 +51,7 @@ void madt_init(void)
 
     if (madt == NULL)
     {
-	log(PANIC, "No MADT was found on this computer!\n");
+        log(PANIC, "No MADT was found on this computer!\n");
     }
 
     madt_lapics	    = malloc(256);
@@ -64,28 +64,28 @@ void madt_init(void)
 
     for (uint8_t *entry_ptr = start; (size_t)entry_ptr < end; entry_ptr += *(entry_ptr + 1))
     {
-	switch (*entry_ptr)
-	{
-	    case 0:
-		log(INFO, "madt_init(): Found LAPIC at 0x%llx\n", entry_ptr);
-		madt_lapics[madt_lapics_i++] = (madt_lapic_t *)entry_ptr;
-		break;
+        switch (*entry_ptr)
+        {
+            case 0:
+                log(INFO, "madt_init(): Found LAPIC at 0x%llx\n", entry_ptr);
+                madt_lapics[madt_lapics_i++] = (madt_lapic_t *)entry_ptr;
+                break;
 
-	    case 1:
-		log(INFO, "madt_init(): Found IOAPIC at 0x%llx\n", entry_ptr);
-		madt_ioapics[madt_ioapics_i++] = (madt_ioapic_t *)entry_ptr;
-		break;
+            case 1:
+                log(INFO, "madt_init(): Found IOAPIC at 0x%llx\n", entry_ptr);
+                madt_ioapics[madt_ioapics_i++] = (madt_ioapic_t *)entry_ptr;
+                break;
 
-	    case 2:
-		log(INFO, "madt_init(): Found Interrupt Source Override at 0x%llx\n", entry_ptr);
-		madt_isos[madt_isos_i++] = (madt_iso_t *)entry_ptr;
-		break;
+            case 2:
+                log(INFO, "madt_init(): Found Interrupt Source Override at 0x%llx\n", entry_ptr);
+                madt_isos[madt_isos_i++] = (madt_iso_t *)entry_ptr;
+                break;
 
-	    case 4:
-		log(INFO, "madt_init(): Found Non Maskable Interrupt at 0x%llx\n", entry_ptr);
-		madt_lapic_nmis[madt_lapic_nmis_i++] = (madt_lapic_nmi_t *)entry_ptr;
-		break;
-	}
+            case 4:
+                log(INFO, "madt_init(): Found Non Maskable Interrupt at 0x%llx\n", entry_ptr);
+                madt_lapic_nmis[madt_lapic_nmis_i++] = (madt_lapic_nmi_t *)entry_ptr;
+                break;
+        }
     }
 
     log(INFO, "MADT initialized\n");

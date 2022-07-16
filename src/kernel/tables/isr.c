@@ -90,8 +90,8 @@ uint64_t isr_handler(uint64_t rsp)
     // handle exceptions
     if (cpu->isr_number < 32)
     {
-	// check for specifi IRQ, like page fault, where kernel wouldn't have
-	// to be halted - otherwise continue here:
+        // check for specifi IRQ, like page fault, where kernel wouldn't have
+        // to be halted - otherwise continue here:
 
         debug_set_color(TERM_RED);
         debug("\n────────────────────────\n");
@@ -99,7 +99,7 @@ uint64_t isr_handler(uint64_t rsp)
         debug("⤷ ISR-No. %d: %s\n", cpu->isr_number, exceptions[cpu->isr_number]);
         debug("⤷ Error code: 0x%.16llx\n\n\n", cpu->error_code);
         debug_set_color(TERM_CYAN);
-	isr_register_dump(cpu);
+        isr_register_dump(cpu);
 
         debug_set_color(TERM_COLOR_RESET);
 
@@ -119,7 +119,7 @@ uint64_t isr_handler(uint64_t rsp)
         debug("⚠ UNKNOWN HARDWARE INTERRUPT OCCURRED! ⚠\n\n");
         debug("⤷ ISR-No. %d: %s\n", cpu->isr_number, isa_irqs[cpu->isr_number - 32]);
         debug_set_color(TERM_CYAN);
-	isr_register_dump(cpu);
+        isr_register_dump(cpu);
 
         debug_set_color(TERM_COLOR_RESET);
 
@@ -136,7 +136,7 @@ uint64_t isr_handler(uint64_t rsp)
         debug("⤷ ISR-No. %d\n", cpu->isr_number);
         // debug("⤷ Error code: 0x%.16llx\n\n\n", cpu->error_code);
         debug_set_color(TERM_CYAN);
-	isr_register_dump(cpu);
+        isr_register_dump(cpu);
 
         debug_set_color(TERM_COLOR_RESET);
     }
@@ -148,7 +148,7 @@ uint64_t isr_handler(uint64_t rsp)
         debug("⚠ UNKNOWN INTERRUPT OCCURRED! ⚠\n\n");
         debug("⤷ ISR-No. %d\n", cpu->isr_number);
         debug_set_color(TERM_CYAN);
-	isr_register_dump(cpu);
+        isr_register_dump(cpu);
 
         debug_set_color(TERM_COLOR_RESET);
 
@@ -167,13 +167,13 @@ void isr_register_dump(interrupt_cpu_state_t *cpu)
 {
     debug("ℹ Register dump:\n\n");
     debug("⤷ rax: 0x%.16llx, rbx:    0x%.16llx, rcx: 0x%.16llx, rdx: 0x%.16llx\n"
-	  "⤷ rsi: 0x%.16llx, rdi:    0x%.16llx, rbp: 0x%.16llx, r8 : 0x%.16llx\n"
-	  "⤷ r9 : 0x%.16llx, r10:    0x%.16llx, r11: 0x%.16llx, r12: 0x%.16llx\n"
-	  "⤷ r13: 0x%.16llx, r14:    0x%.16llx, r15: 0x%.16llx, ss : 0x%.16llx\n"
-	  "⤷ rsp: 0x%.16llx, rflags: 0x%.16llx, cs : 0x%.16llx, rip: 0x%.16llx\n",
-	  cpu->rax, cpu->rbx,    cpu->rcx, cpu->rdx,
-	  cpu->rsi, cpu->rdi,    cpu->rbp, cpu->r8,
-	  cpu->r9,  cpu->r10,    cpu->r11, cpu->r12,
-	  cpu->r13, cpu->r14,    cpu->r15, cpu->ss,
-	  cpu->rsp, cpu->rflags, cpu->cs,  cpu->rip);
+          "⤷ rsi: 0x%.16llx, rdi:    0x%.16llx, rbp: 0x%.16llx, r8 : 0x%.16llx\n"
+          "⤷ r9 : 0x%.16llx, r10:    0x%.16llx, r11: 0x%.16llx, r12: 0x%.16llx\n"
+          "⤷ r13: 0x%.16llx, r14:    0x%.16llx, r15: 0x%.16llx, ss : 0x%.16llx\n"
+          "⤷ rsp: 0x%.16llx, rflags: 0x%.16llx, cs : 0x%.16llx, rip: 0x%.16llx\n",
+          cpu->rax, cpu->rbx,    cpu->rcx, cpu->rdx,
+          cpu->rsi, cpu->rdi,    cpu->rbp, cpu->r8,
+          cpu->r9,  cpu->r10,    cpu->r11, cpu->r12,
+          cpu->r13, cpu->r14,    cpu->r15, cpu->ss,
+          cpu->rsp, cpu->rflags, cpu->cs,  cpu->rip);
 }

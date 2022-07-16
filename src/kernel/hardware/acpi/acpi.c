@@ -52,23 +52,23 @@ void acpi_init(struct stivale2_struct *stivale2_struct)
 
     if (has_xsdt())
     {
-	xsdt = (xsdt_t *)PHYS_TO_HIGHER_HALF_DATA(get_rsdp_struct()->xsdt_address);
+        xsdt = (xsdt_t *)PHYS_TO_HIGHER_HALF_DATA(get_rsdp_struct()->xsdt_address);
 
-	// last and final check to verify ACPI is supported
-	if (!acpi_verify_sdt(&xsdt->header, "XSDT"))
-	{
-	    log(PANIC, "No ACPI was found on this computer!\n");
-	}
+        // last and final check to verify ACPI is supported
+        if (!acpi_verify_sdt(&xsdt->header, "XSDT"))
+        {
+            log(PANIC, "No ACPI was found on this computer!\n");
+        }
     }
     else
     {
-	rsdt = (rsdt_t *)PHYS_TO_HIGHER_HALF_DATA(get_rsdp_struct()->rsdt_address);
+        rsdt = (rsdt_t *)PHYS_TO_HIGHER_HALF_DATA(get_rsdp_struct()->rsdt_address);
 
-	// last and final check to verify ACPI is supported
-	if (!acpi_verify_sdt(&rsdt->header, "RSDT"))
-	{
-	    log(PANIC, "No ACPI was found on this computer!\n");
-	}
+        // last and final check to verify ACPI is supported
+        if (!acpi_verify_sdt(&rsdt->header, "RSDT"))
+        {
+            log(PANIC, "No ACPI was found on this computer!\n");
+        }
     }
 
     madt_init();
