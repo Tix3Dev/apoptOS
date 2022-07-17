@@ -19,6 +19,7 @@
 #include <hardware/pic/pic.h>
 #include <libk/serial/debug.h>
 #include <libk/serial/log.h>
+#include <tables/isr.h>
 
 static const char *exceptions[] =
 {
