@@ -12,13 +12,14 @@
 - Higher half kernel
 - Limine bootloader
 - Stivale2 boot protocol
+- Serial communication
 - GDT and TSS
 - IDT and ISR's
 - Physical memory management -> Bitmap based allocator & Slab allocator
 - Virtual memory management -> 4-level paging support
 - Heap memory -> `malloc` and `free`
-- Serial communication
 - Basic kernel library
+- ACPI table parsing
 
 ## Goals
 
