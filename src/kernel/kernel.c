@@ -28,10 +28,9 @@
 
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
-
-#include <hardware/acpi/tables/madt.h>
-
 #include <hardware/acpi/acpi.h>
+#include <hardware/apic/apic.h>
+#include <hardware/cpu.h>
 #include <libk/malloc/malloc.h>
 #include <libk/serial/log.h>
 #include <libk/testing/assert.h>
@@ -81,5 +80,10 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
 
     malloc_heap_init();
 
+    log(INFO, "CPU vendor id string: '%s'\n", cpu_get_vendor_id_string());
+
     acpi_init(stivale2_struct);
+    apic_init();
+
+    asm volatile("int $0x0");
 }
