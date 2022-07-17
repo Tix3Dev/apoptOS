@@ -126,19 +126,35 @@ uint64_t isr_handler(uint64_t rsp)
         pic_signal_eoi(cpu->isr_number);
     }
     // handle syscalls
-    else if (cpu->isr_number == 128)
+    else if (cpu->isr_number == SYSCALL_INT)
     {
         // TODO syscalls
 
         debug_set_color(TERM_RED);
         debug("\n────────────────────────\n");
         debug("⚠ SYSCALL OCCURRED - UNHANDLED FOR NOW! ⚠\n\n");
-        debug("⤷ ISR-No. %d\n", cpu->isr_number);
-        // debug("⤷ Error code: 0x%.16llx\n\n\n", cpu->error_code);
         debug_set_color(TERM_CYAN);
         isr_register_dump(cpu);
 
         debug_set_color(TERM_COLOR_RESET);
+    }
+    // handle spurious interrupts
+    else if (cpu->isr_number == SPURIOUS_INT)
+    {
+        // TODO spurious interrupts
+
+        debug_set_color(TERM_RED);
+        debug("\n────────────────────────\n");
+        debug("⚠ SPURIOUS INTERRUPT OCCURRED - UNHANDLED FOR NOW! ⚠\n\n");
+        debug_set_color(TERM_CYAN);
+        isr_register_dump(cpu);
+
+        debug_set_color(TERM_COLOR_RESET);
+
+        for (;;)
+        {
+            asm volatile("cli; hlt");
+        }
     }
     // handle unknown interrupts
     else

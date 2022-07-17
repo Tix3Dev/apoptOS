@@ -21,4 +21,7 @@
 
 #include <stdint.h>
 
+#define SYSCALL_INT	128
+#define SPURIOUS_INT	255
+
 #endif
