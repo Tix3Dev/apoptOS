@@ -59,6 +59,7 @@ void apic_init(void)
     lapic_enable();
 
     log(WARNING, "lapic spurious reg: 0x%llx\n", lapic_read_reg(LAPIC_SPURIOUS_REG));
+    log(WARNING, "lapic revision: %d\n", lapic_read_reg(0x30));
 
     log(INFO, "APIC initialized\n");
 }
