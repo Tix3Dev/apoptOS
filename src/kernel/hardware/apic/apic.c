@@ -60,12 +60,13 @@ void apic_init(void)
 
 void lapic_signal_eoi(void)
 {
-    //
+    lapic_write_reg(LAPIC_EOI_REG, 0);
 }
 
 void lapic_send_ipi(uint32_t lapic_id, uint8_t vector)
 {
-    //
+    lapic_write_reg(LAPIC_ICR1_REG, lapic_id << 24);
+    lapic_write_reg(LAPIC_ICR0_REG, vector);
 }
 
 void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq)
