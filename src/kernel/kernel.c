@@ -85,5 +85,9 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
     acpi_init(stivale2_struct);
     apic_init();
 
-    asm volatile("int $0x0");
+
+    struct stivale2_struct_tag_smp *smp_tag = stivale2_get_tag(stivale2_struct,
+            STIVALE2_STRUCT_TAG_SMP_ID);
+
+    asm volatile("nop");
 }

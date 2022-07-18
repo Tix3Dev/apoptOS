@@ -28,13 +28,21 @@
 
 uint8_t stack[16384];
 
+static struct stivale2_header_tag_smp smp_hdr_tag = {
+    .tag = {
+        .identifier = STIVALE2_HEADER_TAG_SMP_ID,
+        .next = 0
+    },
+    .flags = 0
+};
+
 __attribute__((section(".stivale2hdr"), used))
 static struct stivale2_header stivale_hdr =
 {
     .entry_point    = 0,
     .stack	    = (uintptr_t)stack + sizeof(stack),
     .flags	    = (1 << 1) | (1 << 2) | (1 << 4),
-    .tags	    = 0
+    .tags	    = (uintptr_t)&smp_hdr_tag
 };
 
 
