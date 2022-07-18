@@ -31,7 +31,7 @@
 
 void apic_init(void);
 void lapic_signal_eoi(void);
-void lapic_send_ipi(void); // TODO: uint8_t lapic_id, uint8_t vector
-void ioapic_set_irq_redirect(void); // TODO: uint8_t lapic_id, uint8_t vector, uint8_t irq
+void lapic_send_ipi(uint32_t lapic_id, uint8_t vector);
+void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq);
 
 #endif

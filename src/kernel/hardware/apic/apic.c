@@ -52,14 +52,8 @@ void apic_init(void)
 
     lapic_address = PHYS_TO_HIGHER_HALF_DATA(madt->lapic_address);
 
-    log(WARNING, "lapic_address: 0x%llx\n", lapic_address);
-
     pic_disable();
-
     lapic_enable();
-
-    log(WARNING, "lapic spurious reg: 0x%llx\n", lapic_read_reg(LAPIC_SPURIOUS_REG));
-    log(WARNING, "lapic revision: %d\n", lapic_read_reg(0x30));
 
     log(INFO, "APIC initialized\n");
 }
@@ -69,12 +63,12 @@ void lapic_signal_eoi(void)
     //
 }
 
-void lapic_send_ipi(void) // TODO: uint8_t lapic_id, uint8_t vector
+void lapic_send_ipi(uint32_t lapic_id, uint8_t vector)
 {
     //
 }
 
-void ioapic_set_irq_redirect(void) // TODO: uint8_t lapic_id, uint8_t vector, uint8_t irq
+void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq)
 {
     //
 }
@@ -83,7 +77,7 @@ void ioapic_set_irq_redirect(void) // TODO: uint8_t lapic_id, uint8_t vector, ui
 
 bool apic_is_available(void)
 {
-
+ 
     cpuid_registers_t *regs = &(cpuid_registers_t)
     {
         .leaf = CPUID_GET_FEATURES,
@@ -118,3 +112,5 @@ void lapic_enable(void)
     lapic_write_reg(LAPIC_SPURIOUS_REG,
 	    lapic_read_reg(LAPIC_SPURIOUS_REG) | LAPIC_ENABLE | SPURIOUS_INT);
 }
+
+
