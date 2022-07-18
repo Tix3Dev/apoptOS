@@ -40,9 +40,12 @@ uint32_t lapic_read_reg(uint32_t reg);
 void lapic_write_reg(uint32_t reg, uint32_t data);
 void lapic_enable(void);
 void ioapic_set_gsi_redirect(void);
+uint32_t ioapic_read_reg(size_t ioapic_i, uint8_t reg_offset);
+void ioapic_write_reg(size_t ioapic_i, uint8_t reg_offset, uint32_t data);
 
 /* core functions */
 
+// make lapic_address global, disable PIC to enable LAPIC
 void apic_init(void)
 {
     if (!apic_is_available())
@@ -58,12 +61,14 @@ void apic_init(void)
     log(INFO, "APIC initialized\n");
 }
 
-void lapic_signal_eoi(void)
+// signal an end of interrupt
+void lapic_signal_eoi(void) // TODO: test this
 {
     lapic_write_reg(LAPIC_EOI_REG, 0);
 }
 
-void lapic_send_ipi(uint32_t lapic_id, uint8_t vector)
+// send an interrupt to another LAPIC by using interprocessor interrupts
+void lapic_send_ipi(uint32_t lapic_id, uint8_t vector) // TODO: test this
 {
     lapic_write_reg(LAPIC_ICR1_REG, lapic_id << 24);
     lapic_write_reg(LAPIC_ICR0_REG, vector);
@@ -76,6 +81,7 @@ void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq)
 
 /* utility functions */
 
+// check CPUID status over availability of APIC
 bool apic_is_available(void)
 {
  
@@ -98,20 +104,41 @@ bool apic_is_available(void)
     return false;
 }
 
+// get data from a LAPIC register
 uint32_t lapic_read_reg(uint32_t reg)
 {
     return *((volatile uint32_t *)(lapic_address + reg));
 }
 
+// write data to a LAPIC register
 void lapic_write_reg(uint32_t reg, uint32_t data)
 {
     *((volatile uint32_t *)(lapic_address + reg)) = data;
 }
 
+// enable LAPIC by setting 'default interrupt' (spurious interrupt) to IRQ 255
 void lapic_enable(void)
 {
     lapic_write_reg(LAPIC_SPURIOUS_REG,
 	    lapic_read_reg(LAPIC_SPURIOUS_REG) | LAPIC_ENABLE | SPURIOUS_INT);
 }
 
+// read data from a IOAPIC register - IOAPIC is custom
+uint32_t ioapic_read_reg(size_t ioapic_i, uint8_t reg_offset)
+{
+    uint32_t volatile *current_io_apic_base = (uint32_t volatile *)madt_ioapics[ioapic_i];
 
+    *current_io_apic_base = reg_offset;
+
+    return *(current_io_apic_base + 0x10);
+}
+
+// write data to a IOAPIC register - IOAPIC is custom
+void ioapic_write_reg(size_t ioapic_i, uint8_t reg_offset, uint32_t data)
+{
+    uint32_t volatile *current_ioapic_address = (uint32_t volatile *)madt_ioapics[ioapic_i];
+
+    *current_ioapic_address = reg_offset;
+
+    *(current_ioapic_address + 0x10) = data;
+}
