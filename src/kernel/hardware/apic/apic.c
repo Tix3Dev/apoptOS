@@ -105,7 +105,7 @@ bool apic_is_available(void)
 
 uint32_t lapic_read_reg(uint32_t reg)
 {
-    return *((volatile uint32_t *)lapic_address + reg);
+    return *((volatile uint32_t *)(lapic_address + reg));
 }
 
 void lapic_write_reg(uint32_t reg, uint32_t data)
