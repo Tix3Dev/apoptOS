@@ -39,9 +39,11 @@ bool apic_is_available(void);
 uint32_t lapic_read_reg(uint32_t reg);
 void lapic_write_reg(uint32_t reg, uint32_t data);
 void lapic_enable(void);
-void ioapic_set_gsi_redirect(void);
 uint32_t ioapic_read_reg(size_t ioapic_i, uint8_t reg_offset);
 void ioapic_write_reg(size_t ioapic_i, uint8_t reg_offset, uint32_t data);
+uint32_t ioapic_get_max_redirect(size_t ioapic_i);
+size_t ioapic_i_from_gsi(uint32_t gsi);
+void ioapic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, uint16_t flags, bool mask);
 
 /* core functions */
 
@@ -74,9 +76,22 @@ void lapic_send_ipi(uint32_t lapic_id, uint8_t vector) // TODO: test this
     lapic_write_reg(LAPIC_ICR0_REG, vector);
 }
 
-void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq)
+// tell the IOAPIC to always redirect the specified vector to a specified LAPIC,
+// which then always should use a specified IRQ - flags are set according to ISO's
+void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, bool mask)
 {
-    //
+    for (size_t isos_i = 0; isos_i < madt_isos_i; isos_i++)
+    {
+	if (madt_isos[isos_i]->irq_source == irq)
+	{
+	    ioapic_set_gsi_redirect(lapic_id, vector, madt_isos[isos_i]->gsi,
+		    madt_isos[isos_i]->flags, mask);
+
+	    return;
+	}
+    }
+
+    ioapic_set_gsi_redirect(lapic_id, vector, irq, 0, mask);
 }
 
 /* utility functions */
@@ -141,4 +156,63 @@ void ioapic_write_reg(size_t ioapic_i, uint8_t reg_offset, uint32_t data)
     *current_ioapic_address = reg_offset;
 
     *(current_ioapic_address + 0x10) = data;
+}
+
+// get how any IRQ's (i.e. redirects) this IOAPIC can handle
+uint32_t ioapic_get_max_redirect(size_t ioapic_i)
+{
+    return (ioapic_read_reg(ioapic_i, IOAPICVER_REG) & 0xFF0000) >> 16;
+}
+
+// iterate through all IOAPIC's and check if the GSI is in current IOAPIC's range
+size_t ioapic_i_from_gsi(uint32_t gsi)
+{
+    uint32_t start_gsi;
+    uint32_t end_gsi;
+
+    for (size_t ioapic_i = 0; ioapic_i < madt_ioapics_i; ioapic_i++)
+    {
+	start_gsi = madt_ioapics[ioapic_i]->gsi_base;
+	end_gsi = start_gsi + ioapic_get_max_redirect(ioapic_i);
+
+	if (gsi >= start_gsi && gsi < end_gsi)
+	{
+	    return ioapic_i;
+	}
+    }
+
+    log(PANIC, "Couldn't find an IOAPIC for GSI %d!\n", gsi);
+    return 0;
+}
+
+// set fields in redirection entry according to MADT ISO struct and save entry
+void ioapic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, uint16_t flags, bool mask)
+{
+    uint64_t redirect_entry = vector;
+
+    // if flags.pin_polarity is active low (else active high)
+    if (flags & 2)
+    {
+	redirect_entry |= 1 << 13;
+    }
+
+    // if flags.trigger_mode is level triggered (else edge triggered)
+    if (flags & 8)
+    {
+	redirect_entry |= 1 << 15;
+    }
+
+    if (!mask)
+    {
+	redirect_entry |= 1 << 16;
+    }
+
+    // set destination
+    redirect_entry |= (uint64_t)lapic_id << 56;
+
+    size_t ioapic_i = ioapic_i_from_gsi(gsi);
+    uint32_t ioredtbl = IRQ_TO_IOREDTBL_REG(gsi - madt_ioapics[ioapic_i]->gsi_base);
+
+    ioapic_write_reg(ioapic_i, ioredtbl, (uint32_t)redirect_entry);
+    ioapic_write_reg(ioapic_i, ioredtbl + 1, (uint32_t)(redirect_entry >> 32));
 }

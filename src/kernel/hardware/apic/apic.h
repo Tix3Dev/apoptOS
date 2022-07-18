@@ -27,11 +27,16 @@
 #define LAPIC_ICR0_REG	    0x300
 #define LAPIC_ICR1_REG	    0x310
 
-#define LAPIC_ENABLE	    (1 << 8)
+#define LAPIC_ENABLE (1 << 8)
+
+#define IOAPICID_REG	0
+#define IOAPICVER_REG	1
+
+#define IRQ_TO_IOREDTBL_REG(irq) (irq * 2 + 0x10)
 
 void apic_init(void);
 void lapic_signal_eoi(void);
 void lapic_send_ipi(uint32_t lapic_id, uint8_t vector);
-void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq);
+void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, bool mask);
 
 #endif
