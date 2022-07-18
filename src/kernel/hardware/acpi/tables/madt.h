@@ -33,7 +33,7 @@ typedef struct __attribute__((__packed__))
 {
     madt_header_t header;
     uint8_t acpi_processor_id;
-    uint8_t acpi_id;
+    uint8_t apic_id;
     uint32_t flags;
 } madt_lapic_t;
 
