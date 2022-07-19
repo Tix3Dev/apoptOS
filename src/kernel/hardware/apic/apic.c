@@ -36,9 +36,12 @@ static uintptr_t lapic_address;
 /* utility function prototypes */
 
 bool apic_is_available(void);
+
 uint32_t lapic_read_reg(uint32_t reg);
 void lapic_write_reg(uint32_t reg, uint32_t data);
 void lapic_enable(void);
+uint8_t lapic_get_id(void);
+
 uint32_t ioapic_read_reg(size_t ioapic_i, uint8_t reg_offset);
 void ioapic_write_reg(size_t ioapic_i, uint8_t reg_offset, uint32_t data);
 uint32_t ioapic_get_max_redirect(size_t ioapic_i);
@@ -60,11 +63,33 @@ void apic_init(void)
     pic_disable();
     lapic_enable();
 
-    uint32_t max_redirect = ioapic_get_max_redirect(0);
-    log(WARNING, "max redirect: %d\n", max_redirect);
+    // uint32_t max_redirect = ioapic_get_max_redirect(0);
+    // log(WARNING, "max redirect: %d\n", max_redirect);
 
-    log(WARNING, "apic id: 0x%llx\n", (ioapic_read_reg(0, 0) >> 24) & 0xF0);
-    log(WARNING, "apic version: 0x%llx\n", (uint8_t)ioapic_read_reg(0, 1));
+    // log(WARNING, "apic id: 0x%llx\n", (ioapic_read_reg(0, 0) >> 24) & 0xF0);
+    // log(WARNING, "apic version: 0x%llx\n", (uint8_t)ioapic_read_reg(0, 1));
+
+    // for (size_t i = 0; i < madt_isos_i; i++)
+    // {
+    //     log(WARNING, "ISO %d -> BUS: %d | IRQ: %d | GSI: %d | FLAGS: %d\n",
+    //     	i,
+    //     	madt_isos[i]->bus_source,
+    //     	madt_isos[i]->irq_source,
+    //     	madt_isos[i]->gsi,
+    //     	madt_isos[i]->flags);
+    // }
+
+    // uint8_t gsi = 2;
+    // size_t ioapic_i = ioapic_i_from_gsi(gsi);
+    // log(WARNING, "ioapic_i_from_gsi(%d) -> %d\n", gsi, ioapic_i);
+
+    // log(WARNING, "register lapic id: %d\n", lapic_get_id());
+    // log(WARNING, "madt lapic id: %d\n", madt_lapics[0]->apic_id);
+
+    for (uint8_t i = 0; i < 16; i++)
+    {
+        ioapic_set_irq_redirect(lapic_get_id(), i + 32, i, true);
+    }
 
     log(INFO, "APIC initialized\n");
 }
@@ -90,8 +115,7 @@ void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, boo
     {
 	if (madt_isos[isos_i]->irq_source == irq)
 	{
-	    log(INFO, "Interrupt source override: Vector %d -> IRQ %d\n",
-		    madt_isos[isos_i]->irq_source, irq);
+	    log(INFO, "Resolving ISO with IRQ %d\n", irq);
 
 	    ioapic_set_gsi_redirect(lapic_id, vector, madt_isos[isos_i]->gsi,
 		    madt_isos[isos_i]->flags, mask);
@@ -144,7 +168,13 @@ void lapic_write_reg(uint32_t reg, uint32_t data)
 void lapic_enable(void)
 {
     lapic_write_reg(LAPIC_SPURIOUS_REG,
-	    lapic_read_reg(LAPIC_SPURIOUS_REG) | LAPIC_ENABLE | SPURIOUS_INT);
+	    lapic_read_reg(LAPIC_SPURIOUS_REG) | LAPIC_ENABLE_BIT | SPURIOUS_INT);
+}
+
+// get the LAPIC ID of the current CPU
+uint8_t lapic_get_id(void)
+{
+    return (uint8_t)(lapic_read_reg(LAPIC_ID_REG) >> 24);
 }
 
 // read data from a IOAPIC register - IOAPIC is custom
@@ -192,7 +222,7 @@ size_t ioapic_i_from_gsi(uint32_t gsi)
     return 0;
 }
 
-// set fields in redirection entry according to MADT ISO struct and save entry
+// set fields in redirection entry according to MADT ISO struct and save entry in IOREDTBL register
 void ioapic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, uint16_t flags, bool mask)
 {
     uint64_t redirect_entry = vector;
@@ -200,18 +230,22 @@ void ioapic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, ui
     // if flags.pin_polarity is active low (else active high)
     if (flags & 2)
     {
-	redirect_entry |= 1 << 13;
+	redirect_entry |= IOAPIC_PINPOL_BIT;
     }
 
     // if flags.trigger_mode is level triggered (else edge triggered)
     if (flags & 8)
     {
-	redirect_entry |= 1 << 15;
+	redirect_entry |= IOAPIC_TRIGMODE_BIT;
     }
 
-    if (!mask)
+    if (mask)
     {
-	redirect_entry |= 1 << 16;
+	redirect_entry |= IOAPIC_MASK_BIT; // set bit -> mask
+    }
+    else
+    {
+	redirect_entry &= ~IOAPIC_MASK_BIT; // clear bit -> unmask
     }
 
     // set destination

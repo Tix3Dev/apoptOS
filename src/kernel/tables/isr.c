@@ -117,7 +117,7 @@ uint64_t isr_handler(uint64_t rsp)
 
         debug_set_color(TERM_RED);
         debug("\n────────────────────────\n");
-        debug("⚠ UNKNOWN HARDWARE INTERRUPT OCCURRED! ⚠\n\n");
+        debug("⚠ UNHANDLED HARDWARE INTERRUPT OCCURRED! ⚠\n\n");
         debug("⤷ ISR-No. %d: %s\n", cpu->isr_number, isa_irqs[cpu->isr_number - 32]);
         debug_set_color(TERM_CYAN);
         isr_register_dump(cpu);

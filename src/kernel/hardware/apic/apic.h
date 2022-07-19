@@ -22,18 +22,23 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define LAPIC_ID_REG	    0x020
 #define LAPIC_EOI_REG	    0x0B0
 #define LAPIC_SPURIOUS_REG  0x0F0
 #define LAPIC_ICR0_REG	    0x300
 #define LAPIC_ICR1_REG	    0x310
 
-#define LAPIC_ENABLE (1 << 8)
+#define LAPIC_ENABLE_BIT (1 << 8)
 
 #define IOREGSEL    0
 #define IOWIN	    0x10
 
 #define IOAPICID_REG	0
 #define IOAPICVER_REG	1
+
+#define IOAPIC_PINPOL_BIT   (1 << 13)
+#define IOAPIC_TRIGMODE_BIT (1 << 15)
+#define IOAPIC_MASK_BIT	    (1 << 16)
 
 #define IRQ_TO_IOREDTBL_REG(irq) (irq * 2 + 0x10)
 
