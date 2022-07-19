@@ -29,6 +29,9 @@
 
 #define LAPIC_ENABLE (1 << 8)
 
+#define IOREGSEL    0
+#define IOWIN	    0x10
+
 #define IOAPICID_REG	0
 #define IOAPICVER_REG	1
 

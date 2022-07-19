@@ -124,7 +124,7 @@ uint64_t isr_handler(uint64_t rsp)
 
         debug_set_color(TERM_COLOR_RESET);
 
-        pic_signal_eoi(cpu->isr_number);
+        pic_signal_eoi(cpu->isr_number); // TODO: proabably will have to change for lapic version
     }
     // handle syscalls
     else if (cpu->isr_number == SYSCALL_INT)

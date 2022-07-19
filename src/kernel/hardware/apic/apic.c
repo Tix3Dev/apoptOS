@@ -60,6 +60,12 @@ void apic_init(void)
     pic_disable();
     lapic_enable();
 
+    uint32_t max_redirect = ioapic_get_max_redirect(0);
+    log(WARNING, "max redirect: %d\n", max_redirect);
+
+    log(WARNING, "apic id: 0x%llx\n", (ioapic_read_reg(0, 0) >> 24) & 0xF0);
+    log(WARNING, "apic version: 0x%llx\n", (uint8_t)ioapic_read_reg(0, 1));
+
     log(INFO, "APIC initialized\n");
 }
 
@@ -84,6 +90,9 @@ void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, boo
     {
 	if (madt_isos[isos_i]->irq_source == irq)
 	{
+	    log(INFO, "Interrupt source override: Vector %d -> IRQ %d\n",
+		    madt_isos[isos_i]->irq_source, irq);
+
 	    ioapic_set_gsi_redirect(lapic_id, vector, madt_isos[isos_i]->gsi,
 		    madt_isos[isos_i]->flags, mask);
 
@@ -139,23 +148,21 @@ void lapic_enable(void)
 }
 
 // read data from a IOAPIC register - IOAPIC is custom
-uint32_t ioapic_read_reg(size_t ioapic_i, uint8_t reg_offset)
+uint32_t ioapic_read_reg(size_t ioapic_i, uint8_t reg)
 {
-    uint32_t volatile *current_io_apic_base = (uint32_t volatile *)madt_ioapics[ioapic_i];
+    size_t ioapic_i_addr = PHYS_TO_HIGHER_HALF_DATA(madt_ioapics[ioapic_i]->ioapic_address);
 
-    *current_io_apic_base = reg_offset;
-
-    return *(current_io_apic_base + 0x10);
+    *((volatile uint32_t *)(ioapic_i_addr + IOREGSEL)) = reg;
+    return *((volatile uint32_t *)(ioapic_i_addr + IOWIN));
 }
 
 // write data to a IOAPIC register - IOAPIC is custom
-void ioapic_write_reg(size_t ioapic_i, uint8_t reg_offset, uint32_t data)
+void ioapic_write_reg(size_t ioapic_i, uint8_t reg, uint32_t data)
 {
-    uint32_t volatile *current_ioapic_address = (uint32_t volatile *)madt_ioapics[ioapic_i];
+    size_t ioapic_i_addr = PHYS_TO_HIGHER_HALF_DATA(madt_ioapics[ioapic_i]->ioapic_address);
 
-    *current_ioapic_address = reg_offset;
-
-    *(current_ioapic_address + 0x10) = data;
+    *((volatile uint32_t *)(ioapic_i_addr + IOREGSEL)) = reg;
+    *((volatile uint32_t *)(ioapic_i_addr + IOWIN)) = data;
 }
 
 // get how any IRQ's (i.e. redirects) this IOAPIC can handle
