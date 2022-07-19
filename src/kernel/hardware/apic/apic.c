@@ -63,29 +63,7 @@ void apic_init(void)
     pic_disable();
     lapic_enable();
 
-    // uint32_t max_redirect = ioapic_get_max_redirect(0);
-    // log(WARNING, "max redirect: %d\n", max_redirect);
-
-    // log(WARNING, "apic id: 0x%llx\n", (ioapic_read_reg(0, 0) >> 24) & 0xF0);
-    // log(WARNING, "apic version: 0x%llx\n", (uint8_t)ioapic_read_reg(0, 1));
-
-    // for (size_t i = 0; i < madt_isos_i; i++)
-    // {
-    //     log(WARNING, "ISO %d -> BUS: %d | IRQ: %d | GSI: %d | FLAGS: %d\n",
-    //     	i,
-    //     	madt_isos[i]->bus_source,
-    //     	madt_isos[i]->irq_source,
-    //     	madt_isos[i]->gsi,
-    //     	madt_isos[i]->flags);
-    // }
-
-    // uint8_t gsi = 2;
-    // size_t ioapic_i = ioapic_i_from_gsi(gsi);
-    // log(WARNING, "ioapic_i_from_gsi(%d) -> %d\n", gsi, ioapic_i);
-
-    // log(WARNING, "register lapic id: %d\n", lapic_get_id());
-    // log(WARNING, "madt lapic id: %d\n", madt_lapics[0]->apic_id);
-
+    // mask all ISA IRQ's and redirect them if necessary
     for (uint8_t i = 0; i < 16; i++)
     {
         ioapic_set_irq_redirect(lapic_get_id(), i + 32, i, true);
@@ -115,7 +93,7 @@ void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, boo
     {
 	if (madt_isos[isos_i]->irq_source == irq)
 	{
-	    log(INFO, "Resolving ISO with IRQ %d\n", irq);
+	    log(INFO, "Resolving ISO -> GSI: %d | IRQ: %d\n", madt_isos[isos_i]->gsi, irq);
 
 	    ioapic_set_gsi_redirect(lapic_id, vector, madt_isos[isos_i]->gsi,
 		    madt_isos[isos_i]->flags, mask);
