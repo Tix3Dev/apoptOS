@@ -42,8 +42,8 @@ typedef struct __attribute__((__packed__))
     madt_header_t header;
     uint8_t ioapic_id;
     uint8_t reserved;
-    uint8_t ioapic_address;
-    uint8_t gsi_base;
+    uint32_t ioapic_address;
+    uint32_t gsi_base;
 } madt_ioapic_t;
 
 typedef struct __attribute__((__packed__))
