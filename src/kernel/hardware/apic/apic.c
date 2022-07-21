@@ -54,7 +54,7 @@ void ioapic_redirect_all_isa_irqs(void);
 
 /* core functions */
 
-// make lapic_address global, disable PIC to enable LAPIC
+// disable PIC, enable LAPIC and mask all ISA IRQ's
 void apic_init(void)
 {
     if (!apic_is_available())

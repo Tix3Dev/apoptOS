@@ -20,6 +20,7 @@
 - Heap memory -> `malloc` and `free`
 - Basic kernel library
 - ACPI table parsing
+- LAPIC and IOAPIC
 
 ## Goals
 
