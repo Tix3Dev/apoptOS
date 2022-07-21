@@ -30,7 +30,10 @@
 #include <hardware/apic/apic.h>
 #include <hardware/pic/pic.h>
 #include <hardware/cpu.h>
+#include <libk/data_structs/bitmap.h>
+#include <libk/malloc/malloc.h>
 #include <libk/serial/log.h>
+#include <libk/string/string.h>
 #include <memory/mem.h>
 #include <tables/isr.h>
 
@@ -50,11 +53,10 @@ void ioapic_write_reg(size_t ioapic_i, uint8_t reg_offset, uint32_t data);
 uint32_t ioapic_get_max_redirect(size_t ioapic_i);
 size_t ioapic_i_from_gsi(uint32_t gsi);
 void ioapic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, uint16_t flags, bool mask);
-void ioapic_redirect_all_isa_irqs(void);
 
 /* core functions */
 
-// disable PIC, enable LAPIC and mask all ISA IRQ's
+// disable PIC, enable LAPIC and mask all (legacy) ISA IRQ's
 void apic_init(void)
 {
     if (!apic_is_available())
@@ -67,7 +69,19 @@ void apic_init(void)
     pic_disable();
     lapic_enable();
 
-    ioapic_redirect_all_isa_irqs();
+    bitmap_t irq_bitmap;
+    irq_bitmap.size = 16;
+    irq_bitmap.map = (uint8_t *)malloc(irq_bitmap.size);
+    memset((void *)irq_bitmap.map, 0, irq_bitmap.size);
+
+    for (uint32_t i = 0; i < 16; i++)
+    {
+	if (!bitmap_check_bit(&irq_bitmap, i))
+	{
+	    uint32_t irq = ioapic_set_irq_redirect(lapic_get_id(), i + 32, i, true);
+	    bitmap_set_bit(&irq_bitmap, irq);
+	}
+    }
     
     log(INFO, "APIC initialized\n");
 }
@@ -87,7 +101,7 @@ void lapic_send_ipi(uint32_t lapic_id, uint8_t vector) // TODO: test this
 
 // tell the IOAPIC to always redirect the specified IRQ (pin) to a specified LAPIC,
 // which then always should use a specified vector - flags are set according to ISO's
-void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, bool mask)
+uint32_t ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, bool mask)
 {
     for (size_t isos_i = 0; isos_i < madt_isos_i; isos_i++)
     {
@@ -98,11 +112,13 @@ void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, boo
             ioapic_set_gsi_redirect(lapic_id, vector, madt_isos[isos_i]->gsi,
         	    madt_isos[isos_i]->flags, mask);
 
-            return;
+            return madt_isos[isos_i]->gsi;
         }
     }
     
     ioapic_set_gsi_redirect(lapic_id, vector, irq, 0, mask);
+
+    return irq;
 }
 
 /* utility functions */
@@ -246,41 +262,4 @@ void ioapic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, ui
 
     ioapic_write_reg(ioapic_i, ioredtbl, (uint32_t)redirect_entry);
     ioapic_write_reg(ioapic_i, ioredtbl + 1, (uint32_t)(redirect_entry >> 32));
-}
-
-// redirect if necessary and mask all ISA IRQ's
-void ioapic_redirect_all_isa_irqs(void)
-{
-    // first redirect all ISO's
-    for (size_t isos_i = 0; isos_i < madt_isos_i; isos_i++)
-    {
-	ioapic_set_gsi_redirect(lapic_get_id(), madt_isos[isos_i]->irq_source + 32,
-		madt_isos[isos_i]->gsi, madt_isos[isos_i]->flags, true);
-    }
-
-    // and then redirect the rest of ISA IRQ's, skipping the already set ISO's
-    uint8_t vector = 0;
-    for (uint8_t gsi = 0; gsi < 16; gsi++, vector++)
-    {
-	// check if current GSI is already set, if yes decrease vector
-	// so next iteration it's still the same
-	if (ioapic_get_vector_from_gsi(gsi) >= 32)
-	{
-	    vector--;
-	    continue;
-	}
-
-retry:
-	// check if current vector is from a ISO, if yes retry
-	for (size_t isos_i = 0; isos_i < madt_isos_i; isos_i++)
-	{
-	    if (madt_isos[isos_i]->irq_source == vector)
-	    {
-		vector++;
-		goto retry;
-	    }
-	}
-
-	ioapic_set_gsi_redirect(lapic_get_id(), vector + 32, gsi, 0, true);
-    }	
 }

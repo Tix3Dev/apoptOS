@@ -45,6 +45,6 @@
 void apic_init(void);
 void lapic_signal_eoi(void);
 void lapic_send_ipi(uint32_t lapic_id, uint8_t vector);
-void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, bool mask);
+uint32_t ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, bool mask);
 
 #endif
