@@ -40,7 +40,7 @@
 #define IOAPIC_TRIGMODE_BIT (1 << 15)
 #define IOAPIC_MASK_BIT	    (1 << 16)
 
-#define IRQ_TO_IOREDTBL_REG(irq) (irq * 2 + 0x10)
+#define IRQ_TO_IOREDTBL_REG(irq) (((irq) * 2) + 0x10)
 
 void apic_init(void);
 void lapic_signal_eoi(void);

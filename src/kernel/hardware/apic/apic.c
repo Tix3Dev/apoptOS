@@ -50,6 +50,7 @@ void ioapic_write_reg(size_t ioapic_i, uint8_t reg_offset, uint32_t data);
 uint32_t ioapic_get_max_redirect(size_t ioapic_i);
 size_t ioapic_i_from_gsi(uint32_t gsi);
 void ioapic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, uint16_t flags, bool mask);
+void ioapic_redirect_all_isa_irqs(void);
 
 /* core functions */
 
@@ -66,12 +67,8 @@ void apic_init(void)
     pic_disable();
     lapic_enable();
 
-    // mask all ISA IRQ's and redirect them if necessary
-    for (uint8_t i = 0; i < 16; i++)
-    {
-        ioapic_set_irq_redirect(lapic_get_id(), i + 32, i, true);
-    }
-
+    ioapic_redirect_all_isa_irqs();
+    
     log(INFO, "APIC initialized\n");
 }
 
@@ -88,23 +85,23 @@ void lapic_send_ipi(uint32_t lapic_id, uint8_t vector) // TODO: test this
     lapic_write_reg(LAPIC_ICR0_REG, vector);
 }
 
-// tell the IOAPIC to always redirect the specified vector to a specified LAPIC,
-// which then always should use a specified IRQ - flags are set according to ISO's
+// tell the IOAPIC to always redirect the specified IRQ (pin) to a specified LAPIC,
+// which then always should use a specified vector - flags are set according to ISO's
 void ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, bool mask)
 {
     for (size_t isos_i = 0; isos_i < madt_isos_i; isos_i++)
     {
-	if (madt_isos[isos_i]->irq_source == irq)
-	{
-	    log(INFO, "Resolving ISO -> GSI: %d | IRQ: %d\n", madt_isos[isos_i]->gsi, irq);
+        if (madt_isos[isos_i]->irq_source == irq)
+        {
+            log(INFO, "Resolving ISO -> GSI: %d | IRQ: %d\n", madt_isos[isos_i]->gsi, irq);
 
-	    ioapic_set_gsi_redirect(lapic_id, vector, madt_isos[isos_i]->gsi,
-		    madt_isos[isos_i]->flags, mask);
+            ioapic_set_gsi_redirect(lapic_id, vector, madt_isos[isos_i]->gsi,
+        	    madt_isos[isos_i]->flags, mask);
 
-	    return;
-	}
+            return;
+        }
     }
-
+    
     ioapic_set_gsi_redirect(lapic_id, vector, irq, 0, mask);
 }
 
@@ -182,6 +179,18 @@ uint32_t ioapic_get_max_redirect(size_t ioapic_i)
     return (ioapic_read_reg(ioapic_i, IOAPICVER_REG) & 0xFF0000) >> 16;
 }
 
+// find IOREDTBL entry according to GSI, retrieve vector from it
+uint8_t ioapic_get_vector_from_gsi(uint32_t gsi)
+{
+    size_t ioapic_i = ioapic_i_from_gsi(gsi);
+    uint32_t ioredtbl = IRQ_TO_IOREDTBL_REG(gsi - madt_ioapics[ioapic_i]->gsi_base);
+    
+    uint64_t entry = ioapic_read_reg(ioapic_i, ioredtbl) |
+	((uint64_t)ioapic_read_reg(ioapic_i, ioredtbl + 1) << 32);
+
+    return (uint8_t)(entry & 0xFF);
+}
+
 // iterate through all IOAPIC's and check if the GSI is in current IOAPIC's range
 size_t ioapic_i_from_gsi(uint32_t gsi)
 {
@@ -222,11 +231,11 @@ void ioapic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, ui
 
     if (mask)
     {
-	redirect_entry |= IOAPIC_MASK_BIT; // set bit -> mask
+        redirect_entry |= IOAPIC_MASK_BIT; // set bit -> mask
     }
     else
     {
-	redirect_entry &= ~IOAPIC_MASK_BIT; // clear bit -> unmask
+        redirect_entry &= ~IOAPIC_MASK_BIT; // clear bit -> unmask
     }
 
     // set destination
@@ -237,4 +246,41 @@ void ioapic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, ui
 
     ioapic_write_reg(ioapic_i, ioredtbl, (uint32_t)redirect_entry);
     ioapic_write_reg(ioapic_i, ioredtbl + 1, (uint32_t)(redirect_entry >> 32));
+}
+
+// redirect if necessary and mask all ISA IRQ's
+void ioapic_redirect_all_isa_irqs(void)
+{
+    // first redirect all ISO's
+    for (size_t isos_i = 0; isos_i < madt_isos_i; isos_i++)
+    {
+	ioapic_set_gsi_redirect(lapic_get_id(), madt_isos[isos_i]->irq_source + 32,
+		madt_isos[isos_i]->gsi, madt_isos[isos_i]->flags, true);
+    }
+
+    // and then redirect the rest of ISA IRQ's, skipping the already set ISO's
+    uint8_t vector = 0;
+    for (uint8_t gsi = 0; gsi < 16; gsi++, vector++)
+    {
+	// check if current GSI is already set, if yes decrease vector
+	// so next iteration it's still the same
+	if (ioapic_get_vector_from_gsi(gsi) >= 32)
+	{
+	    vector--;
+	    continue;
+	}
+
+retry:
+	// check if current vector is from a ISO, if yes retry
+	for (size_t isos_i = 0; isos_i < madt_isos_i; isos_i++)
+	{
+	    if (madt_isos[isos_i]->irq_source == vector)
+	    {
+		vector++;
+		goto retry;
+	    }
+	}
+
+	ioapic_set_gsi_redirect(lapic_get_id(), vector + 32, gsi, 0, true);
+    }	
 }
