@@ -39,9 +39,9 @@
 #define BIT_TO_PAGE(bit)    ((size_t)bit * PAGE_SIZE)
 #define PAGE_TO_BIT(page)   ((size_t)page / PAGE_SIZE)
 
-#define PHYS_TO_HIGHER_HALF_DATA(address)   (address + HIGHER_HALF_DATA)
-#define PHYS_TO_HIGHER_HALF_CODE(address)   (address + HIGHER_HALF_CODE)
-#define HIGHER_HALF_DATA_TO_PHYS(address)   (address - HIGHER_HALF_DATA)
-#define HIGHER_HALF_CODE_TO_PHYS(address)   (address - HIGHER_HALF_CODE)
+#define PHYS_TO_HIGHER_HALF_DATA(address)   ((address) + HIGHER_HALF_DATA)
+#define PHYS_TO_HIGHER_HALF_CODE(address)   ((address) + HIGHER_HALF_CODE)
+#define HIGHER_HALF_DATA_TO_PHYS(address)   ((address) - HIGHER_HALF_DATA)
+#define HIGHER_HALF_CODE_TO_PHYS(address)   ((address) - HIGHER_HALF_CODE)
 
 #endif
