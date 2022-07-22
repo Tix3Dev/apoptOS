@@ -19,7 +19,8 @@
 /*
 
     Brief file description:
-    TODO: blah
+    Provide utilities to interact with ACPI tables. Initialize most
+    important APCI tables: RSDT/XSDT and MADT.
 
 */
 
