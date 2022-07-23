@@ -187,6 +187,8 @@ void lapic_timer_init(void)
     lapic_write_reg(LAPIC_TIMER_REG, LAPIC_TIMER_INT | LAPIC_TIMER_PERIODIC_MODE);
     lapic_write_reg(LAPIC_TIMER_DIV_REG, 0x3);
     lapic_write_reg(LAPIC_TIMER_INITCNT_REG, period);
+    
+    log(INFO, "LAPIC timer initialized - Firing IRQ's from now on\n");
 }
 
 // return how many ticks it took the LAPIC timer for the specified amount of microseconds

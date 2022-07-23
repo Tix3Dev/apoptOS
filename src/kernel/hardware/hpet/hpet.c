@@ -27,6 +27,7 @@
 #include <boot/stivale2.h>
 #include <hardware/hpet/hpet.h>
 #include <hardware/acpi/acpi.h>
+#include <libk/serial/log.h>
 #include <memory/mem.h>
 
 static volatile hpet_t *hpet;
@@ -42,6 +43,8 @@ void hpet_init(void)
 
     hpet_regs->counter_value = 0;
     hpet_regs->general_config = 1;
+
+    log(INFO, "HPET initialized\n");
 }
 
 // wait for us nanoseconds
