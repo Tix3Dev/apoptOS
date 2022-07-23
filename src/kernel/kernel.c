@@ -84,17 +84,4 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
 
     acpi_init(stivale2_struct);
     apic_init();
-
-
-    // hpet_init();
-
-    // log(WARNING, "start timer - counter: %d\n", hpet_get_counter_value());
-    // hpet_usleep(5 * 1000 * 1000);
-    // log(WARNING, "end timer - counter: %d\n", hpet_get_counter_value());
-
-    lapic_timer_init();
-
-    // log(WARNING, "bruh start lapic timer\n");
-    // lapic_timer_oneshot(32, 5 * 1000 * 1000);
-    // log(WARNING, "bruh start lapic timer\n");
 }

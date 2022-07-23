@@ -28,11 +28,17 @@
 #define LAPIC_ICR0_REG		0x300
 #define LAPIC_ICR1_REG		0x310
 #define LAPIC_TIMER_REG		0x320
-#define LAPIC_TIMER_INITCNT_REG	0x390
+#define LAPIC_TIMER_INITCNT_REG	0x380
 #define LAPIC_TIMER_CURCNT_REG	0x390
-#define LAPIC_TIMER_DIV_REG	0x3e0
+#define LAPIC_TIMER_DIV_REG	0x3E0
 
-#define LAPIC_ENABLE_BIT (1 << 8)
+#define LAPIC_ENABLE_BIT	(1 << 8)
+#define LAPIC_TIMER_DISABLE_BIT	(1 << 16)
+
+#define LAPIC_TIMER_PERIODIC_MODE 0x20000
+
+#define LAPIC_TIMER_CALIBRATIONS    5
+#define MS_TIMESLICE_PERIOD	    5
 
 #define IOREGSEL    0
 #define IOWIN	    0x10
@@ -49,8 +55,6 @@
 void apic_init(void);
 void lapic_signal_eoi(void);
 void lapic_send_ipi(uint32_t lapic_id, uint8_t vector);
-void lapic_timer_init(void);
-void lapic_timer_oneshot(size_t us);
 uint32_t ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, bool mask);
 
 #endif

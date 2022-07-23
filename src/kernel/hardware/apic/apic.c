@@ -48,6 +48,8 @@ uint32_t lapic_read_reg(uint32_t reg);
 void lapic_write_reg(uint32_t reg, uint32_t data);
 void lapic_enable(void);
 uint8_t lapic_get_id(void);
+void lapic_timer_init(void);
+uint32_t lapic_timer_calibrate(uint32_t ms);
 
 uint32_t ioapic_read_reg(size_t ioapic_i, uint8_t reg_offset);
 void ioapic_write_reg(size_t ioapic_i, uint8_t reg_offset, uint32_t data);
@@ -57,7 +59,7 @@ void ioapic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, ui
 
 /* core functions */
 
-// disable PIC, enable LAPIC and mask all (legacy) ISA IRQ's
+// disable PIC, enable LAPIC, mask all (legacy) ISA IRQ's and start LAPIC timer
 void apic_init(void)
 {
     if (!apic_is_available())
@@ -83,6 +85,8 @@ void apic_init(void)
 	    bitmap_set_bit(&irq_bitmap, irq);
 	}
     }
+
+    lapic_timer_init();
     
     log(INFO, "APIC initialized\n");
 }
@@ -98,61 +102,6 @@ void lapic_send_ipi(uint32_t lapic_id, uint8_t vector) // TODO: test this
 {
     lapic_write_reg(LAPIC_ICR1_REG, lapic_id << 24);
     lapic_write_reg(LAPIC_ICR0_REG, vector);
-}
-
-static uint64_t lapic_timer_freq = 0;
-
-void lapic_timer_init(void)
-{
-    // lapic_write_reg(LAPIC_TIMER_INITCNT_REG, 0);
-    // lapic_write_reg(LAPIC_TIMER_REG, (1 << 16)); // not sure if right, should stop timer
-    // 
-
-    // lapic_write_reg(LAPIC_TIMER_REG, (1 << 16) | 0xff); // not sure if right, should stop timer
-    // lapic_write_reg(LAPIC_TIMER_DIV_REG, 0);
-
-    // uint64_t lapic_timer_start = 0xFFFFFFFF;
-
-    // lapic_write_reg(LAPIC_TIMER_INITCNT_REG, lapic_timer_start);
-
-    // hpet_usleep(1000);
-
-    // // lapic_write_reg(LAPIC_TIMER_REG, (1 << 16) | 0xff); // not sure if right, should stop timer
-    // 
-    // uint64_t lapic_timer_end = lapic_read_reg(LAPIC_TIMER_CURCNT_REG);
-
-    // lapic_timer_freq = (lapic_timer_end - lapic_timer_start) * 1000;
-
-    // lapic_write_reg(LAPIC_TIMER_INITCNT_REG, 0);
-    // lapic_write_reg(LAPIC_TIMER_REG, (1 << 16)); // not sure if right, should stop timer
-
-    ioapic_set_irq_redirect(lapic_get_id(), 32, 0, false);
-
-    lapic_write_reg(LAPIC_TIMER_DIV_REG, 0x3);
-
-    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, 0xFFFFFFFF);
-
-    hpet_usleep(5 * 1000 * 1000);
-
-    lapic_write_reg(LAPIC_TIMER_REG, (1 << 16) );
-
-    uint32_t ticks_in_10_ms = 0xFFFFFFFF - lapic_read_reg(LAPIC_TIMER_CURCNT_REG);
-
-    lapic_write_reg(LAPIC_TIMER_REG, 32 | 0x20000);
-    lapic_write_reg(LAPIC_TIMER_DIV_REG, 0x3);
-    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, ticks_in_10_ms);
-}
-
-void lapic_timer_oneshot(size_t us)
-{
-    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, 0);
-    lapic_write_reg(LAPIC_TIMER_REG, (1 << 16)); // not sure if right, should stop timer
-
-    uint32_t total_ticks = us * (lapic_timer_freq / 1000000);
-
-    lapic_write_reg(LAPIC_TIMER_REG, 32);
-    lapic_write_reg(LAPIC_TIMER_DIV_REG, 0);
-    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, total_ticks);
 }
 
 // tell the IOAPIC to always redirect the specified IRQ (pin) to a specified LAPIC,
@@ -225,6 +174,47 @@ void lapic_enable(void)
 uint8_t lapic_get_id(void)
 {
     return (uint8_t)(lapic_read_reg(LAPIC_ID_REG) >> 24);
+}
+
+// unmask timer pin and start periodic LAPIC timer (with specified period)
+void lapic_timer_init(void)
+{
+    uint32_t period = lapic_timer_calibrate(MS_TIMESLICE_PERIOD);
+
+    ioapic_set_irq_redirect(lapic_get_id(), LAPIC_TIMER_INT, 0, false);
+
+    lapic_write_reg(LAPIC_TIMER_REG, LAPIC_TIMER_INT | LAPIC_TIMER_PERIODIC_MODE);
+    lapic_write_reg(LAPIC_TIMER_DIV_REG, 0x3);
+    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, period);
+}
+
+// return how many ticks (on average) it took the LAPIC timer for the specified amount of microseconds
+uint32_t lapic_timer_calibrate(uint32_t ms)
+{
+    uint32_t total_ticks_average = 0;
+
+    for (uint8_t i = 0; i < LAPIC_TIMER_CALIBRATIONS; i++)
+    {
+	lapic_write_reg(LAPIC_TIMER_DIV_REG, 0x3);
+
+	uint32_t initial_count = 0xFFFFFFFF;
+	lapic_write_reg(LAPIC_TIMER_INITCNT_REG, initial_count);
+
+	hpet_usleep(ms * 1000);
+
+	lapic_write_reg(LAPIC_TIMER_REG, LAPIC_TIMER_DISABLE_BIT);
+	uint32_t final_count = lapic_read_reg(LAPIC_TIMER_CURCNT_REG);
+
+	uint32_t total_ticks_current = initial_count - final_count;
+	log(WARNING, "total_ticks_current: %d\n", total_ticks_current);
+
+	total_ticks_average += total_ticks_current;
+    }
+
+    total_ticks_average /= LAPIC_TIMER_CALIBRATIONS;
+    log(WARNING, "total_ticks_average: %d\n", total_ticks_average);
+
+    return total_ticks_average;
 }
 
 // read data from a IOAPIC register - IOAPIC is custom

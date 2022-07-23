@@ -16,7 +16,6 @@
 */
 
 #include <hardware/cpu.h>
-// #include <hardware/pic/pic.h>
 #include <hardware/apic/apic.h>
 #include <libk/serial/debug.h>
 #include <libk/serial/log.h>
@@ -85,6 +84,9 @@ void isr_register_dump(interrupt_cpu_state_t *cpu);
 
 /* core functions */
 
+static uint32_t a = 0;
+static uint32_t i = 0;
+
 uint64_t isr_handler(uint64_t rsp)
 {
     interrupt_cpu_state_t *cpu = (interrupt_cpu_state_t*)rsp;
@@ -114,18 +116,26 @@ uint64_t isr_handler(uint64_t rsp)
     else if (cpu->isr_number >= 32 && cpu->isr_number < 48)
     {
         // check for specific IRQ, like keyboard interrupts
+	if (cpu->isr_number == LAPIC_TIMER_INT)
+	{
+	    if ((a % 200) == 0)
+		debug("%d\n", i++);
+
+	    a++;
+	}
         // otherwise continue here:
+	else
+	{
+	    debug_set_color(TERM_RED);
+	    debug("\n────────────────────────\n");
+	    debug("⚠ UNHANDLED HARDWARE INTERRUPT OCCURRED! ⚠\n\n");
+	    debug("⤷ ISR-No. %d: %s\n", cpu->isr_number, isa_irqs[cpu->isr_number - 32]);
+	    debug_set_color(TERM_CYAN);
+	    isr_register_dump(cpu);
 
-        debug_set_color(TERM_RED);
-        debug("\n────────────────────────\n");
-        debug("⚠ UNHANDLED HARDWARE INTERRUPT OCCURRED! ⚠\n\n");
-        debug("⤷ ISR-No. %d: %s\n", cpu->isr_number, isa_irqs[cpu->isr_number - 32]);
-        debug_set_color(TERM_CYAN);
-        isr_register_dump(cpu);
+	    debug_set_color(TERM_COLOR_RESET);
+	}
 
-        debug_set_color(TERM_COLOR_RESET);
-
-        // pic_signal_eoi(cpu->isr_number); // TODO: proabably will have to change for lapic version
 	lapic_signal_eoi();
     }
     // handle syscalls

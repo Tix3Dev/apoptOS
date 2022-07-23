@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 
+#define LAPIC_TIMER_INT	32
 #define SYSCALL_INT	128
 #define SPURIOUS_INT	255
 
