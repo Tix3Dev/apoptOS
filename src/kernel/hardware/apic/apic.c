@@ -28,6 +28,7 @@
 
 #include <hardware/acpi/tables/madt.h>
 #include <hardware/apic/apic.h>
+#include <hardware/hpet/hpet.h>
 #include <hardware/pic/pic.h>
 #include <hardware/cpu.h>
 #include <libk/data_structs/bitmap.h>
@@ -97,6 +98,61 @@ void lapic_send_ipi(uint32_t lapic_id, uint8_t vector) // TODO: test this
 {
     lapic_write_reg(LAPIC_ICR1_REG, lapic_id << 24);
     lapic_write_reg(LAPIC_ICR0_REG, vector);
+}
+
+static uint64_t lapic_timer_freq = 0;
+
+void lapic_timer_init(void)
+{
+    // lapic_write_reg(LAPIC_TIMER_INITCNT_REG, 0);
+    // lapic_write_reg(LAPIC_TIMER_REG, (1 << 16)); // not sure if right, should stop timer
+    // 
+
+    // lapic_write_reg(LAPIC_TIMER_REG, (1 << 16) | 0xff); // not sure if right, should stop timer
+    // lapic_write_reg(LAPIC_TIMER_DIV_REG, 0);
+
+    // uint64_t lapic_timer_start = 0xFFFFFFFF;
+
+    // lapic_write_reg(LAPIC_TIMER_INITCNT_REG, lapic_timer_start);
+
+    // hpet_usleep(1000);
+
+    // // lapic_write_reg(LAPIC_TIMER_REG, (1 << 16) | 0xff); // not sure if right, should stop timer
+    // 
+    // uint64_t lapic_timer_end = lapic_read_reg(LAPIC_TIMER_CURCNT_REG);
+
+    // lapic_timer_freq = (lapic_timer_end - lapic_timer_start) * 1000;
+
+    // lapic_write_reg(LAPIC_TIMER_INITCNT_REG, 0);
+    // lapic_write_reg(LAPIC_TIMER_REG, (1 << 16)); // not sure if right, should stop timer
+
+    ioapic_set_irq_redirect(lapic_get_id(), 32, 0, false);
+
+    lapic_write_reg(LAPIC_TIMER_DIV_REG, 0x3);
+
+    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, 0xFFFFFFFF);
+
+    hpet_usleep(5 * 1000 * 1000);
+
+    lapic_write_reg(LAPIC_TIMER_REG, (1 << 16) );
+
+    uint32_t ticks_in_10_ms = 0xFFFFFFFF - lapic_read_reg(LAPIC_TIMER_CURCNT_REG);
+
+    lapic_write_reg(LAPIC_TIMER_REG, 32 | 0x20000);
+    lapic_write_reg(LAPIC_TIMER_DIV_REG, 0x3);
+    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, ticks_in_10_ms);
+}
+
+void lapic_timer_oneshot(size_t us)
+{
+    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, 0);
+    lapic_write_reg(LAPIC_TIMER_REG, (1 << 16)); // not sure if right, should stop timer
+
+    uint32_t total_ticks = us * (lapic_timer_freq / 1000000);
+
+    lapic_write_reg(LAPIC_TIMER_REG, 32);
+    lapic_write_reg(LAPIC_TIMER_DIV_REG, 0);
+    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, total_ticks);
 }
 
 // tell the IOAPIC to always redirect the specified IRQ (pin) to a specified LAPIC,

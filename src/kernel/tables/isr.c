@@ -16,7 +16,8 @@
 */
 
 #include <hardware/cpu.h>
-#include <hardware/pic/pic.h>
+// #include <hardware/pic/pic.h>
+#include <hardware/apic/apic.h>
 #include <libk/serial/debug.h>
 #include <libk/serial/log.h>
 #include <tables/isr.h>
@@ -91,7 +92,7 @@ uint64_t isr_handler(uint64_t rsp)
     // handle exceptions
     if (cpu->isr_number < 32)
     {
-        // check for specifi IRQ, like page fault, where kernel wouldn't have
+        // check for specific IRQ, like page fault, where kernel wouldn't have
         // to be halted - otherwise continue here:
 
         debug_set_color(TERM_RED);
@@ -124,7 +125,8 @@ uint64_t isr_handler(uint64_t rsp)
 
         debug_set_color(TERM_COLOR_RESET);
 
-        pic_signal_eoi(cpu->isr_number); // TODO: proabably will have to change for lapic version
+        // pic_signal_eoi(cpu->isr_number); // TODO: proabably will have to change for lapic version
+	lapic_signal_eoi();
     }
     // handle syscalls
     else if (cpu->isr_number == SYSCALL_INT)
