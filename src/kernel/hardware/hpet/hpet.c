@@ -45,7 +45,7 @@ void hpet_init(void)
 }
 
 // wait for us nanoseconds
-void hpet_usleep(size_t us)
+void hpet_usleep(uint64_t us)
 {
     uint32_t clock_period = hpet_regs->capabilities >> 32;
 

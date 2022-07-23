@@ -37,8 +37,7 @@
 
 #define LAPIC_TIMER_PERIODIC_MODE 0x20000
 
-#define LAPIC_TIMER_CALIBRATIONS    5
-#define MS_TIMESLICE_PERIOD	    5
+#define US_TIMESLICE_PERIOD 5000
 
 #define IOREGSEL    0
 #define IOWIN	    0x10
@@ -53,6 +52,7 @@
 #define IRQ_TO_IOREDTBL_REG(irq) (((irq) * 2) + 0x10)
 
 void apic_init(void);
+uint8_t lapic_get_id(void);
 void lapic_signal_eoi(void);
 void lapic_send_ipi(uint32_t lapic_id, uint8_t vector);
 uint32_t ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq, bool mask);

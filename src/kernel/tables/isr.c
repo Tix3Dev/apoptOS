@@ -118,8 +118,10 @@ uint64_t isr_handler(uint64_t rsp)
         // check for specific IRQ, like keyboard interrupts
 	if (cpu->isr_number == LAPIC_TIMER_INT)
 	{
-	    if ((a % 200) == 0)
-		debug("%d\n", i++);
+	    // debug("%d\n", a++);
+	    // // 1 tick per 5000 us = 5 ms -> 5 * 200 = 1 second
+	    if (a % 200 == 0)
+	        debug("%d\n", i++);
 
 	    a++;
 	}

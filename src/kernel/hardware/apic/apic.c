@@ -86,9 +86,16 @@ void apic_init(void)
 	}
     }
 
+    hpet_init();
     lapic_timer_init();
     
     log(INFO, "APIC initialized\n");
+}
+
+// get the LAPIC ID of the current CPU
+uint8_t lapic_get_id(void)
+{
+    return (uint8_t)(lapic_read_reg(LAPIC_ID_REG) >> 24);
 }
 
 // signal an end of interrupt
@@ -170,16 +177,10 @@ void lapic_enable(void)
 	    lapic_read_reg(LAPIC_SPURIOUS_REG) | LAPIC_ENABLE_BIT | SPURIOUS_INT);
 }
 
-// get the LAPIC ID of the current CPU
-uint8_t lapic_get_id(void)
-{
-    return (uint8_t)(lapic_read_reg(LAPIC_ID_REG) >> 24);
-}
-
 // unmask timer pin and start periodic LAPIC timer (with specified period)
 void lapic_timer_init(void)
 {
-    uint32_t period = lapic_timer_calibrate(MS_TIMESLICE_PERIOD);
+    uint32_t period = lapic_timer_calibrate(US_TIMESLICE_PERIOD);
 
     ioapic_set_irq_redirect(lapic_get_id(), LAPIC_TIMER_INT, 0, false);
 
@@ -188,33 +189,21 @@ void lapic_timer_init(void)
     lapic_write_reg(LAPIC_TIMER_INITCNT_REG, period);
 }
 
-// return how many ticks (on average) it took the LAPIC timer for the specified amount of microseconds
-uint32_t lapic_timer_calibrate(uint32_t ms)
+// return how many ticks it took the LAPIC timer for the specified amount of microseconds
+uint32_t lapic_timer_calibrate(uint32_t us)
 {
-    uint32_t total_ticks_average = 0;
+    lapic_write_reg(LAPIC_TIMER_DIV_REG, 0x3);
 
-    for (uint8_t i = 0; i < LAPIC_TIMER_CALIBRATIONS; i++)
-    {
-	lapic_write_reg(LAPIC_TIMER_DIV_REG, 0x3);
+    uint32_t initial_count = 0xFFFFFFFF;
+    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, initial_count);
 
-	uint32_t initial_count = 0xFFFFFFFF;
-	lapic_write_reg(LAPIC_TIMER_INITCNT_REG, initial_count);
+    hpet_usleep(us);
 
-	hpet_usleep(ms * 1000);
+    lapic_write_reg(LAPIC_TIMER_REG, LAPIC_TIMER_DISABLE_BIT);
+    uint32_t final_count = lapic_read_reg(LAPIC_TIMER_CURCNT_REG);
 
-	lapic_write_reg(LAPIC_TIMER_REG, LAPIC_TIMER_DISABLE_BIT);
-	uint32_t final_count = lapic_read_reg(LAPIC_TIMER_CURCNT_REG);
-
-	uint32_t total_ticks_current = initial_count - final_count;
-	log(WARNING, "total_ticks_current: %d\n", total_ticks_current);
-
-	total_ticks_average += total_ticks_current;
-    }
-
-    total_ticks_average /= LAPIC_TIMER_CALIBRATIONS;
-    log(WARNING, "total_ticks_average: %d\n", total_ticks_average);
-
-    return total_ticks_average;
+    uint32_t total_ticks = initial_count - final_count;
+    return total_ticks;
 }
 
 // read data from a IOAPIC register - IOAPIC is custom

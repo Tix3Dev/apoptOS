@@ -54,7 +54,7 @@ typedef struct __attribute__((packed))
 } hpet_regs_t;
 
 void hpet_init(void);
-void hpet_usleep(size_t us);
+void hpet_usleep(uint64_t us);
 uint64_t hpet_get_counter_value(void);
 
 #endif
