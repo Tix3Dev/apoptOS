@@ -38,6 +38,7 @@
 #include <memory/dynamic/slab.h>
 #include <memory/physical/pmm.h>
 #include <memory/virtual/vmm.h>
+#include <proc/smp/smp.h>
 #include <tables/gdt.h>
 #include <tables/idt.h>
 
@@ -84,4 +85,6 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
 
     acpi_init(stivale2_struct);
     apic_init();
+
+    smp_init(stivale2_struct);
 }

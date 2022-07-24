@@ -65,10 +65,10 @@ all_dbg: CC_FLAGS += -ggdb
 all_dbg: $(TARGET)
 
 run: $(ISO_IMAGE)
-	qemu-system-x86_64 -m 2G -serial stdio -cdrom $(ISO_IMAGE)
+	qemu-system-x86_64 -m 2G -serial stdio -cdrom $(ISO_IMAGE) -smp 4
 
 run_dbg: $(ISO_IMAGE)
-	qemu-system-x86_64 -M q35 -m 2G -serial stdio -cdrom $(ISO_IMAGE) -s -S
+	qemu-system-x86_64 -M q35 -m 2G -serial stdio -cdrom $(ISO_IMAGE) -smp 4 -s -S
 
 limine:
 	make -C third_party/limine
