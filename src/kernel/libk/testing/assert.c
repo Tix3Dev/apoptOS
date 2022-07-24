@@ -19,6 +19,7 @@
 /*
 
     Brief file description:
+    Utility to check a condition and panic if condition wasn't met.
 
 */
 
