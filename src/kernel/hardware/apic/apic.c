@@ -22,7 +22,8 @@
     Utilities to make switching from PIC to APIC possible and thus allowing
     for a sophisticated multiprocessor interrupt management. Each processor has
     one LAPIC and there is normally one global IOAPIC. As there are two types of
-    APIC, utilites are split up too.
+    APIC, utilites are split up too. Also provides LAPIC timer for per-CPU time
+    management.
 
 */
 
