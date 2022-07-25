@@ -138,7 +138,6 @@ uint32_t ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq,
 // check CPUID status over availability of APIC
 bool apic_is_available(void)
 {
- 
     cpuid_registers_t *regs = &(cpuid_registers_t)
     {
         .leaf = CPUID_GET_FEATURES,
