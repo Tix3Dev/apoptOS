@@ -19,7 +19,8 @@
 /*
 
     Brief file description:
-    blah
+    Basic synchronization primitive, thus can be used as a simple lock for SMP
+    code.
 
 */
 
@@ -27,6 +28,7 @@
 
 /* core functions */
 
+// "spin" until lock isn't set anymore (spinlock not true anymore)
 void spinlock_acquire(spinlock_t spinlock)
 {
     while (!__sync_bool_compare_and_swap(&spinlock, 0, 1))
@@ -35,6 +37,7 @@ void spinlock_acquire(spinlock_t spinlock)
     }
 }
 
+// unset lock (set spinlock to false)
 void spinlock_release(spinlock_t spinlock)
 {
     __atomic_clear(&spinlock, __ATOMIC_RELEASE);
