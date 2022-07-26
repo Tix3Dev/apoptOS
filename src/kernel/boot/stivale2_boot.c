@@ -26,7 +26,7 @@
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
 
-uint8_t stack[16384];
+uint8_t stack[CPU_LOCALS_STACK_SIZE];
 
 static struct stivale2_header_tag_smp smp_hdr_tag = {
     .tag = {

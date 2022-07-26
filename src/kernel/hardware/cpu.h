@@ -29,8 +29,27 @@
 
 #include <stdint.h>
 
+#include <tables/gdt.h>
 #include <libk/malloc/malloc.h>
 #include <libk/printf/printf.h>
+
+typedef struct
+{
+    uint8_t test0;
+    uint8_t test1;
+    uint8_t test2;
+} cpu_proc_state_t;
+
+typedef struct
+{
+    uint64_t	cpu_number;
+    uint32_t	lapic_id;
+    uint64_t	kernel_stack;
+    tss_t	tss;
+    void	(*fpu_save)(void *);
+    void	(*fpu_restore)(void *);
+    cpu_proc_state_t *cpu_proc_state;
+} cpu_local_t;
 
 typedef struct
 {
@@ -58,7 +77,7 @@ typedef struct
     uint64_t rflags;
     uint64_t rsp;
     uint64_t ss;
-} interrupt_cpu_state_t;
+} cpu_interrupt_state_t;
 
 typedef struct
 {

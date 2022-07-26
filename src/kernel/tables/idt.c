@@ -32,11 +32,11 @@
 
 #include <utility/utils.h>
 
-extern void _load_idt_asm(uint64_t idt_ptr);
+extern void _load_idt_asm(uint64_t idtr);
 extern uintptr_t _isr_vector_asm[];
 
 static idt_descriptor_t idt[256];
-static idt_pointer_t idt_pointer;
+static idtr_t idtr;
 
 /* utility function prototypes */
 
@@ -70,10 +70,10 @@ void idt_init(void)
         create_descriptor(i, INT_GATE);
     }
 
-    idt_pointer.limit = sizeof(idt) - 1;
-    idt_pointer.base = (uint64_t)&idt;
+    idtr.limit = sizeof(idt) - 1;
+    idtr.base = (uint64_t)&idt;
 
-    _load_idt_asm((uintptr_t)&idt_pointer);
+    _load_idt_asm((uintptr_t)&idtr);
 
     asm volatile("sti"); // store interrupt flag -> allow hardware interrupts
 

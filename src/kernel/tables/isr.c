@@ -80,16 +80,16 @@ static const char *isa_irqs[] =
 
 /* utility function prototypes */
 
-void isr_register_dump(interrupt_cpu_state_t *cpu);
+void isr_register_dump(cpu_interrupt_state_t *cpu);
 
 /* core functions */
 
-static uint32_t a = 0;
-static uint32_t i = 0;
+// static uint32_t a = 0;
+// static uint32_t i = 0;
 
 uint64_t isr_handler(uint64_t rsp)
 {
-    interrupt_cpu_state_t *cpu = (interrupt_cpu_state_t*)rsp;
+    cpu_interrupt_state_t *cpu = (cpu_interrupt_state_t*)rsp;
 
     // handle exceptions
     if (cpu->isr_number < 32)
@@ -121,10 +121,10 @@ uint64_t isr_handler(uint64_t rsp)
 	    // debug(".");
 	    // debug("%d\n", a++);
 	    // // 1 tick per 5000 us = 5 ms -> 5 * 200 = 1 second
-	    if (a % 200 == 0)
-	        debug("%d\n", i++);
+	    // if (a % 200 == 0)
+	    //     debug("%d\n", i++);
 
-	    a++;
+	    // a++;
 	}
         // otherwise continue here:
 	else
@@ -195,7 +195,7 @@ uint64_t isr_handler(uint64_t rsp)
 
 /* utility functions */
 
-void isr_register_dump(interrupt_cpu_state_t *cpu)
+void isr_register_dump(cpu_interrupt_state_t *cpu)
 {
     debug("ℹ Register dump:\n\n");
     debug("⤷ rax: 0x%.16llx, rbx:    0x%.16llx, rcx: 0x%.16llx, rdx: 0x%.16llx\n"

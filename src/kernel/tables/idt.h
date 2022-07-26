@@ -38,7 +38,7 @@ typedef struct __attribute__((__packed__))
 {
     uint16_t limit;
     uint64_t base;
-} idt_pointer_t;
+} idtr_t;
 
 void idt_init(void);
 

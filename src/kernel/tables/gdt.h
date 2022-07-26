@@ -31,16 +31,15 @@
 
 typedef struct __attribute__((__packed__))
 {
-    uint32_t	reserved0;
-    uint64_t	rsp[3];
-    uint64_t	reserved1;
-    uint64_t	ist[7];
-    uint32_t	reserved2;
-    uint32_t	reserved3;
-    uint16_t	reserved4;
-    uint16_t	iopb_offset;
-} tss_t;
-
+    uint16_t	length;		// bits 0-15 
+    uint16_t	base_low;	// bits 0-15
+    uint8_t	base_middle;	// bits 16-23
+    uint8_t	flags1;		// flags
+    uint8_t	flags2;	    	// flags 
+    uint8_t	base_high;  	// bits 24-31
+    uint32_t	base_upper; 	// bits 32-63
+    uint32_t	reserved;   	// reserved
+} tss_descriptor_t;
 
 typedef struct __attribute__((__packed__))
 {
@@ -54,15 +53,15 @@ typedef struct __attribute__((__packed__))
 
 typedef struct __attribute__((__packed__))
 {
-    uint16_t	length;		// bits 0-15 
-    uint16_t	base_low;	// bits 0-15
-    uint8_t	base_middle;	// bits 16-23
-    uint8_t	flags1;		// flags
-    uint8_t	flags2;	    	// flags 
-    uint8_t	base_high;  	// bits 24-31
-    uint32_t	base_upper; 	// bits 32-63
-    uint32_t	reserved;   	// reserved
-} tss_descriptor_t;
+    uint32_t	reserved0;
+    uint64_t	rsp[3];
+    uint64_t	reserved1;
+    uint64_t	ist[7];
+    uint32_t	reserved2;
+    uint32_t	reserved3;
+    uint16_t	reserved4;
+    uint16_t	iopb_offset;
+} tss_t;
 
 typedef struct __attribute__((__packed__))
 {
@@ -70,12 +69,11 @@ typedef struct __attribute__((__packed__))
     tss_descriptor_t tss_descriptor;
 } gdt_t;
 
-
 typedef struct __attribute__((__packed__))
 {
     uint16_t limit; // equivalent to size
     uint64_t base;  // equivalent to address
-} gdt_pointer_t;
+} gdtr_t;
 
 void gdt_init();
 

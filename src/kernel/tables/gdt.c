@@ -31,7 +31,7 @@ extern uint8_t stack[16384];
 
 static tss_t tss;
 static gdt_t gdt;
-static gdt_pointer_t gdt_pointer;
+static gdtr_t gdtr;
 
 /* utility function prototypes */
 
@@ -94,13 +94,13 @@ void gdt_init(void)
 
     memset(&tss, 0, sizeof(tss));
 
-    tss.rsp[0]	    = (uintptr_t)stack + sizeof(stack);
+    tss.rsp[0]	    = (uintptr_t)stack + sizeof(stack); // stack grows downwards (TODO: so it's right?)
     tss.iopb_offset = sizeof(tss);
 
-    gdt_pointer.limit    = sizeof(gdt) - 1;
-    gdt_pointer.base	    = (uint64_t)&gdt;
+    gdtr.limit	= sizeof(gdt) - 1;
+    gdtr.base	= (uint64_t)&gdt;
 
-    _load_gdt_and_tss_asm((uintptr_t)&gdt_pointer);
+    _load_gdt_and_tss_asm((uintptr_t)&gdtr);
 
     log(INFO, "GDT initialized\n");
 }
