@@ -28,20 +28,52 @@
 #include <hardware/cpu.h>
 #include <libk/malloc/malloc.h>
 #include <libk/serial/log.h>
-// #include <memory/physical/pmm.h>
 #include <memory/mem.h>
 #include <proc/smp/smp.h>
-
-/* utility function prototypes */
-
-//
-
-
-/* core functions */
 
 cpu_local_t *cpu_locals;
 static uint32_t cpu_count = 0;
 static uint32_t bsp_lapic_id = 0;
+
+
+
+
+#include <stdbool.h>
+typedef volatile bool lock_t;
+
+bool spinlock_acquire(lock_t spin) {
+    return !__atomic_test_and_set(&spin, __ATOMIC_ACQUIRE);
+}
+
+void spinlock_acquire_or_wait(lock_t spin) {
+retry_lock:
+    if (spinlock_acquire(spin)) {
+	return;
+    }
+
+    for (;;) {
+	if (__atomic_load_n(&spin, __ATOMIC_RELAXED) == 0) {
+	    goto retry_lock;
+	}
+	asm volatile("pause");
+    }
+}
+
+void spinlock_drop(lock_t spin) {
+    __atomic_clear(&spin, __ATOMIC_RELEASE);
+}
+
+lock_t smp_lock;
+
+#include <memory/physical/pmm.h>
+#include <hardware/hpet/hpet.h>
+
+
+/* utility function prototypes */
+
+static void cpu_init(struct stivale2_smp_info *smp_info);
+
+/* core functions */
 
 void smp_init(struct stivale2_struct *stivale2_struct)
 {
@@ -57,16 +89,13 @@ void smp_init(struct stivale2_struct *stivale2_struct)
     {
 	smp_tag->smp_info[i].extra_argument = (uint64_t)&cpu_locals[i];
 	
-	// uint64_t stack = (uintptr_t)pmm_allocz(CPU_LOCALS_STACK_SIZE / PAGE_SIZE);
-	// stack += CPU_LOCALS_STACK_SIZE; // stack grows downwards
-	// stack = PHYS_TO_HIGHER_HALF_DATA(stack);
+	uint64_t stack = (uintptr_t)pmm_allocz(CPU_LOCALS_STACK_SIZE / PAGE_SIZE);
+	stack += CPU_LOCALS_STACK_SIZE; // stack grows downwards
+	stack = PHYS_TO_HIGHER_HALF_DATA(stack);
 
-	// uint64_t scheduler_stack = (uintptr_t)pmm_allocz(1);
-	// scheduler_stack += PAGE_SIZE; // stack grows downwards
-	// scheduler_stack = PHYS_TO_HIGHER_HALF_DATA(stack);
-	
-	uint64_t stack = (uintptr_t)malloc(CPU_LOCALS_STACK_SIZE) + CPU_LOCALS_STACK_SIZE;
-	uint64_t scheduler_stack = (uintptr_t)malloc(PAGE_SIZE) + PAGE_SIZE;
+	uint64_t scheduler_stack = (uintptr_t)pmm_allocz(1);
+	scheduler_stack += PAGE_SIZE; // stack grows downwards
+	scheduler_stack = PHYS_TO_HIGHER_HALF_DATA(stack);
 
 	cpu_locals[i].tss.rsp[0] = stack;
 	cpu_locals[i].tss.ist[0] = scheduler_stack;
@@ -80,8 +109,12 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 
 	cpu_locals[i].cpu_number = i;
 
+	spinlock_acquire_or_wait(smp_lock);
 	smp_tag->smp_info[i].target_stack = stack;
 	smp_tag->smp_info[i].goto_address = (uint64_t)cpu_init;
+	spinlock_drop(smp_lock);
+
+	hpet_usleep(100 * 1000);
     }
 
     while (cpu_count != smp_tag->cpu_count);
@@ -89,11 +122,12 @@ void smp_init(struct stivale2_struct *stivale2_struct)
     log(INFO, "SMP initialized - All CPUs initialized\n");
 }
 
-void cpu_init(struct stivale2_smp_info *smp_info)
-{
-    log(INFO, "cpu initializing - lapic id: %d\n", smp_info->lapic_id);
-}
-
 /* utility functions */
 
-//
+static void cpu_init(struct stivale2_smp_info *smp_info)
+{
+    spinlock_acquire_or_wait(smp_lock);
+    log(INFO, "cpu initializing - lapic id: %d\n", smp_info->lapic_id);
+    log(INFO, "cpu_count: %d\n", cpu_count++);
+    spinlock_drop(smp_lock);
+}
