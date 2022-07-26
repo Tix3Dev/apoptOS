@@ -14,13 +14,11 @@
 ;   You should have received a copy of the GNU General Public License
 ;   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-global _load_gdt_and_tss_asm
+global _gdt_reload_asm
+global _tss_reload_asm
 
-_load_gdt_and_tss_asm:
+_gdt_reload_asm:
     lgdt    [rdi]	; load GDT -> rdi is the first argument passed
-
-    mov	    ax, 0x28	; 0x28 is the TSS segment 
-    ltr	    ax		; load TSS
     
     mov	    ax, 0x10	; 0x10 is the kernel data segment
     mov	    ds, ax	; load kernel data segment (into data segment registers)
@@ -33,4 +31,9 @@ _load_gdt_and_tss_asm:
     mov	    rax, 0x08	; 0x08 is the kernel code segment
     push    rax		; push the kernel code segment
     push    rdi		; push return address
+    retfq		; far return
+
+_tss_reload_asm:
+    mov	    ax, 0x28    ; 0x28 is the TSS segment 
+    ltr	    ax		; load TSS
     retfq		; far return
