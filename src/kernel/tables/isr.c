@@ -118,7 +118,7 @@ uint64_t isr_handler(uint64_t rsp)
         // check for specific IRQ, like keyboard interrupts
 	if (cpu->isr_number == LAPIC_TIMER_INT)
 	{
-	    // debug(".");
+	    debug(".");
 	    // debug("%d\n", a++);
 	    // // 1 tick per 5000 us = 5 ms -> 5 * 200 = 1 second
 	    // if (a % 200 == 0)
@@ -139,6 +139,7 @@ uint64_t isr_handler(uint64_t rsp)
 	    debug_set_color(TERM_COLOR_RESET);
 	}
 
+	ioapic_set_irq_redirect(lapic_get_id(), LAPIC_TIMER_INT, 0, true);
 	lapic_signal_eoi();
     }
     // handle syscalls
