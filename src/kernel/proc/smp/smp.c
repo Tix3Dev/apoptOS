@@ -34,7 +34,7 @@
 #include <memory/mem.h>
 #include <proc/smp/smp.h>
 
-spinlock_t smp_lock;
+static spinlock_t smp_lock;
 
 cpu_local_t *cpu_locals;
 static uint32_t cpu_count = 0;
@@ -66,12 +66,12 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 	stack += CPU_LOCALS_STACK_SIZE; // stack grows downwards
 	stack = PHYS_TO_HIGHER_HALF_DATA(stack);
 
-	uint64_t scheduler_stack = (uintptr_t)pmm_allocz(1);
-	scheduler_stack += PAGE_SIZE; // stack grows downwards
-	scheduler_stack = PHYS_TO_HIGHER_HALF_DATA(stack);
+	// uint64_t scheduler_stack = (uintptr_t)pmm_allocz(1);
+	// scheduler_stack += PAGE_SIZE; // stack grows downwards
+	// scheduler_stack = PHYS_TO_HIGHER_HALF_DATA(stack);
 
 	cpu_locals[i].tss.rsp[0] = stack;
-	cpu_locals[i].tss.ist[0] = scheduler_stack;
+	// cpu_locals[i].tss.ist[0] = scheduler_stack;
 
 	if (smp_tag->smp_info[i].lapic_id == bsp_lapic_id)
 	{
@@ -85,10 +85,10 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 	cpu_locals[i].cpu_number = i;
 	log(INFO, "cpu_locals[i].cpu_number: %d\n", cpu_locals[i].cpu_number);
 
-	spinlock_acquire(smp_lock);
+	spinlock_acquire(&smp_lock);
 	smp_tag->smp_info[i].target_stack = stack;
 	smp_tag->smp_info[i].goto_address = (uint64_t)cpu_init;
-	spinlock_release(smp_lock);
+	spinlock_release(&smp_lock);
 
 	log(INFO, "waiting\n");
 	hpet_usleep(100 * 1000);
@@ -97,7 +97,10 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 	log(INFO, "---\n");
     }
 
-    while (cpu_count != smp_tag->cpu_count);
+    while (cpu_count != smp_tag->cpu_count)
+    {
+	asm volatile("pause");
+    }
 
     log(INFO, "SMP initialized - All CPUs initialized\n");
 }
@@ -106,8 +109,8 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 
 static void cpu_init(struct stivale2_smp_info *smp_info)
 {
-    spinlock_acquire(smp_lock);
+    spinlock_acquire(&smp_lock);
     log(INFO, "cpu initializing - lapic id: %d\n", smp_info->lapic_id);
     log(INFO, "cpu_count: %d\n", cpu_count++);
-    spinlock_release(smp_lock);
+    spinlock_release(&smp_lock);
 }

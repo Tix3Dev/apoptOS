@@ -24,21 +24,10 @@
 
 */
 
-#include <libk/lock/spinlock.h>
+// #include <libk/lock/spinlock.h>
 
 /* core functions */
 
 // "spin" until lock isn't set anymore (spinlock not true anymore)
-void spinlock_acquire(spinlock_t spinlock)
-{
-    while (!__sync_bool_compare_and_swap(&spinlock, 0, 1))
-    {
-	asm volatile("pause");
-    }
-}
 
 // unset lock (set spinlock to false)
-void spinlock_release(spinlock_t spinlock)
-{
-    __atomic_clear(&spinlock, __ATOMIC_RELEASE);
-}

@@ -27,6 +27,9 @@
 #include <libk/printf/printf.h>
 #include <libk/serial/debug.h>
 #include <libk/serial/log.h>
+#include <libk/lock/spinlock.h>
+
+static spinlock_t log_lock;
 
 const char log_buffer[5120];
 
@@ -35,6 +38,8 @@ const char log_buffer[5120];
 // variadic function for format specifiers to print logs to the serial console
 void log_impl(char *file, int line_nr, log_status_t status, char *fmt, ...)
 {
+    spinlock_acquire(&log_lock);
+
     va_list ptr;
     va_start(ptr, fmt);
     vsnprintf((char *)&log_buffer, -1, fmt, ptr);
@@ -71,4 +76,6 @@ void log_impl(char *file, int line_nr, log_status_t status, char *fmt, ...)
     }
 
     debug_set_color(TERM_COLOR_RESET);
+    
+    spinlock_release(&log_lock);
 }

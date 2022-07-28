@@ -21,9 +21,39 @@
 
 #include <stdbool.h>
 
-typedef volatile bool spinlock_t;
+#include <utility/utils.h>
 
-void spinlock_acquire(spinlock_t spinlock);
-void spinlock_release(spinlock_t spinlock);
+#include <libk/serial/debug.h>
+typedef struct
+{
+    char lock;
+    bool interrupts;
+} spinlock_t;
+
+static inline void spinlock_acquire(spinlock_t *spinlock)
+{
+    spinlock->interrupts = asm_get_interrupt_flag();
+    asm volatile("cli");
+
+    while (__atomic_test_and_set(&spinlock->lock, __ATOMIC_ACQUIRE))
+    {
+	// debug("bruh\n");
+	asm volatile("pause");
+    }
+}
+
+static inline void spinlock_release(spinlock_t *spinlock)
+{
+    __atomic_clear(&spinlock->lock, __ATOMIC_RELEASE);
+
+    if (spinlock->interrupts)
+    {
+	asm volatile("sti");
+    }
+    else
+    {
+	asm volatile("cli");
+    }
+}
 
 #endif

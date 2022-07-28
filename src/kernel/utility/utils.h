@@ -19,6 +19,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 // write a value to a custom CR register
@@ -61,6 +62,12 @@ static inline void asm_io_wait(void)
 static inline void asm_invlpg(uint64_t *address)
 {
     asm volatile("invlpg (%0)" : : "r" (address));
+}
+
+static inline bool asm_get_interrupt_flag() {
+    uint64_t rflags = 0;
+    asm volatile ("pushfq\n\tpop %0" : "=r"(rflags));
+    return (rflags >> 9) & 1;
 }
 
 #endif
