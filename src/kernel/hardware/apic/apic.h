@@ -35,10 +35,6 @@
 #define LAPIC_ENABLE_BIT	(1 << 8)
 #define LAPIC_TIMER_DISABLE_BIT	(1 << 16)
 
-#define LAPIC_TIMER_PERIODIC_MODE 0x20000
-
-#define US_TIMESLICE_PERIOD 5000
-
 #define IOREGSEL    0
 #define IOWIN	    0x10
 
