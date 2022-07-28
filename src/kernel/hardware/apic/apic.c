@@ -53,8 +53,6 @@ uint8_t lapic_get_id(void);
 void lapic_timer_init(void);
 uint32_t lapic_timer_calibrate(uint32_t ms);
 
-void lapic_timer_oneshot(uint32_t us);
-
 uint32_t ioapic_read_reg(size_t ioapic_i, uint8_t reg_offset);
 void ioapic_write_reg(size_t ioapic_i, uint8_t reg_offset, uint32_t data);
 uint32_t ioapic_get_max_redirect(size_t ioapic_i);
@@ -115,6 +113,17 @@ void lapic_send_ipi(uint32_t lapic_id, uint8_t vector) // TODO: test this
 {
     lapic_write_reg(LAPIC_ICR1_REG, lapic_id << 24);
     lapic_write_reg(LAPIC_ICR0_REG, vector);
+}
+
+// send an interrupt vector (through the LVT and not IOAPIC redirection table) after
+// the specified amount of microseconds, where interrupt vector = LAPIC_TIMER_INT
+void lapic_timer_oneshot(uint32_t us)
+{
+    uint32_t ticks = us * (lapic_timer_freq / 1000000);
+
+    lapic_write_reg(LAPIC_TIMER_REG, LAPIC_TIMER_INT);
+    lapic_write_reg(LAPIC_TIMER_DIV_REG, 3);
+    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, ticks);
 }
 
 // tell the IOAPIC to always redirect the specified IRQ (pin) to a specified LAPIC,
@@ -182,12 +191,13 @@ void lapic_enable(void)
 	    lapic_read_reg(LAPIC_SPURIOUS_REG) | LAPIC_ENABLE_BIT | SPURIOUS_INT);
 }
 
-// unmask timer pin and start periodic LAPIC timer (with specified period)
+// globally set the lapic timer frequency through calibration
 void lapic_timer_init(void)
 {
+    // frequency = ticks per second -> calibrate 1ms -> multiply by 1000 to get one second
     lapic_timer_freq = lapic_timer_calibrate(1000) * 1000;
 
-    log(INFO, "LAPIC timer initialized - Firing IRQ's from now on\n");
+    log(INFO, "LAPIC timer initialized - Oneshot's possible from now on\n");
 }
 
 // return how many ticks it took the LAPIC timer for the specified amount of microseconds
@@ -205,15 +215,6 @@ uint32_t lapic_timer_calibrate(uint32_t us)
 
     uint32_t total_ticks = initial_count - final_count;
     return total_ticks;
-}
-
-void lapic_timer_oneshot(uint32_t us)
-{
-    uint32_t ticks = us * (lapic_timer_freq / 1000000);
-
-    lapic_write_reg(LAPIC_TIMER_REG, LAPIC_TIMER_INT);
-    lapic_write_reg(LAPIC_TIMER_DIV_REG, 3);
-    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, ticks);
 }
 
 // read data from a IOAPIC register - IOAPIC is custom
