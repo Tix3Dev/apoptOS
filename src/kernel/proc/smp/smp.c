@@ -60,18 +60,18 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 
     for (size_t i = 0; i < smp_tag->cpu_count; i++)
     {
-	// smp_tag->smp_info[i].extra_argument = (uint64_t)&cpu_locals[i];
-	// 
-	// uint64_t stack = (uintptr_t)pmm_allocz(CPU_LOCALS_STACK_SIZE / PAGE_SIZE);
-	// stack += CPU_LOCALS_STACK_SIZE; // stack grows downwards
-	// stack = PHYS_TO_HIGHER_HALF_DATA(stack);
+	smp_tag->smp_info[i].extra_argument = (uint64_t)&cpu_locals[i];
+	
+	uint64_t stack = (uintptr_t)pmm_allocz(CPU_LOCALS_STACK_SIZE / PAGE_SIZE);
+	stack += CPU_LOCALS_STACK_SIZE; // stack grows downwards
+	stack = PHYS_TO_HIGHER_HALF_DATA(stack);
 
-	// uint64_t scheduler_stack = (uintptr_t)pmm_allocz(1);
-	// scheduler_stack += PAGE_SIZE; // stack grows downwards
-	// scheduler_stack = PHYS_TO_HIGHER_HALF_DATA(stack);
+	uint64_t scheduler_stack = (uintptr_t)pmm_allocz(1);
+	scheduler_stack += PAGE_SIZE; // stack grows downwards
+	scheduler_stack = PHYS_TO_HIGHER_HALF_DATA(stack);
 
-	// cpu_locals[i].tss.rsp[0] = stack;
-	// cpu_locals[i].tss.ist[0] = scheduler_stack;
+	cpu_locals[i].tss.rsp[0] = stack;
+	cpu_locals[i].tss.ist[0] = scheduler_stack;
 
 	if (smp_tag->smp_info[i].lapic_id == bsp_lapic_id)
 	{
@@ -85,13 +85,13 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 	cpu_locals[i].cpu_number = i;
 	log(INFO, "cpu_locals[i].cpu_number: %d\n", cpu_locals[i].cpu_number);
 
-	// spinlock_acquire(smp_lock);
-	// smp_tag->smp_info[i].target_stack = stack;
-	// smp_tag->smp_info[i].goto_address = (uint64_t)cpu_init;
-	// spinlock_release(smp_lock);
+	spinlock_acquire(smp_lock);
+	smp_tag->smp_info[i].target_stack = stack;
+	smp_tag->smp_info[i].goto_address = (uint64_t)cpu_init;
+	spinlock_release(smp_lock);
 
 	log(INFO, "waiting\n");
-	// hpet_usleep(100 * 1000);
+	hpet_usleep(100 * 1000);
 	log(INFO, "done waiting\n");
 
 	log(INFO, "---\n");
