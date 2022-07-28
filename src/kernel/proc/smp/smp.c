@@ -66,6 +66,8 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 	stack += CPU_LOCALS_STACK_SIZE; // stack grows downwards
 	stack = PHYS_TO_HIGHER_HALF_DATA(stack);
 
+	// commenting out because not necessary till found reason
+	// causing no obvious problem tho
 	// uint64_t scheduler_stack = (uintptr_t)pmm_allocz(1);
 	// scheduler_stack += PAGE_SIZE; // stack grows downwards
 	// scheduler_stack = PHYS_TO_HIGHER_HALF_DATA(stack);
