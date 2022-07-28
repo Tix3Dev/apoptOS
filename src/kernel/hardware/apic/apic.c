@@ -90,8 +90,6 @@ void apic_init(void)
 
     hpet_init();
     lapic_timer_init();
-
-    lapic_timer_oneshot(5 * 1000 * 1000);
     
     log(INFO, "APIC initialized\n");
 }
