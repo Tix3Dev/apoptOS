@@ -87,9 +87,4 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
     apic_init();
 
     // smp_init(stivale2_struct);
-
-    // for (int i = 0; i < 100000; i++)
-    // {
-    //     log(INFO, "\n");
-    // }
 }

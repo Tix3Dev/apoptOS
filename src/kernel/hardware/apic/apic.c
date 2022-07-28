@@ -52,6 +52,8 @@ uint8_t lapic_get_id(void);
 void lapic_timer_init(void);
 uint32_t lapic_timer_calibrate(uint32_t ms);
 
+void lapic_timer_oneshot(uint8_t vector, uint32_t us);
+
 uint32_t ioapic_read_reg(size_t ioapic_i, uint8_t reg_offset);
 void ioapic_write_reg(size_t ioapic_i, uint8_t reg_offset, uint32_t data);
 uint32_t ioapic_get_max_redirect(size_t ioapic_i);
@@ -89,6 +91,10 @@ void apic_init(void)
 
     hpet_init();
     // lapic_timer_init(); causes problems with smp so commented out for now
+
+    // ioapic_set_irq_redirect(lapic_get_id(), LAPIC_TIMER_INT, 0, false);
+
+    lapic_timer_oneshot(32, 5 * 1000 * 1000);
     
     log(INFO, "APIC initialized\n");
 }
@@ -206,6 +212,20 @@ uint32_t lapic_timer_calibrate(uint32_t us)
 
     uint32_t total_ticks = initial_count - final_count;
     return total_ticks;
+}
+
+void lapic_timer_oneshot(uint8_t vector, uint32_t us)
+{
+    lapic_write_reg(LAPIC_TIMER_DIV_REG, 0x3);
+    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, ~0);
+
+    hpet_usleep(us);
+
+    uint32_t ticks = ~0 - lapic_read_reg(LAPIC_TIMER_CURCNT_REG);
+
+    lapic_write_reg(LAPIC_TIMER_REG, vector);
+    lapic_write_reg(LAPIC_TIMER_DIV_REG, 0x3);
+    lapic_write_reg(LAPIC_TIMER_INITCNT_REG, ticks);
 }
 
 // read data from a IOAPIC register - IOAPIC is custom
