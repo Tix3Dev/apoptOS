@@ -101,7 +101,7 @@ uint8_t lapic_get_id(void)
 }
 
 // signal an end of interrupt
-void lapic_signal_eoi(void) // TODO: test this
+void lapic_signal_eoi(void)
 {
     lapic_write_reg(LAPIC_EOI_REG, 0);
 }
