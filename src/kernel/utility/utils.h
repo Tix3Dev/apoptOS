@@ -66,7 +66,7 @@ static inline void asm_invlpg(uint64_t *address)
 
 static inline bool asm_get_interrupt_flag() {
     uint64_t rflags = 0;
-    asm volatile ("pushfq\n\tpop %0" : "=r"(rflags));
+    asm volatile ("pushfq; pop %0" : "=r"(rflags));
     return (rflags >> 9) & 1;
 }
 

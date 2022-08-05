@@ -16,6 +16,18 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+/*
+
+    Brief file description:
+    Spinlock implementation.
+
+    As we can never be sure if an IRQ occurs while in a spinlock, we have to clear the
+    interrupt flag, so all interrupts are ignored and dropped. Before that, the interrupt
+    flag state has to be saved in order to go back to the old state once the spinlock is released.
+
+    The rest of the concept is just to "spin" (i.e. wait) until the lock isn't set anymore.
+*/
+
 #ifndef SPINLOCK_H
 #define SPINLOCK_H
 
@@ -23,7 +35,6 @@
 
 #include <utility/utils.h>
 
-#include <libk/serial/debug.h>
 typedef struct
 {
     char lock;
@@ -37,7 +48,6 @@ static inline void spinlock_acquire(spinlock_t *spinlock)
 
     while (__atomic_test_and_set(&spinlock->lock, __ATOMIC_ACQUIRE))
     {
-	// debug("bruh\n");
 	asm volatile("pause");
     }
 }
