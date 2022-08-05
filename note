@@ -1,1 +1,0 @@
-code still crashes after some time, but logs are fine, so adding spinlocks in more places might help, might also be because no code at rsp (stack passed)
