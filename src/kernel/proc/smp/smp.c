@@ -23,6 +23,12 @@
 
 */
 
+// NOTE: goto_address is described here:
+// https://github.com/stivale/stivale/blob/master/STIVALE2.md#smp-structure-tag
+// ->	even though the arguments for ap_init aren't passed anywhere,
+//	stivale2 will load a pointer to the stivale2_smp_info struct into RDI,
+//	so they are still present as arguments
+
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
 #include <hardware/hpet/hpet.h>
@@ -30,6 +36,7 @@
 #include <libk/lock/spinlock.h>
 #include <libk/malloc/malloc.h>
 #include <libk/serial/log.h>
+// #include <libk/testing/assert.h>
 #include <memory/physical/pmm.h>
 #include <memory/mem.h>
 #include <proc/smp/smp.h>
@@ -37,12 +44,14 @@
 static spinlock_t smp_lock;
 
 cpu_local_t *cpu_locals;
-static uint32_t cpu_count = 0;
+static uint32_t cpus_online = 0;
 static uint32_t bsp_lapic_id = 0;
 
 /* utility function prototypes */
 
-static void cpu_init(struct stivale2_smp_info *smp_info);
+static void bsp_init(struct stivale2_smp_info *smp_info);
+static void ap_init(struct stivale2_smp_info *smp_info);
+static void generic_cpu_local_init(void);
 
 /* core functions */
 
@@ -55,51 +64,37 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 
     cpu_locals = malloc(smp_tag->cpu_count * sizeof(cpu_local_t));
     bsp_lapic_id = smp_tag->bsp_lapic_id;
-    log(INFO, "bsp lapic id: %d\n", bsp_lapic_id);
-    log(INFO, "cpu count: %d\n", cpu_count);
 
     for (size_t i = 0; i < smp_tag->cpu_count; i++)
     {
-	smp_tag->smp_info[i].extra_argument = (uint64_t)&cpu_locals[i];
-	
-	uint64_t stack = (uintptr_t)pmm_allocz(CPU_LOCALS_STACK_SIZE / PAGE_SIZE);
-	stack += CPU_LOCALS_STACK_SIZE; // stack grows downwards
-	stack = PHYS_TO_HIGHER_HALF_DATA(stack);
-
-	// commenting out because not necessary till found reason
-	// causing no obvious problem tho
-	// uint64_t scheduler_stack = (uintptr_t)pmm_allocz(1);
-	// scheduler_stack += PAGE_SIZE; // stack grows downwards
-	// scheduler_stack = PHYS_TO_HIGHER_HALF_DATA(stack);
-
-	cpu_locals[i].tss.rsp[0] = stack;
-	// cpu_locals[i].tss.ist[0] = scheduler_stack;
+	spinlock_acquire(&smp_lock);
 
 	if (smp_tag->smp_info[i].lapic_id == bsp_lapic_id)
 	{
-	    log(INFO, "this is the bsp\n");
-	    cpu_init((void *)&smp_tag->smp_info[i]);
-	    log(INFO, "---\n");
+	    bsp_init((void *)&smp_tag->smp_info[i]);
 	    
 	    continue;
 	}
 
 	cpu_locals[i].cpu_number = i;
-	log(INFO, "cpu_locals[i].cpu_number: %d\n", cpu_locals[i].cpu_number);
+	cpu_locals[i].lapic_id = smp_tag->smp_info[i].lapic_id;
+	spinlock_acquire(&cpu_locals[i].exec_lock);
+	spinlock_release(&cpu_locals[i].exec_lock);
 
-	spinlock_acquire(&smp_lock);
+	smp_tag->smp_info[i].extra_argument = (uint64_t)&cpu_locals[i];
+	
+	uint64_t stack = (uintptr_t)pmm_allocz(CPU_LOCALS_STACK_SIZE / PAGE_SIZE);
+	assert(stack != 0);
+	stack = PHYS_TO_HIGHER_HALF_DATA(stack + CPU_LOCALS_STACK_SIZE);
+
 	smp_tag->smp_info[i].target_stack = stack;
-	smp_tag->smp_info[i].goto_address = (uint64_t)cpu_init;
+
+	smp_tag->smp_info[i].goto_address = (uint64_t)ap_init;
+
 	spinlock_release(&smp_lock);
-
-	log(INFO, "waiting\n");
-	hpet_usleep(100 * 1000);
-	log(INFO, "done waiting\n");
-
-	log(INFO, "---\n");
     }
 
-    while (cpu_count != smp_tag->cpu_count)
+    while (cpus_online != smp_tag->cpu_count)
     {
 	asm volatile("pause");
     }
@@ -109,10 +104,17 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 
 /* utility functions */
 
-static void cpu_init(struct stivale2_smp_info *smp_info)
+static void bsp_init(struct stivale2_smp_info *smp_info)
 {
-    spinlock_acquire(&smp_lock);
-    log(INFO, "cpu initializing - lapic id: %d\n", smp_info->lapic_id);
-    log(INFO, "cpu_count: %d\n", cpu_count++);
-    spinlock_release(&smp_lock);
+    //
+}
+
+static void ap_init(struct stivale2_smp_info *smp_info)
+{
+    //
+}
+
+static void generic_cpu_local_init(void)
+{
+    //
 }

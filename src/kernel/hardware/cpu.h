@@ -30,25 +30,16 @@
 #include <stdint.h>
 
 #include <tables/gdt.h>
+#include <libk/lock/spinlock.h>
 #include <libk/malloc/malloc.h>
 #include <libk/printf/printf.h>
 
 typedef struct
 {
-    uint8_t test0;
-    uint8_t test1;
-    uint8_t test2;
-} cpu_proc_state_t;
-
-typedef struct
-{
     uint64_t	cpu_number;
     uint32_t	lapic_id;
-    uint64_t	kernel_stack;
-    tss_t	tss;
-    void	(*fpu_save)(void *);
-    void	(*fpu_restore)(void *);
-    cpu_proc_state_t *cpu_proc_state;
+    spinlock_t	exec_lock;
+    void (*exec)(void *);
 } cpu_local_t;
 
 typedef struct
