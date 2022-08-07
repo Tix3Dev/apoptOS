@@ -31,15 +31,17 @@
 
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
-#include <hardware/hpet/hpet.h>
 #include <hardware/cpu.h>
 #include <libk/lock/spinlock.h>
 #include <libk/malloc/malloc.h>
 #include <libk/serial/log.h>
 #include <libk/testing/assert.h>
 #include <memory/physical/pmm.h>
+#include <memory/virtual/vmm.h>
 #include <memory/mem.h>
 #include <proc/smp/smp.h>
+#include <tables/gdt.h>
+#include <tables/idt.h>
 
 static spinlock_t smp_lock;
 
@@ -50,7 +52,7 @@ static uint32_t cpus_online = 0;
 
 static void bsp_init(struct stivale2_smp_info *smp_entry);
 static void ap_init(struct stivale2_smp_info *smp_entry);
-static void generic_cpu_local_init(uint64_t cpu_number, uint32_t lapic_id);
+static void generic_cpu_local_init(struct stivale2_smp_info *smp_entry);
 
 /* core functions */
 
@@ -69,18 +71,21 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 
 	smp_tag->smp_info[i].extra_argument = i;
 
-	if (smp_tag->smp_info[i].lapic_id == smp_tag->bsp_lapic_id)
-	{
-	    bsp_init((void *)&smp_tag->smp_info[i]);
-	    
-	    continue;
-	}
-
 	uint64_t stack = (uintptr_t)pmm_allocz(CPU_LOCALS_STACK_SIZE / PAGE_SIZE);
 	assert(stack != 0);
 	stack = PHYS_TO_HIGHER_HALF_DATA(stack + CPU_LOCALS_STACK_SIZE);
 
 	smp_tag->smp_info[i].target_stack = stack;
+
+	if (smp_tag->smp_info[i].lapic_id == smp_tag->bsp_lapic_id)
+	{
+	    bsp_init((void *)&smp_tag->smp_info[i]);
+
+	    spinlock_release(&smp_lock);
+	    
+	    continue;
+	}
+
 	smp_tag->smp_info[i].goto_address = (uint64_t)ap_init;
 
 	spinlock_release(&smp_lock);
@@ -98,7 +103,7 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 
 static void bsp_init(struct stivale2_smp_info *smp_entry)
 {
-    generic_cpu_local_init(smp_entry->extra_argument, smp_entry->lapic_id);
+    generic_cpu_local_init(smp_entry);
 
     cpus_online++;
 
@@ -109,27 +114,35 @@ static void ap_init(struct stivale2_smp_info *smp_entry)
 {
     spinlock_acquire(&smp_lock);
 
-    // load_gdt
-    // load_idt
-    generic_cpu_local_init(smp_entry->extra_argument, smp_entry->lapic_id);
-    // asm ("sti")
+    vmm_load_page_table(vmm_get_root_page_table());
+    gdt_load();
+    idt_load();
+    generic_cpu_local_init(smp_entry);
+    // asm ("sti") actually not needed already done in load_idt ????????????????????????????????????????????????????????
+    // oh this actually won't work as when releasing we go back to same state, so has to be done before spinning
 
     cpus_online++;
 
     log(INFO, "CPU No. %ld: AP fully initialized\n", smp_entry->extra_argument);
 
+    spinlock_release(&smp_lock);
+
     for (;;)
     {
         asm volatile("hlt");
     }
-
-    spinlock_release(&smp_lock);
 }
 
-static void generic_cpu_local_init(uint64_t cpu_num, uint32_t lapic_id)
+static void generic_cpu_local_init(struct stivale2_smp_info *smp_entry)
 {
+    uint64_t cpu_num = smp_entry->extra_argument;
+    uint32_t lapic_id = smp_entry->lapic_id;
+    uint64_t stack = smp_entry->target_stack;
+
     cpu_locals[cpu_num].cpu_number = cpu_num;
     cpu_locals[cpu_num].lapic_id = lapic_id;
-    spinlock_acquire(&cpu_locals[cpu_num].exec_lock);
-    spinlock_release(&cpu_locals[cpu_num].exec_lock);
+    cpu_locals[cpu_num].tss.rsp[0] = stack;
+
+    tss_create_segment(&cpu_locals[cpu_num].tss);
+    tss_load();
 }

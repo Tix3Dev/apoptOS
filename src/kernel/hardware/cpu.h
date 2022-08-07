@@ -38,8 +38,7 @@ typedef struct
 {
     uint64_t	cpu_number;
     uint32_t	lapic_id;
-    spinlock_t	exec_lock;
-    void (*exec)(void *);
+    tss_t	tss;
 } cpu_local_t;
 
 typedef struct
