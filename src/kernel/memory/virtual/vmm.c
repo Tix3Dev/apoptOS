@@ -40,7 +40,6 @@ static uint64_t *root_page_table;
 uint64_t *vmm_get_or_create_pml(uint64_t *pml, size_t pml_index, uint64_t flags);
 void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t flags, uint64_t value);
 void vmm_flush_tlb(void *address);
-void vmm_load_page_table(uint64_t *page_table);
 
 /* core functions */
 
@@ -113,6 +112,12 @@ void vmm_unmap_range(uint64_t *page_table, uint64_t start, uint64_t end)
     }
 }
 
+// load a page table into cr3 to be used
+void vmm_load_page_table(uint64_t *page_table)
+{
+    asm_write_cr(3, HIGHER_HALF_DATA_TO_PHYS((uint64_t)page_table));
+}
+
 uint64_t *vmm_get_root_page_table(void)
 {
     return root_page_table;
@@ -164,10 +169,4 @@ void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t flags, 
 void vmm_flush_tlb(void *address)
 {
     asm_invlpg(address);
-}
-
-// load a page table into cr3 to be used
-void vmm_load_page_table(uint64_t *page_table)
-{
-    asm_write_cr(3, HIGHER_HALF_DATA_TO_PHYS((uint64_t)page_table));
 }
