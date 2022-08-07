@@ -73,11 +73,16 @@ void idt_init(void)
     idtr.limit = sizeof(idt) - 1;
     idtr.base = (uint64_t)&idt;
 
-    _load_idt_asm((uintptr_t)&idtr);
+    idt_load();
 
     asm volatile("sti"); // store interrupt flag -> allow hardware interrupts
 
     log(INFO, "IDT initialized\n");
+}
+
+void idt_load(void)
+{
+    _load_idt_asm((uintptr_t)&idtr);
 }
 
 /* utility functions */

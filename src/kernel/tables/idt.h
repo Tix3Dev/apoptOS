@@ -41,5 +41,6 @@ typedef struct __attribute__((__packed__))
 } idtr_t;
 
 void idt_init(void);
+void idt_load(void);
 
 #endif

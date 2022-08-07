@@ -29,6 +29,9 @@
 
 extern uint8_t stack[16384];
 
+extern void _gdt_load_asm(uint64_t gdt_ptr);
+extern void _tss_load_asm(void);
+
 static gdt_t gdt;
 static gdtr_t gdtr;
 
@@ -78,26 +81,32 @@ void gdt_init(void)
     gdt.entries[GDT_USER_CODE].base_high	    = 0;
 
     // segment 0x28 - tss segment
-    // only for now, in CPU startup tss will actually be loaded
-    gdt.tss_descriptor.length		= 104;
-    gdt.tss_descriptor.base_low    	= 0;
-    gdt.tss_descriptor.base_middle	= 0;
-    gdt.tss_descriptor.flags1		= 0b10001001;
-    gdt.tss_descriptor.flags2	    	= 0;
-    gdt.tss_descriptor.base_high   	= 0;
-    gdt.tss_descriptor.base_upper  	= 0;
-    gdt.tss_descriptor.reserved    	= 0;
+    // address passed is just 0 for now, SMP CPU startup will do it
+    // properly with the right address and tss_load will be called
+    tss_create_segment(0);
 
     gdtr.limit	= sizeof(gdt) - 1;
     gdtr.base	= (uint64_t)&gdt;
 
-    _gdt_reload_asm((uintptr_t)&gdtr);
+    gdt_load();
 
     log(INFO, "GDT initialized\n");
 }
 
-// actually load a TSS into it's segment using starting address
-void gdt_load_tss_segment(tss_t *tss)
+// assembly interface - load GDT via GDTR into calling CPU
+void gdt_load(void)
+{
+    _gdt_load_asm((uintptr_t)&gdtr);
+}
+
+// assembly interface - load TSS into calling CPU
+void tss_load(void)
+{
+    _tss_load_asm();
+}
+
+// create a TSS segment which can be loaded
+void tss_create_segment(tss_t *tss)
 {
     uintptr_t addr = (uintptr_t)tss;
 
@@ -109,6 +118,4 @@ void gdt_load_tss_segment(tss_t *tss)
     gdt.tss_descriptor.base_high   	= (uint8_t)(addr >> 24);
     gdt.tss_descriptor.base_upper  	= (uint32_t)(addr >> 32);
     gdt.tss_descriptor.reserved    	= 0;
-
-    _tss_reload_asm();
 }

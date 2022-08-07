@@ -75,10 +75,9 @@ typedef struct __attribute__((__packed__))
     uint64_t base;  // equivalent to address
 } gdtr_t;
 
-extern void _gdt_reload_asm(uint64_t gdt_ptr);
-extern void _tss_reload_asm(void);
-
-void gdt_init();
-void gdt_load_tss_segment(tss_t *tss);
+void gdt_init(void);
+void gdt_load(void);
+void tss_load(void);
+void tss_create_segment(tss_t *tss);
 
 #endif
