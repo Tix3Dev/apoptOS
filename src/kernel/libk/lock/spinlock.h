@@ -42,6 +42,7 @@ static inline void spinlock_acquire(spinlock_t *spinlock)
     bool interrupts = asm_get_interrupt_flag();
     
     asm volatile("cli");
+
     while (__atomic_test_and_set(spinlock, __ATOMIC_ACQUIRE))
     {
 	asm volatile("pause");
