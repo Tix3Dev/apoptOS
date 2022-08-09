@@ -24,10 +24,10 @@
 
 */
 
+#include <libk/lock/spinlock.h>
 #include <libk/printf/printf.h>
 #include <libk/serial/debug.h>
 #include <libk/serial/log.h>
-#include <libk/lock/spinlock.h>
 
 static spinlock_t log_lock;
 
