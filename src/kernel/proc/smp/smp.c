@@ -43,6 +43,14 @@
 #include <tables/gdt.h>
 #include <tables/idt.h>
 
+
+
+
+
+
+#include <utility/utils.h>
+
+
 static spinlock_t smp_lock;
 
 cpu_local_t *cpu_locals;
@@ -67,7 +75,7 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 
     for (uint64_t i = 0; i < smp_tag->cpu_count; i++)
     {
-	spinlock_acquire(&smp_lock);
+	// spinlock_acquire(&smp_lock);
 
 	smp_tag->smp_info[i].extra_argument = i;
 
@@ -81,14 +89,21 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 	{
 	    bsp_init((void *)&smp_tag->smp_info[i]);
 
-	    spinlock_release(&smp_lock);
+	    // spinlock_release(&smp_lock);
+
+	    // debug("bsp boss: %d\n", asm_get_interrupt_flag());
 	    
 	    continue;
 	}
 
+	spinlock_acquire(&smp_lock);
+
+	// asm volatile("sti");
+
 	smp_tag->smp_info[i].goto_address = (uint64_t)ap_init;
 
 	spinlock_release(&smp_lock);
+	// debug("bsp wuuf: %d\n", asm_get_interrupt_flag());
     }
 
     while (cpus_online != smp_tag->cpu_count)
@@ -105,27 +120,41 @@ static void bsp_init(struct stivale2_smp_info *smp_entry)
 {
     generic_cpu_local_init(smp_entry);
 
-    cpus_online++;
-
     log(INFO, "CPU No. %ld: BSP fully initialized\n", smp_entry->extra_argument);
+    cpus_online++;
 }
 
 static void ap_init(struct stivale2_smp_info *smp_entry)
 {
+    // debug("rp_lnir weee: %d\n", asm_get_interrupt_flag());
+
     spinlock_acquire(&smp_lock);
 
     vmm_load_page_table(vmm_get_root_page_table());
     gdt_load();
     idt_load();
     generic_cpu_local_init(smp_entry);
-    // asm ("sti") actually not needed already done in load_idt ????????????????????????????????????????????????????????
-    // oh this actually won't work as when releasing we go back to same state, so has to be done before spinning
-
-    cpus_online++;
 
     log(INFO, "CPU No. %ld: AP fully initialized\n", smp_entry->extra_argument);
+    cpus_online++;
 
     spinlock_release(&smp_lock);
+    
+    // asm volatile("sti"); // store interrupt flag -> allow hardware interrupts
+			 // NOTE: can't be set while a spinlock is spinning, as the
+			 // interrupt flag was saved and will be set to whatever it
+			 // was before when releasing the spinlock
+    
+
+
+    // debug("ap_init before: %d\n", asm_get_interrupt_flag());
+
+    // asm volatile("sti");
+
+    // debug("ap_init after: %d\n", asm_get_interrupt_flag());
+    
+
+
 
     for (;;)
     {

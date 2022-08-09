@@ -42,13 +42,6 @@
 #include <tables/gdt.h>
 #include <tables/idt.h>
 
-
-
-
-#include <libk/lock/spinlock.h>
-
-
-
 /* utility function prototypes */
 
 void kinit_all(struct stivale2_struct *stivale2_struct);
