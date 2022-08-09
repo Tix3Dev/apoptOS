@@ -38,6 +38,7 @@ typedef struct
 {
     uint64_t	cpu_number;
     uint32_t	lapic_id;
+    uint32_t	lapic_timer_freq;
     tss_t	tss;
 } cpu_local_t;
 

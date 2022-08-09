@@ -21,9 +21,9 @@
     Brief file description:
     Utilities to make switching from PIC to APIC possible and thus allowing
     for a sophisticated multiprocessor interrupt management. Each processor has
-    one LAPIC and there is normally one global IOAPIC. As there are two types of
-    APIC, utilites are split up too. Also provides LAPIC timer for per-CPU time
-    management.
+    one LAPIC (thus LAPIC functions will be executed by the LAPIC of the calling CPU)
+    and there is normally one global IOAPIC. As there are two types of APIC, utilites
+    are split up too. Also provides LAPIC timer for per-CPU time management.
 
 */
 
@@ -40,7 +40,7 @@
 #include <tables/isr.h>
 
 static uintptr_t lapic_address;
-static uint32_t lapic_timer_freq = 0;
+static uint32_t lapic_timer_freq = 0; // TODO: remove
 
 /* utility function prototypes */
 
@@ -48,9 +48,6 @@ bool apic_is_available(void);
 
 uint32_t lapic_read_reg(uint32_t reg);
 void lapic_write_reg(uint32_t reg, uint32_t data);
-void lapic_enable(void);
-uint8_t lapic_get_id(void);
-void lapic_timer_init(void);
 uint32_t lapic_timer_calibrate(uint32_t ms);
 
 uint32_t ioapic_read_reg(size_t ioapic_i, uint8_t reg_offset);
@@ -94,6 +91,13 @@ void apic_init(void)
     log(INFO, "APIC initialized\n");
 }
 
+// enable LAPIC by setting 'default interrupt' (spurious interrupt) to IRQ 255
+void lapic_enable(void)
+{
+    lapic_write_reg(LAPIC_SPURIOUS_REG,
+	    lapic_read_reg(LAPIC_SPURIOUS_REG) | LAPIC_ENABLE_BIT | SPURIOUS_INT);
+}
+
 // get the LAPIC ID of the current CPU
 uint8_t lapic_get_id(void)
 {
@@ -113,11 +117,20 @@ void lapic_send_ipi(uint32_t lapic_id, uint8_t vector) // TODO: test this
     lapic_write_reg(LAPIC_ICR0_REG, vector);
 }
 
+// globally set the lapic timer frequency through calibration
+void lapic_timer_init(void)
+{
+    // frequency = ticks per second -> calibrate 1ms -> multiply by 1000 to get one second
+    lapic_timer_freq = lapic_timer_calibrate(1000) * 1000; // TODO: this_cpu()->lapic_timer_freq
+
+    log(INFO, "LAPIC timer initialized - Oneshot's possible from now on\n");
+}
+
 // send an interrupt vector (through the LVT and not IOAPIC redirection table) after
 // the specified amount of microseconds, where interrupt vector = LAPIC_TIMER_INT
 void lapic_timer_oneshot(uint32_t us)
 {
-    uint32_t ticks = us * (lapic_timer_freq / 1000000);
+    uint32_t ticks = us * (lapic_timer_freq / 1000000); // TODO: this_cpu()->lapic_timer_freq 
 
     lapic_write_reg(LAPIC_TIMER_REG, LAPIC_TIMER_INT);
     lapic_write_reg(LAPIC_TIMER_DIV_REG, 3);
@@ -180,22 +193,6 @@ uint32_t lapic_read_reg(uint32_t reg)
 void lapic_write_reg(uint32_t reg, uint32_t data)
 {
     *((volatile uint32_t *)(lapic_address + reg)) = data;
-}
-
-// enable LAPIC by setting 'default interrupt' (spurious interrupt) to IRQ 255
-void lapic_enable(void)
-{
-    lapic_write_reg(LAPIC_SPURIOUS_REG,
-	    lapic_read_reg(LAPIC_SPURIOUS_REG) | LAPIC_ENABLE_BIT | SPURIOUS_INT);
-}
-
-// globally set the lapic timer frequency through calibration
-void lapic_timer_init(void)
-{
-    // frequency = ticks per second -> calibrate 1ms -> multiply by 1000 to get one second
-    lapic_timer_freq = lapic_timer_calibrate(1000) * 1000;
-
-    log(INFO, "LAPIC timer initialized - Oneshot's possible from now on\n");
 }
 
 // return how many ticks it took the LAPIC timer for the specified amount of microseconds

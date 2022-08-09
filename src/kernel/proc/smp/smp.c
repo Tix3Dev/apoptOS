@@ -31,6 +31,7 @@
 
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
+#include <hardware/apic/apic.h>
 #include <hardware/cpu.h>
 #include <libk/lock/spinlock.h>
 #include <libk/malloc/malloc.h>
@@ -120,6 +121,9 @@ static void ap_init(struct stivale2_smp_info *smp_entry)
     generic_cpu_local_init(smp_entry);
 
     asm volatile("sti"); // store interrupt flag -> allow hardware interrupts
+    
+    lapic_enable();
+    // lapic_timer_init
 
     log(INFO, "CPU No. %ld: AP fully initialized\n", smp_entry->extra_argument);
     cpus_online++;
@@ -145,7 +149,7 @@ static void generic_cpu_local_init(struct stivale2_smp_info *smp_entry)
     tss_create_segment(&cpu_locals[cpu_num].tss);
     tss_load();
 
-    // set gsbase
+    // (set gsbase)
     
     // enable sse
     
