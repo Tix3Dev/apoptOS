@@ -43,14 +43,6 @@
 #include <tables/gdt.h>
 #include <tables/idt.h>
 
-
-
-
-
-
-#include <utility/utils.h>
-
-
 static spinlock_t smp_lock;
 
 cpu_local_t *cpu_locals;
