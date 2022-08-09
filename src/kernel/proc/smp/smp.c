@@ -123,7 +123,7 @@ static void ap_init(struct stivale2_smp_info *smp_entry)
     asm volatile("sti"); // store interrupt flag -> allow hardware interrupts
     
     lapic_enable();
-    // lapic_timer_init
+    // (lapic_timer_init)
 
     log(INFO, "CPU No. %ld: AP fully initialized\n", smp_entry->extra_argument);
     cpus_online++;
