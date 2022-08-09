@@ -23,7 +23,7 @@
 
     As we can never be sure if an IRQ occurs while in a spinlock, we have to clear the
     interrupt flag, so all interrupts are ignored and dropped. Before that, the interrupt
-    flag state has to be saved in order to go back to the old state once the spinlock is released.
+    flag state has to be saved in order to go back to the old state once the spinlock is acquired.
 
     The rest of the concept is just to "spin" (i.e. wait) until the lock isn't set anymore.
 */
@@ -35,35 +35,28 @@
 
 #include <utility/utils.h>
 
-typedef struct
-{
-    char lock;
-    bool interrupts;
-} spinlock_t;
+typedef char spinlock_t;
 
 static inline void spinlock_acquire(spinlock_t *spinlock)
 {
-    spinlock->interrupts = asm_get_interrupt_flag();
+    bool interrupts = asm_get_interrupt_flag();
+    
     asm volatile("cli");
-
-    while (__atomic_test_and_set(&spinlock->lock, __ATOMIC_ACQUIRE))
+    while (__atomic_test_and_set(spinlock, __ATOMIC_ACQUIRE))
     {
 	asm volatile("pause");
     }
+
+    if (interrupts)
+    {
+	asm volatile("sti");
+    }
+    // else cli, already set
 }
 
 static inline void spinlock_release(spinlock_t *spinlock)
 {
-    __atomic_clear(&spinlock->lock, __ATOMIC_RELEASE);
-
-    if (spinlock->interrupts)
-    {
-	asm volatile("sti");
-    }
-    else
-    {
-	asm volatile("cli");
-    }
+    __atomic_clear(spinlock, __ATOMIC_RELEASE);
 }
 
 #endif
