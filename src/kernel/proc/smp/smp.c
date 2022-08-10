@@ -151,7 +151,16 @@ static void generic_cpu_local_init(struct stivale2_smp_info *smp_entry)
 
     // (set gsbase)
     
-    // enable sse
-    
+    // enable SSE/SSE2
+    uint64_t cr0 = asm_read_cr(0);
+    cr0 &= ~(1 << 2);
+    cr0 |= (1 << 1);
+    asm_write_cr(0, cr0);
+
+    uint64_t cr4 = asm_read_cr(4);
+    cr4 |= (1 << 9);
+    cr4 |= (1 << 10);
+    asm_write_cr(4, cr4);
+
     // enable write-combining in the PAT
 }
