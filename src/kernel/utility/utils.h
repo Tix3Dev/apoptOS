@@ -22,12 +22,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-// write a value to a custom CR register
-#define asm_write_cr(reg, value)			\
-({							\
-    asm volatile("mov %0, %%cr" #reg : : "r" (value));	\
-})
-
 // read the value a custom CR register contains
 #define asm_read_cr(reg)				    \
 ({							    \
@@ -35,6 +29,27 @@
     asm volatile("mov %%cr" #reg ", %0" : "=r" (value));    \
     value;						    \
 })
+
+// write a value to a custom CR register
+#define asm_write_cr(reg, value)			\
+({							\
+    asm volatile("mov %0, %%cr" #reg : : "r" (value));	\
+})
+
+// read from a model-specific register
+static inline uint64_t asm_rdmsr(uint32_t msr) {
+    uint64_t rax;
+    uint64_t rdx;
+    asm volatile ("rdmsr" : "=a"(rax), "=d"(rdx) : "c"(msr) : "memory");
+    return (rdx << 32) | rax;
+}
+
+// write to a model-specific register
+static inline void asm_wrmsr(uint32_t msr, uint64_t value) {
+    uint64_t rax = (uint32_t)value;
+    uint64_t rdx = value >> 32;
+    asm volatile ("wrmsr" :: "a"(rax), "d"(rdx), "c"(msr));
+}
 
 // send data to a IO port
 static inline void asm_io_outb(uint16_t port, uint8_t value)
@@ -46,9 +61,7 @@ static inline void asm_io_outb(uint16_t port, uint8_t value)
 static inline uint8_t asm_io_inb(uint16_t port)
 {
     uint8_t ret;
-
     asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
-
     return ret;
 }
 
@@ -64,6 +77,7 @@ static inline void asm_invlpg(uint64_t *address)
     asm volatile("invlpg (%0)" : : "r" (address));
 }
 
+// get the state (sti=1 and cli=0) of the interrupt flag in rflags
 static inline bool asm_get_interrupt_flag() {
     uint64_t rflags = 0;
     asm volatile ("pushfq; pop %0" : "=r"(rflags));

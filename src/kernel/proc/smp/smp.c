@@ -119,9 +119,7 @@ static void ap_init(struct stivale2_smp_info *smp_entry)
     idt_load();
 
     generic_cpu_local_init(smp_entry);
-
-    asm volatile("sti"); // store interrupt flag -> allow hardware interrupts
-    
+ 
     lapic_enable();
     // (lapic_timer_init)
 
@@ -129,6 +127,11 @@ static void ap_init(struct stivale2_smp_info *smp_entry)
     cpus_online++;
 
     spinlock_release(&smp_lock);
+
+    asm volatile("sti"); // store interrupt flag -> allow hardware interrupts
+			 // must be placed outside of locked code, as interrupt
+			 // state from before locking will be retrieved after
+			 // releasing the lock
     
     for (;;)
     {
@@ -150,6 +153,13 @@ static void generic_cpu_local_init(struct stivale2_smp_info *smp_entry)
     tss_load();
 
     // (set gsbase)
+
+    // enable PAT with write-combining and write-protected memory type
+    // TODO: check this
+    // uint64_t pat = asm_rdmsr(0x277);
+    // pat &= 0xffffffff;
+    // pat |= ((uint64_t)0x105 << 32);
+    // asm_wrmsr(0x277, pat);
     
     // enable SSE/SSE2
     uint64_t cr0 = asm_read_cr(0);
@@ -162,5 +172,5 @@ static void generic_cpu_local_init(struct stivale2_smp_info *smp_entry)
     cr4 |= (1 << 10);
     asm_write_cr(4, cr4);
 
-    // enable write-combining in the PAT
+    // TODO: if necessary add xsave enable code here
 }

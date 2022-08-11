@@ -21,12 +21,16 @@
     Brief file description:
     Spinlock implementation.
 
-    As we can never be sure if an IRQ occurs while in a spinlock, we have to clear the
-    interrupt flag, so all interrupts are ignored and dropped. Before that, the interrupt
-    flag state has to be saved in order to go back to the old state once the spinlock is acquired.
+    The basic concept is to "spin" (i.e. wait) until a custom lock isn't locked (i.e. set) anymore.
 
-    The rest of the concept is just to "spin" (i.e. wait) until the lock isn't set anymore.
+    But because when an interrupt occurs while in code which is locked by foo, the interrupt handler
+    could also try to access foo, thus creating a deadlock. To prevent this, interrupts are disabled
+    for locked code parts (and must not be changed!), but after the code is released, the old interrupt
+    state is restored.
 */
+
+
+
 
 #ifndef SPINLOCK_H
 #define SPINLOCK_H
@@ -35,28 +39,35 @@
 
 #include <utility/utils.h>
 
-typedef char spinlock_t;
+typedef struct
+{
+    char lock;
+    bool interrupts;
+} spinlock_t;
 
 static inline void spinlock_acquire(spinlock_t *spinlock)
 {
-    bool interrupts = asm_get_interrupt_flag();
-    
-    asm volatile("cli");
-
-    while (__atomic_test_and_set(spinlock, __ATOMIC_ACQUIRE))
+    while (__atomic_test_and_set(&spinlock->lock, __ATOMIC_ACQUIRE))
     {
 	asm volatile("pause");
     }
 
-    if (interrupts)
-    {
-	asm volatile("sti");
-    }
-    // else cli, already set
+    spinlock->interrupts = asm_get_interrupt_flag();
+
+    asm volatile("cli");
 }
 
 static inline void spinlock_release(spinlock_t *spinlock)
 {
+    if (spinlock->interrupts)
+    {
+	asm volatile("sti");
+    }
+    else
+    {
+	asm volatile("cli");
+    }
+
     __atomic_clear(spinlock, __ATOMIC_RELEASE);
 }
 
