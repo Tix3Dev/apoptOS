@@ -29,7 +29,7 @@
 
 /* utility function prototypes */
 
-// 
+//
 
 /* core functions */
 

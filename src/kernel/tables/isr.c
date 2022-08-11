@@ -116,24 +116,24 @@ uint64_t isr_handler(uint64_t rsp)
     else if (cpu->isr_number >= 32 && cpu->isr_number < 48)
     {
         // check for specific IRQ, like keyboard interrupts
-	if (cpu->isr_number == LAPIC_TIMER_INT)
-	{
-	    debug(".");
-	}
+        if (cpu->isr_number == LAPIC_TIMER_INT)
+        {
+            debug(".");
+        }
         // otherwise continue here:
-	else
-	{
-	    debug_set_color(TERM_RED);
-	    debug("\n────────────────────────\n");
-	    debug("⚠ UNHANDLED HARDWARE INTERRUPT OCCURRED! ⚠\n\n");
-	    debug("⤷ ISR-No. %d: %s\n", cpu->isr_number, isa_irqs[cpu->isr_number - 32]);
-	    debug_set_color(TERM_CYAN);
-	    isr_register_dump(cpu);
+        else
+        {
+            debug_set_color(TERM_RED);
+            debug("\n────────────────────────\n");
+            debug("⚠ UNHANDLED HARDWARE INTERRUPT OCCURRED! ⚠\n\n");
+            debug("⤷ ISR-No. %d: %s\n", cpu->isr_number, isa_irqs[cpu->isr_number - 32]);
+            debug_set_color(TERM_CYAN);
+            isr_register_dump(cpu);
 
-	    debug_set_color(TERM_COLOR_RESET);
-	}
+            debug_set_color(TERM_COLOR_RESET);
+        }
 
-	lapic_signal_eoi();
+        lapic_signal_eoi();
     }
     // handle syscalls
     else if (cpu->isr_number == SYSCALL_INT)

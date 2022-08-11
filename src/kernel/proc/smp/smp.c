@@ -68,33 +68,33 @@ void smp_init(struct stivale2_struct *stivale2_struct)
 
     for (uint64_t i = 0; i < smp_tag->cpu_count; i++)
     {
-	spinlock_acquire(&smp_lock);
+        spinlock_acquire(&smp_lock);
 
-	smp_tag->smp_info[i].extra_argument = i;
+        smp_tag->smp_info[i].extra_argument = i;
 
-	uint64_t stack = (uintptr_t)pmm_allocz(CPU_LOCALS_STACK_SIZE / PAGE_SIZE);
-	assert(stack != 0);
-	stack = PHYS_TO_HIGHER_HALF_DATA(stack + CPU_LOCALS_STACK_SIZE);
+        uint64_t stack = (uintptr_t)pmm_allocz(CPU_LOCALS_STACK_SIZE / PAGE_SIZE);
+        assert(stack != 0);
+        stack = PHYS_TO_HIGHER_HALF_DATA(stack + CPU_LOCALS_STACK_SIZE);
 
-	smp_tag->smp_info[i].target_stack = stack;
+        smp_tag->smp_info[i].target_stack = stack;
 
-	if (smp_tag->smp_info[i].lapic_id == smp_tag->bsp_lapic_id)
-	{
-	    bsp_init((void *)&smp_tag->smp_info[i]);
+        if (smp_tag->smp_info[i].lapic_id == smp_tag->bsp_lapic_id)
+        {
+            bsp_init((void *)&smp_tag->smp_info[i]);
 
-	    spinlock_release(&smp_lock);
+            spinlock_release(&smp_lock);
 
-	    continue;
-	}
+            continue;
+        }
 
-	smp_tag->smp_info[i].goto_address = (uint64_t)ap_init;
+        smp_tag->smp_info[i].goto_address = (uint64_t)ap_init;
 
-	spinlock_release(&smp_lock);
+        spinlock_release(&smp_lock);
     }
 
     while (cpus_online != smp_tag->cpu_count)
     {
-	asm volatile("pause");
+        asm volatile("pause");
     }
 
     log(INFO, "SMP initialized - All CPUs initialized\n");
@@ -119,7 +119,7 @@ static void ap_init(struct stivale2_smp_info *smp_entry)
     idt_load();
 
     generic_cpu_local_init(smp_entry);
- 
+
     lapic_enable();
     // (lapic_timer_init)
 
@@ -129,10 +129,10 @@ static void ap_init(struct stivale2_smp_info *smp_entry)
     spinlock_release(&smp_lock);
 
     asm volatile("sti"); // store interrupt flag -> allow hardware interrupts
-			 // must be placed outside of locked code, as interrupt
-			 // state from before locking will be retrieved after
-			 // releasing the lock
-    
+    // must be placed outside of locked code, as interrupt
+    // state from before locking will be retrieved after
+    // releasing the lock
+
     for (;;)
     {
         asm volatile("hlt");
@@ -160,7 +160,7 @@ static void generic_cpu_local_init(struct stivale2_smp_info *smp_entry)
     // pat &= 0xffffffff;
     // pat |= ((uint64_t)0x105 << 32);
     // asm_wrmsr(0x277, pat);
-    
+
     // enable SSE/SSE2
     uint64_t cr0 = asm_read_cr(0);
     cr0 &= ~(1 << 2);

@@ -28,7 +28,8 @@
 
 uint8_t stack[CPU_LOCALS_STACK_SIZE];
 
-static struct stivale2_header_tag_smp smp_hdr_tag = {
+static struct stivale2_header_tag_smp smp_hdr_tag =
+{
     .tag = {
         .identifier = STIVALE2_HEADER_TAG_SMP_ID,
         .next = 0

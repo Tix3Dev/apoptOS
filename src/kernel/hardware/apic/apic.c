@@ -63,7 +63,7 @@ void apic_init(void)
 {
     if (!apic_is_available())
     {
-	log(PANIC, "No APIC was found on this computer!\n");
+        log(PANIC, "No APIC was found on this computer!\n");
     }
 
     lapic_address = PHYS_TO_HIGHER_HALF_DATA(madt->lapic_address);
@@ -78,16 +78,16 @@ void apic_init(void)
 
     for (uint32_t i = 0; i < 16; i++)
     {
-	if (!bitmap_check_bit(&irq_bitmap, i))
-	{
-	    uint32_t irq = ioapic_set_irq_redirect(lapic_get_id(), i + 32, i, true);
-	    bitmap_set_bit(&irq_bitmap, irq);
-	}
+        if (!bitmap_check_bit(&irq_bitmap, i))
+        {
+            uint32_t irq = ioapic_set_irq_redirect(lapic_get_id(), i + 32, i, true);
+            bitmap_set_bit(&irq_bitmap, irq);
+        }
     }
 
     hpet_init();
     lapic_timer_init();
-    
+
     log(INFO, "APIC initialized\n");
 }
 
@@ -95,7 +95,7 @@ void apic_init(void)
 void lapic_enable(void)
 {
     lapic_write_reg(LAPIC_SPURIOUS_REG,
-	    lapic_read_reg(LAPIC_SPURIOUS_REG) | LAPIC_ENABLE_BIT | SPURIOUS_INT);
+                    lapic_read_reg(LAPIC_SPURIOUS_REG) | LAPIC_ENABLE_BIT | SPURIOUS_INT);
 }
 
 // get the LAPIC ID of the current CPU
@@ -130,7 +130,7 @@ void lapic_timer_init(void)
 // the specified amount of microseconds, where interrupt vector = LAPIC_TIMER_INT
 void lapic_timer_oneshot(uint32_t us)
 {
-    uint32_t ticks = us * (lapic_timer_freq / 1000000); // TODO: this_cpu()->lapic_timer_freq 
+    uint32_t ticks = us * (lapic_timer_freq / 1000000); // TODO: this_cpu()->lapic_timer_freq
 
     lapic_write_reg(LAPIC_TIMER_REG, LAPIC_TIMER_INT);
     lapic_write_reg(LAPIC_TIMER_DIV_REG, 3);
@@ -148,12 +148,12 @@ uint32_t ioapic_set_irq_redirect(uint32_t lapic_id, uint8_t vector, uint8_t irq,
             log(INFO, "Resolving ISO -> GSI: %d | IRQ: %d\n", madt_isos[isos_i]->gsi, irq);
 
             ioapic_set_gsi_redirect(lapic_id, vector, madt_isos[isos_i]->gsi,
-        	    madt_isos[isos_i]->flags, mask);
+                                    madt_isos[isos_i]->flags, mask);
 
             return madt_isos[isos_i]->gsi;
         }
     }
-    
+
     ioapic_set_gsi_redirect(lapic_id, vector, irq, 0, mask);
 
     return irq;
@@ -178,7 +178,9 @@ bool apic_is_available(void)
     cpuid(regs);
 
     if (regs->edx & CPUID_FEAT_EDX_APIC)
+    {
         return true;
+    }
 
     return false;
 }
@@ -241,9 +243,9 @@ uint8_t ioapic_get_vector_from_gsi(uint32_t gsi)
 {
     size_t ioapic_i = ioapic_i_from_gsi(gsi);
     uint32_t ioredtbl = IRQ_TO_IOREDTBL_REG(gsi - madt_ioapics[ioapic_i]->gsi_base);
-    
+
     uint64_t entry = ioapic_read_reg(ioapic_i, ioredtbl) |
-	((uint64_t)ioapic_read_reg(ioapic_i, ioredtbl + 1) << 32);
+                     ((uint64_t)ioapic_read_reg(ioapic_i, ioredtbl + 1) << 32);
 
     return (uint8_t)(entry & 0xFF);
 }
@@ -256,13 +258,13 @@ size_t ioapic_i_from_gsi(uint32_t gsi)
 
     for (size_t ioapic_i = 0; ioapic_i < madt_ioapics_i; ioapic_i++)
     {
-	start_gsi = madt_ioapics[ioapic_i]->gsi_base;
-	end_gsi = start_gsi + ioapic_get_max_redirect(ioapic_i);
+        start_gsi = madt_ioapics[ioapic_i]->gsi_base;
+        end_gsi = start_gsi + ioapic_get_max_redirect(ioapic_i);
 
-	if (gsi >= start_gsi && gsi < end_gsi)
-	{
-	    return ioapic_i;
-	}
+        if (gsi >= start_gsi && gsi < end_gsi)
+        {
+            return ioapic_i;
+        }
     }
 
     log(PANIC, "Couldn't find an IOAPIC for GSI %d!\n", gsi);
@@ -277,13 +279,13 @@ void ioapic_set_gsi_redirect(uint32_t lapic_id, uint8_t vector, uint32_t gsi, ui
     // if flags.pin_polarity is active low (else active high)
     if (flags & 2)
     {
-	redirect_entry |= IOAPIC_PINPOL_BIT;
+        redirect_entry |= IOAPIC_PINPOL_BIT;
     }
 
     // if flags.trigger_mode is level triggered (else edge triggered)
     if (flags & 8)
     {
-	redirect_entry |= IOAPIC_TRIGMODE_BIT;
+        redirect_entry |= IOAPIC_TRIGMODE_BIT;
     }
 
     if (mask)

@@ -76,6 +76,6 @@ void log_impl(char *file, int line_nr, log_status_t status, char *fmt, ...)
     }
 
     debug_set_color(TERM_COLOR_RESET);
-    
+
     spinlock_release(&log_lock);
 }

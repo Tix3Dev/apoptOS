@@ -56,7 +56,7 @@ void hpet_usleep(uint64_t us)
 
     while (hpet_regs->counter_value < target_value)
     {
-	asm volatile("pause");
+        asm volatile("pause");
     }
 }
 
