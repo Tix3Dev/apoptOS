@@ -60,15 +60,8 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     // map 0xFFFF800000000000 - 0xFFFF800100000000 to 0x0 - 0x100000000
     vmm_map_range(root_page_table, 0, 4 * GiB, HIGHER_HALF_DATA, KERNEL_READ_WRITE);
 
-    enable_pat();
-
     // map 0xFFFF900000000000 - 0xFFFF900100000000 to 0x0 - 0x100000000
     vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, HEAP_START_ADDR, KERNEL_READ_WRITE);
-
-
-    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFA00000000000, KERNEL_READ_WRITE |
-	    vmm_pat_cache_type_to_flags(WRITE_THROUGH));
-
 
     // map 0xFFFFFFFF80000000 - 0x0001000000000000 0x0 - 0x80000000
     vmm_map_range(root_page_table, 0, 2 * GiB, HIGHER_HALF_CODE, KERNEL_READ);
@@ -84,6 +77,14 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     log(INFO, "Replaced bootloader page table at 0x%.16llx\n", asm_read_cr(3));
     vmm_load_page_table(root_page_table);
     log(INFO, "Now using kernel page table at 0x%.16llx\n", asm_read_cr(3));
+
+
+
+    enable_pat();
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFA00000000000, KERNEL_READ_WRITE |
+	    vmm_pat_cache_to_flags(PAT_WRITE_THROUGH));
+
+
 
     log(INFO, "VMM initialized\n");
 
@@ -135,7 +136,7 @@ uint64_t *vmm_get_root_page_table(void)
     return root_page_table;
 }
 
-uint64_t vmm_pat_cache_type_to_flags(pat_cache_type_t type)
+uint64_t vmm_pat_cache_to_flags(pat_cache_t type)
 {
     /*
 	Uncachable:     PAT0:  PAT = 0, PCD = 0, PWT = 0
@@ -150,23 +151,27 @@ uint64_t vmm_pat_cache_type_to_flags(pat_cache_type_t type)
 
     switch (type)
     {
-	case UNCACHEABLE:
+	case PAT_UNCACHEABLE:
 	    break;
 
-	case WRITE_COMBINING:
-	    flags = PWT_BIT;
+	case PAT_WRITE_COMBINING:
+	    flags = PTE_WRITE_THROUGH;
 	    break;
 
-	case WRITE_THROUGH:
-	    flags = PAT_BIT;
+	case PAT_WRITE_THROUGH:
+	    flags = PTE_PAT;
 	    break;
 
-	case WRITE_PROTECTED:
-	    flags = PAT_BIT | PWT_BIT;
+	case PAT_WRITE_PROTECTED:
+	    flags = PTE_PAT | PTE_WRITE_THROUGH;
 	    break;
 
-	case WRITE_BACK:
-	    flags = PAT_BIT | PCD_BIT;
+	case PAT_WRITE_BACK:
+	    flags = PTE_PAT | PTE_CACHE_DISABLED;
+	    break;
+	
+	case PAT_UNCACHED:
+	    flags = PTE_PAT | PTE_CACHE_DISABLED | PTE_WRITE_THROUGH;
 	    break;
     }
 

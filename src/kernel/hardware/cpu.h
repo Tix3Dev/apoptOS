@@ -156,10 +156,13 @@ enum
 
 typedef enum
 {
-   PAT_UNCACHEABLE	= 0,
-   PAT_WRITE_COMBINING	= 1,
-   PAT_WRITE_PROTECTED	= 5,
-} pat_cache_type_t;
+    PAT_UNCACHEABLE	= 0,
+    PAT_WRITE_COMBINING = 1,
+    PAT_WRITE_THROUGH   = 4,
+    PAT_WRITE_PROTECTED = 5,
+    PAT_WRITE_BACK	= 6,
+    PAT_UNCACHED	= 7
+} pat_cache_t;
 
 // retrieve information about cpu through cpuid instruction
 static inline int cpuid(cpuid_registers_t *registers)
@@ -206,12 +209,10 @@ static inline char *cpu_get_vendor_id_string(void)
 
 static inline void enable_pat(void)
 {
-    // uint64_t pat_config = pat_uncacheable | (pat_write_combining << 8) | (pat_write_through << 32) |
-    //			(pat_write_protected << 40) | (pat_write_back << 48) | (pat_uncached << 56);
+    uint64_t custom_pat_config = PAT_UNCACHEABLE | (PAT_WRITE_COMBINING << 8) | (PAT_WRITE_THROUGH << 32) |
+				(PAT_WRITE_PROTECTED << 40) | (PAT_WRITE_BACK << 48) | (PAT_UNCACHED << 56);
 
-    uint64_t pat_custom_conf = PAT_UNCACHEABLE | (PAT_WRITE_COMBINING << 8) | (PAT_WRITE_PROTECTED << 16);
-
-    asm_wrmsr(0x277, pat_config);
+    asm_wrmsr(0x277, custom_pat_config);
 }
 
 static inline void enable_sse(void)
