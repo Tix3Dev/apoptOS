@@ -82,7 +82,22 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
 
     enable_pat();
     vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFA00000000000, KERNEL_READ_WRITE |
+	    vmm_pat_cache_to_flags(PAT_UNCACHEABLE));
+
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFB00000000000, KERNEL_READ_WRITE |
+	    vmm_pat_cache_to_flags(PAT_WRITE_COMBINING));
+
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFC00000000000, KERNEL_READ_WRITE |
 	    vmm_pat_cache_to_flags(PAT_WRITE_THROUGH));
+
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFD00000000000, KERNEL_READ_WRITE |
+	    vmm_pat_cache_to_flags(PAT_WRITE_PROTECTED));
+
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFE00000000000, KERNEL_READ_WRITE |
+	    vmm_pat_cache_to_flags(PAT_WRITE_BACK));
+
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFF00000000000, KERNEL_READ_WRITE |
+	    vmm_pat_cache_to_flags(PAT_UNCACHED));
 
 
 

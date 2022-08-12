@@ -209,8 +209,16 @@ static inline char *cpu_get_vendor_id_string(void)
 
 static inline void enable_pat(void)
 {
-    uint64_t custom_pat_config = PAT_UNCACHEABLE | (PAT_WRITE_COMBINING << 8) | (PAT_WRITE_THROUGH << 32) |
-				(PAT_WRITE_PROTECTED << 40) | (PAT_WRITE_BACK << 48) | (PAT_UNCACHED << 56);
+
+    uint64_t uncacheable	= PAT_UNCACHEABLE;
+    uint64_t write_combining	= PAT_WRITE_COMBINING;
+    uint64_t write_through	= PAT_WRITE_THROUGH;
+    uint64_t write_protected    = PAT_WRITE_PROTECTED;
+    uint64_t write_back		= PAT_WRITE_BACK;
+    uint64_t uncached		= PAT_UNCACHED;
+
+    uint64_t custom_pat_config = uncacheable | (write_combining << 8) | (write_through << 32) |
+				(write_protected << 40) | (write_back << 48) | (uncached << 56);
 
     asm_wrmsr(0x277, custom_pat_config);
 }
