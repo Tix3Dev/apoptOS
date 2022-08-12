@@ -154,23 +154,11 @@ static void generic_cpu_local_init(struct stivale2_smp_info *smp_entry)
 
     // (set gsbase)
 
-    // enable PAT with write-combining and write-protected memory type
-    // TODO: check this
-    // uint64_t pat = asm_rdmsr(0x277);
-    // pat &= 0xffffffff;
-    // pat |= ((uint64_t)0x105 << 32);
-    // asm_wrmsr(0x277, pat);
+    // enable PAT
+    enable_pat();
 
     // enable SSE/SSE2
-    uint64_t cr0 = asm_read_cr(0);
-    cr0 &= ~(1 << 2);
-    cr0 |= (1 << 1);
-    asm_write_cr(0, cr0);
-
-    uint64_t cr4 = asm_read_cr(4);
-    cr4 |= (1 << 9);
-    cr4 |= (1 << 10);
-    asm_write_cr(4, cr4);
+    enable_sse();
 
     // TODO: if necessary add xsave enable code here
 }

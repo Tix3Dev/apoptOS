@@ -42,6 +42,10 @@ typedef enum
     USER_READ_WRITE	= PTE_PRESENT | PTE_READ_WRITE | PTE_USER_SUPERVISOR
 } vmm_map_privilege_t;
 
+#define PWT_BIT (1 << 3) // page write through bit
+#define PCD_BIT (1 << 4) // page cache disable bit
+#define PAT_BIT (1 << 7) // page attribute table bit - bit 7 for 4KiB pages, would be bit 12 for larger pages
+
 void vmm_init(struct stivale2_struct *stivale2_struct);
 void vmm_map_page(uint64_t *page_table, uint64_t phys_page, uint64_t virt_page, uint64_t flags);
 void vmm_unmap_page(uint64_t *page_table, uint64_t virt_page);
@@ -49,5 +53,6 @@ void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t 
 void vmm_unmap_range(uint64_t *page_table, uint64_t start, uint64_t end);
 void vmm_load_page_table(uint64_t *page_table);
 uint64_t *vmm_get_root_page_table(void);
+uint64_t vmm_pat_cache_type_to_flags(vmm_pat_cache_type_t type);
 
 #endif

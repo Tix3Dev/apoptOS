@@ -26,6 +26,7 @@
 #include <utility/utils.h>
 #include <boot/stivale2.h>
 #include <boot/stivale2_boot.h>
+#include <hardware/cpu.h>
 #include <libk/serial/log.h>
 #include <libk/string/string.h>
 #include <libk/testing/assert.h>
@@ -59,8 +60,15 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     // map 0xFFFF800000000000 - 0xFFFF800100000000 to 0x0 - 0x100000000
     vmm_map_range(root_page_table, 0, 4 * GiB, HIGHER_HALF_DATA, KERNEL_READ_WRITE);
 
+    enable_pat();
+
     // map 0xFFFF900000000000 - 0xFFFF900100000000 to 0x0 - 0x100000000
     vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, HEAP_START_ADDR, KERNEL_READ_WRITE);
+
+
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFA00000000000, KERNEL_READ_WRITE |
+	    vmm_pat_cache_type_to_flags(WRITE_THROUGH));
+
 
     // map 0xFFFFFFFF80000000 - 0x0001000000000000 0x0 - 0x80000000
     vmm_map_range(root_page_table, 0, 2 * GiB, HIGHER_HALF_CODE, KERNEL_READ);
@@ -78,6 +86,9 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     log(INFO, "Now using kernel page table at 0x%.16llx\n", asm_read_cr(3));
 
     log(INFO, "VMM initialized\n");
+
+    for (;;)
+	asm volatile("hlt");
 }
 
 // set a page table entry for a new virtual memory address, which will be mapped to a physical frame
@@ -118,9 +129,48 @@ void vmm_load_page_table(uint64_t *page_table)
     asm_write_cr(3, HIGHER_HALF_DATA_TO_PHYS((uint64_t)page_table));
 }
 
+// return the root, aka kernel, page table
 uint64_t *vmm_get_root_page_table(void)
 {
     return root_page_table;
+}
+
+uint64_t vmm_pat_cache_type_to_flags(pat_cache_type_t type)
+{
+    /*
+	Uncachable:     PAT0:  PAT = 0, PCD = 0, PWT = 0
+	WriteCombining: PAT1:  PAT = 0, PCD = 0, PWT = 1
+	WriteThrough:   PAT4:  PAT = 1, PCD = 0, PWT = 0
+	WriteProtected: PAT5:  PAT = 1, PCD = 0, PWT = 1
+	WriteBack:      PAT6:  PAT = 1, PCD = 1, PWT = 0
+	Uncached:       PAT7:  PAT = 1, PCD = 1, PWT = 1
+    */
+
+    uint64_t flags = 0;
+
+    switch (type)
+    {
+	case UNCACHEABLE:
+	    break;
+
+	case WRITE_COMBINING:
+	    flags = PWT_BIT;
+	    break;
+
+	case WRITE_THROUGH:
+	    flags = PAT_BIT;
+	    break;
+
+	case WRITE_PROTECTED:
+	    flags = PAT_BIT | PWT_BIT;
+	    break;
+
+	case WRITE_BACK:
+	    flags = PAT_BIT | PCD_BIT;
+	    break;
+    }
+
+    return flags;
 }
 
 /* utility functions */

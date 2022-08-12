@@ -33,6 +33,7 @@
 #include <libk/lock/spinlock.h>
 #include <libk/malloc/malloc.h>
 #include <libk/printf/printf.h>
+#include <utility/utils.h>
 
 typedef struct
 {
@@ -153,6 +154,13 @@ enum
     CPUID_FEAT_EDX_PBE		= 1 << 31
 };
 
+typedef enum
+{
+   PAT_UNCACHEABLE	= 0,
+   PAT_WRITE_COMBINING	= 1,
+   PAT_WRITE_PROTECTED	= 5,
+} pat_cache_type_t;
+
 // retrieve information about cpu through cpuid instruction
 static inline int cpuid(cpuid_registers_t *registers)
 {
@@ -194,6 +202,29 @@ static inline char *cpu_get_vendor_id_string(void)
 	    (char *)&regs->ebx, (char *)&regs->edx, (char *)&regs->ecx);
 
     return vendor_string;
+}
+
+static inline void enable_pat(void)
+{
+    // uint64_t pat_config = pat_uncacheable | (pat_write_combining << 8) | (pat_write_through << 32) |
+    //			(pat_write_protected << 40) | (pat_write_back << 48) | (pat_uncached << 56);
+
+    uint64_t pat_custom_conf = PAT_UNCACHEABLE | (PAT_WRITE_COMBINING << 8) | (PAT_WRITE_PROTECTED << 16);
+
+    asm_wrmsr(0x277, pat_config);
+}
+
+static inline void enable_sse(void)
+{
+    uint64_t cr0 = asm_read_cr(0);
+    cr0 &= ~(1 << 2);
+    cr0 |= (1 << 1);
+    asm_write_cr(0, cr0);
+
+    uint64_t cr4 = asm_read_cr(4);
+    cr4 |= (1 << 9);
+    cr4 |= (1 << 10);
+    asm_write_cr(4, cr4);
 }
 
 #endif
