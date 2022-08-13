@@ -22,6 +22,7 @@
 - ACPI table parsing
 - LAPIC and IOAPIC
 - LAPIC timer and HPET
+- SMP
 
 ## Goals
 
