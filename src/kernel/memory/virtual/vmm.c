@@ -39,19 +39,9 @@ static uint64_t *root_page_table;
 /* utility function prototypes */
 
 uint64_t *vmm_get_or_create_pml(uint64_t *pml, size_t pml_index, uint64_t flags);
-void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t flags, uint64_t value);
+void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t pt_value, uint64_t flags, pat_cache_t pat_type);
+uint64_t vmm_pat_cache_to_flags(pat_cache_t type);
 void vmm_flush_tlb(void *address);
-
-
-
-
-
-
-void vmm_map_range_test(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags);
-
-
-
-
 
 /* core functions */
 
@@ -66,23 +56,24 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     assert(root_page_table != NULL);
 
     // identity map 0x0 - 0x100000000
-    vmm_map_range(root_page_table, 0, 4 * GiB, 0, KERNEL_READ_WRITE);
+    vmm_map_range(root_page_table, 0, 4 * GiB, 0, KERNEL_READ_WRITE, PAT_UNCACHEABLE);
 
     // map 0xFFFF800000000000 - 0xFFFF800100000000 to 0x0 - 0x100000000
-    vmm_map_range(root_page_table, 0, 4 * GiB, HIGHER_HALF_DATA, KERNEL_READ_WRITE);
+    vmm_map_range(root_page_table, 0, 4 * GiB, HIGHER_HALF_DATA, KERNEL_READ_WRITE, PAT_UNCACHEABLE);
 
     // map 0xFFFF900000000000 - 0xFFFF900100000000 to 0x0 - 0x100000000
-    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, HEAP_START_ADDR, KERNEL_READ_WRITE);
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, HEAP_START_ADDR, KERNEL_READ_WRITE, PAT_UNCACHEABLE);
 
     // map 0xFFFFFFFF80000000 - 0x0001000000000000 0x0 - 0x80000000
-    vmm_map_range(root_page_table, 0, 2 * GiB, HIGHER_HALF_CODE, KERNEL_READ);
+    vmm_map_range(root_page_table, 0, 2 * GiB, HIGHER_HALF_CODE, KERNEL_READ, PAT_UNCACHEABLE);
 
     // map at 0xFFFF800000000000 to all entries in memory map
     for (uint64_t i = 0; i < memory_map->entries; i++)
     {
         current_entry = &memory_map->memmap[i];
 
-        vmm_map_range(root_page_table, 0, current_entry->length, HIGHER_HALF_DATA, KERNEL_READ_WRITE);
+        vmm_map_range(root_page_table, 0, current_entry->length, HIGHER_HALF_DATA, KERNEL_READ_WRITE,
+		PAT_UNCACHEABLE);
     }
 
     log(INFO, "Replaced bootloader page table at 0x%.16llx\n", asm_read_cr(3));
@@ -92,22 +83,23 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
 
 
     enable_pat();
-    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFA00000000000, KERNEL_READ_WRITE |
-	    vmm_pat_cache_to_flags(PAT_UNCACHEABLE));
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFA00000000000, KERNEL_READ_WRITE,
+	    PAT_UNCACHEABLE);
 
-    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFB00000000000, KERNEL_READ_WRITE |
-	    vmm_pat_cache_to_flags(PAT_WRITE_COMBINING));
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFB00000000000, KERNEL_READ_WRITE,
+	    PAT_WRITE_COMBINING);
 
-    vmm_map_range_test(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFC00000000000, KERNEL_READ_WRITE);
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFC00000000000, KERNEL_READ_WRITE,
+	    PAT_WRITE_THROUGH);
 
-//    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFD00000000000, KERNEL_READ_WRITE |
-//	    vmm_pat_cache_to_flags(PAT_WRITE_PROTECTED));
-//
-//    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFE00000000000, KERNEL_READ_WRITE |
-//	    vmm_pat_cache_to_flags(PAT_WRITE_BACK));
-//
-//    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFF00000000000, KERNEL_READ_WRITE |
-//	    vmm_pat_cache_to_flags(PAT_UNCACHED));
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFD00000000000, KERNEL_READ_WRITE,
+	    PAT_WRITE_PROTECTED);
+
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFE00000000000, KERNEL_READ_WRITE,
+	    PAT_WRITE_BACK);
+
+    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFF00000000000, KERNEL_READ_WRITE,
+	    PAT_UNCACHED);
 
 
 
@@ -118,84 +110,27 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
 }
 
 // set a page table entry for a new virtual memory address, which will be mapped to a physical frame
-void vmm_map_page(uint64_t *page_table, uint64_t phys_page, uint64_t virt_page, uint64_t flags)
+void vmm_map_page(uint64_t *page_table, uint64_t phys_page, uint64_t virt_page, uint64_t flags, pat_cache_t pat_type)
 {
-    uint64_t pt_value = phys_page | flags;
-    vmm_set_pt_value(page_table, ALIGN_DOWN(virt_page, PAGE_SIZE), flags, pt_value);
+    uint64_t pt_value = phys_page;
+    vmm_set_pt_value(page_table, ALIGN_DOWN(virt_page, PAGE_SIZE), pt_value, flags, pat_type);
 }
 
 // set a page table entry to zero, in order to "forget" a virtual memory address
 void vmm_unmap_page(uint64_t *page_table, uint64_t virt_page)
 {
     uint64_t pt_value = 0;
-    vmm_set_pt_value(page_table, ALIGN_DOWN(virt_page, PAGE_SIZE), 0, pt_value);
+    vmm_set_pt_value(page_table, ALIGN_DOWN(virt_page, PAGE_SIZE), pt_value, 0, 0);
 }
 
 // map a whole physical memory region with custom offset
-void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags)
+void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags, pat_cache_t pat_type)
 {
     for (uint64_t i = ALIGN_DOWN(start, PAGE_SIZE); i < ALIGN_UP(end, PAGE_SIZE); i += PAGE_SIZE)
     {
-        vmm_map_page(page_table, i, i + offset, flags);
+        vmm_map_page(page_table, i, i + offset, flags, pat_type);
     }
 }
-
-
-
-
-
-
-
-
-// set a value in a page table entry and flush translation lookaside buffer
-void vmm_set_pt_value_test(uint64_t *page_table, uint64_t virt_page, uint64_t flags, uint64_t value)
-{
-    // index for page mapping level 4
-    size_t pml4_index	= (virt_page & ((uintptr_t)0x1ff << 39)) >> 39;
-    // index for page directory table
-    size_t pdpt_index	= (virt_page & ((uintptr_t)0x1ff << 30)) >> 30;
-    // index for page directory
-    size_t pd_index	= (virt_page & ((uintptr_t)0x1ff << 21)) >> 21;
-    // index for page table
-    size_t pt_index	= (virt_page & ((uintptr_t)0x1ff << 12)) >> 12;
-
-    // page mapping level 4 = pml4
-    uint64_t *pml4  = page_table;
-    // page directory table = pml3
-    uint64_t *pdpt  = vmm_get_or_create_pml(pml4, pml4_index, flags);
-    // page directory	    = pml2
-    uint64_t *pd    = vmm_get_or_create_pml(pdpt, pdpt_index, flags);
-    // page table	    = pml1
-    uint64_t *pt    = vmm_get_or_create_pml(pd, pd_index, flags);
-
-    // actual mapped value (either physical frame address or 0)
-    pt[pt_index]    = value | vmm_pat_cache_to_flags(PAT_WRITE_THROUGH);
-
-    // for changes to apply, the translation lookaside buffers need to be flushed
-    vmm_flush_tlb((void *)virt_page);
-}
-
-// set a page table entry for a new virtual memory address, which will be mapped to a physical frame
-void vmm_map_page_test(uint64_t *page_table, uint64_t phys_page, uint64_t virt_page, uint64_t flags)
-{
-    uint64_t pt_value = phys_page | flags;
-    vmm_set_pt_value_test(page_table, ALIGN_DOWN(virt_page, PAGE_SIZE), flags, pt_value);
-}
-
-// map a whole physical memory region with custom offset
-void vmm_map_range_test(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags)
-{
-    for (uint64_t i = ALIGN_DOWN(start, PAGE_SIZE); i < ALIGN_UP(end, PAGE_SIZE); i += PAGE_SIZE)
-    {
-        vmm_map_page_test(page_table, i, i + offset, flags);
-    }
-}
-
-
-
-
-
-
 
 // unmap a whole physical memory region
 void vmm_unmap_range(uint64_t *page_table, uint64_t start, uint64_t end)
@@ -216,6 +151,48 @@ void vmm_load_page_table(uint64_t *page_table)
 uint64_t *vmm_get_root_page_table(void)
 {
     return root_page_table;
+}
+
+/* utility functions */
+
+// make use (and if needed alloacte for that) a custom page map level
+uint64_t *vmm_get_or_create_pml(uint64_t *pml, size_t pml_index, uint64_t flags)
+{
+    // check present flag
+    if (!(pml[pml_index] & 1))
+    {
+        pml[pml_index] = (uint64_t)pmm_allocz(1) | flags;
+    }
+
+    return (uint64_t *)(pml[pml_index] & ~(511));
+}
+
+// set a value in a page table entry and flush translation lookaside buffer
+void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t pt_value, uint64_t flags, pat_cache_t pat_type)
+{
+    // index for page mapping level 4
+    size_t pml4_index	= (virt_page & ((uintptr_t)0x1ff << 39)) >> 39;
+    // index for page directory table
+    size_t pdpt_index	= (virt_page & ((uintptr_t)0x1ff << 30)) >> 30;
+    // index for page directory
+    size_t pd_index	= (virt_page & ((uintptr_t)0x1ff << 21)) >> 21;
+    // index for page table
+    size_t pt_index	= (virt_page & ((uintptr_t)0x1ff << 12)) >> 12;
+
+    // page mapping level 4 = pml4
+    uint64_t *pml4  = page_table;
+    // page directory table = pml3
+    uint64_t *pdpt  = vmm_get_or_create_pml(pml4, pml4_index, flags);
+    // page directory	    = pml2
+    uint64_t *pd    = vmm_get_or_create_pml(pdpt, pdpt_index, flags);
+    // page table	    = pml1
+    uint64_t *pt    = vmm_get_or_create_pml(pd, pd_index, flags);
+
+    // actual mapped value (either physical frame address or 0)
+    pt[pt_index]    = pt_value | flags | vmm_pat_cache_to_flags(pat_type);
+
+    // for changes to apply, the translation lookaside buffers need to be flushed
+    vmm_flush_tlb((void *)virt_page);
 }
 
 uint64_t vmm_pat_cache_to_flags(pat_cache_t type)
@@ -258,48 +235,6 @@ uint64_t vmm_pat_cache_to_flags(pat_cache_t type)
     }
 
     return flags;
-}
-
-/* utility functions */
-
-// make use (and if needed alloacte for that) a custom page map level
-uint64_t *vmm_get_or_create_pml(uint64_t *pml, size_t pml_index, uint64_t flags)
-{
-    // check present flag
-    if (!(pml[pml_index] & 1))
-    {
-        pml[pml_index] = (uint64_t)pmm_allocz(1) | flags;
-    }
-
-    return (uint64_t *)(pml[pml_index] & ~(511));
-}
-
-// set a value in a page table entry and flush translation lookaside buffer
-void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t flags, uint64_t value)
-{
-    // index for page mapping level 4
-    size_t pml4_index	= (virt_page & ((uintptr_t)0x1ff << 39)) >> 39;
-    // index for page directory table
-    size_t pdpt_index	= (virt_page & ((uintptr_t)0x1ff << 30)) >> 30;
-    // index for page directory
-    size_t pd_index	= (virt_page & ((uintptr_t)0x1ff << 21)) >> 21;
-    // index for page table
-    size_t pt_index	= (virt_page & ((uintptr_t)0x1ff << 12)) >> 12;
-
-    // page mapping level 4 = pml4
-    uint64_t *pml4  = page_table;
-    // page directory table = pml3
-    uint64_t *pdpt  = vmm_get_or_create_pml(pml4, pml4_index, flags);
-    // page directory	    = pml2
-    uint64_t *pd    = vmm_get_or_create_pml(pdpt, pdpt_index, flags);
-    // page table	    = pml1
-    uint64_t *pt    = vmm_get_or_create_pml(pd, pd_index, flags);
-
-    // actual mapped value (either physical frame address or 0)
-    pt[pt_index]    = value;
-
-    // for changes to apply, the translation lookaside buffers need to be flushed
-    vmm_flush_tlb((void *)virt_page);
 }
 
 // flush/reload translation lookaside buffer

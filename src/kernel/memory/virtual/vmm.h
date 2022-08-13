@@ -43,12 +43,11 @@ typedef enum
 } vmm_map_privilege_t;
 
 void vmm_init(struct stivale2_struct *stivale2_struct);
-void vmm_map_page(uint64_t *page_table, uint64_t phys_page, uint64_t virt_page, uint64_t flags);
+void vmm_map_page(uint64_t *page_table, uint64_t phys_page, uint64_t virt_page, uint64_t flags, pat_cache_t pat_type);
 void vmm_unmap_page(uint64_t *page_table, uint64_t virt_page);
-void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags);
+void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags, pat_cache_t pat_type);
 void vmm_unmap_range(uint64_t *page_table, uint64_t start, uint64_t end);
 void vmm_load_page_table(uint64_t *page_table);
 uint64_t *vmm_get_root_page_table(void);
-uint64_t vmm_pat_cache_to_flags(pat_cache_t type);
 
 #endif
