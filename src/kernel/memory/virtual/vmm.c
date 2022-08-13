@@ -39,18 +39,21 @@ static uint64_t *root_page_table;
 /* utility function prototypes */
 
 uint64_t *vmm_get_or_create_pml(uint64_t *pml, size_t pml_index, uint64_t flags);
-void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t pt_value, uint64_t flags, pat_cache_t pat_type);
+void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t pt_value,
+	uint64_t flags, pat_cache_t pat_type);
 uint64_t vmm_pat_cache_to_flags(pat_cache_t type);
 void vmm_flush_tlb(void *address);
 
 /* core functions */
 
-// create root page table and map important physical memory regions
+// enable PAT for caching, create root page table and map important physical memory regions
 void vmm_init(struct stivale2_struct *stivale2_struct)
 {
     struct stivale2_struct_tag_memmap *memory_map = stivale2_get_tag(stivale2_struct,
             STIVALE2_STRUCT_TAG_MEMMAP_ID);
     struct stivale2_mmap_entry *current_entry;
+
+    enable_pat();
 
     root_page_table = PHYS_TO_HIGHER_HALF_DATA(pmm_allocz(1));
     assert(root_page_table != NULL);
@@ -80,37 +83,12 @@ void vmm_init(struct stivale2_struct *stivale2_struct)
     vmm_load_page_table(root_page_table);
     log(INFO, "Now using kernel page table at 0x%.16llx\n", asm_read_cr(3));
 
-
-
-    enable_pat();
-    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFA00000000000, KERNEL_READ_WRITE,
-	    PAT_UNCACHEABLE);
-
-    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFB00000000000, KERNEL_READ_WRITE,
-	    PAT_WRITE_COMBINING);
-
-    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFC00000000000, KERNEL_READ_WRITE,
-	    PAT_WRITE_THROUGH);
-
-    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFD00000000000, KERNEL_READ_WRITE,
-	    PAT_WRITE_PROTECTED);
-
-    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFE00000000000, KERNEL_READ_WRITE,
-	    PAT_WRITE_BACK);
-
-    vmm_map_range(root_page_table, 0, HEAP_MAX_SIZE, 0xFFFFF00000000000, KERNEL_READ_WRITE,
-	    PAT_UNCACHED);
-
-
-
     log(INFO, "VMM initialized\n");
-
-    for (;;)
-	asm volatile("hlt");
 }
 
 // set a page table entry for a new virtual memory address, which will be mapped to a physical frame
-void vmm_map_page(uint64_t *page_table, uint64_t phys_page, uint64_t virt_page, uint64_t flags, pat_cache_t pat_type)
+void vmm_map_page(uint64_t *page_table, uint64_t phys_page, uint64_t virt_page,
+	uint64_t flags, pat_cache_t pat_type)
 {
     uint64_t pt_value = phys_page;
     vmm_set_pt_value(page_table, ALIGN_DOWN(virt_page, PAGE_SIZE), pt_value, flags, pat_type);
@@ -124,7 +102,8 @@ void vmm_unmap_page(uint64_t *page_table, uint64_t virt_page)
 }
 
 // map a whole physical memory region with custom offset
-void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset, uint64_t flags, pat_cache_t pat_type)
+void vmm_map_range(uint64_t *page_table, uint64_t start, uint64_t end, uint64_t offset,
+	uint64_t flags, pat_cache_t pat_type)
 {
     for (uint64_t i = ALIGN_DOWN(start, PAGE_SIZE); i < ALIGN_UP(end, PAGE_SIZE); i += PAGE_SIZE)
     {
@@ -168,7 +147,8 @@ uint64_t *vmm_get_or_create_pml(uint64_t *pml, size_t pml_index, uint64_t flags)
 }
 
 // set a value in a page table entry and flush translation lookaside buffer
-void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t pt_value, uint64_t flags, pat_cache_t pat_type)
+void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t pt_value,
+	uint64_t flags, pat_cache_t pat_type)
 {
     // index for page mapping level 4
     size_t pml4_index	= (virt_page & ((uintptr_t)0x1ff << 39)) >> 39;
@@ -195,9 +175,13 @@ void vmm_set_pt_value(uint64_t *page_table, uint64_t virt_page, uint64_t pt_valu
     vmm_flush_tlb((void *)virt_page);
 }
 
+// combine PAT, PCD and PWT according to custom_pat_config (in PAT MSR),
+// so it can be used for PT flag (only PT because the layout is different
+// for different page map levels)
 uint64_t vmm_pat_cache_to_flags(pat_cache_t type)
 {
     /*
+	Layout that needs to be used according to custom_pat_config:
 	Uncachable:     PAT0:  PAT = 0, PCD = 0, PWT = 0
 	WriteCombining: PAT1:  PAT = 0, PCD = 0, PWT = 1
 	WriteThrough:   PAT4:  PAT = 1, PCD = 0, PWT = 0

@@ -207,6 +207,8 @@ static inline char *cpu_get_vendor_id_string(void)
     return vendor_string;
 }
 
+// set custom config in page attribute table MSR, so according to that
+// the caching types for mapping pages in VMM can be set
 static inline void enable_pat(void)
 {
 
@@ -223,6 +225,8 @@ static inline void enable_pat(void)
     asm_wrmsr(0x277, custom_pat_config);
 }
 
+// enable SSE/SSE2 (streaming SIMD (single instruction multiple data) extenstion)
+// to add additional 128-bit registers and instructions to work with 16 byte data
 static inline void enable_sse(void)
 {
     uint64_t cr0 = asm_read_cr(0);
