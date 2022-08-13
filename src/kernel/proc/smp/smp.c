@@ -97,7 +97,7 @@ void smp_init(struct stivale2_struct *stivale2_struct)
         asm volatile("pause");
     }
 
-    log(INFO, "SMP initialized - All CPUs initialized\n");
+    log(INFO, "SMP initialized - All CPU's initialized\n");
 }
 
 /* utility functions */
@@ -114,6 +114,7 @@ static void ap_init(struct stivale2_smp_info *smp_entry)
 {
     spinlock_acquire(&smp_lock);
 
+    enable_pat();
     vmm_load_page_table(vmm_get_root_page_table());
     gdt_load();
     idt_load();
@@ -121,7 +122,7 @@ static void ap_init(struct stivale2_smp_info *smp_entry)
     generic_cpu_local_init(smp_entry);
 
     lapic_enable();
-    // (lapic_timer_init)
+    // (lapic_timer_init) TODO: waiting for tasking
 
     log(INFO, "CPU No. %ld: AP fully initialized\n", smp_entry->extra_argument);
     cpus_online++;
@@ -152,12 +153,8 @@ static void generic_cpu_local_init(struct stivale2_smp_info *smp_entry)
     tss_create_segment(&cpu_locals[cpu_num].tss);
     tss_load();
 
-    // (set gsbase)
+    // (set gsbase) TODO: waiting for tasking
 
-    // enable PAT
-    enable_pat();
-
-    // enable SSE/SSE2
     enable_sse();
 
     // TODO: if necessary add xsave enable code here
