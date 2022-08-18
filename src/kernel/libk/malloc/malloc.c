@@ -37,7 +37,8 @@ static slab_cache_t *slab_caches[8];
 
 /* utility function prototypes */
 
-size_t get_slab_cache_index(size_t size);
+size_t size_to_slab_cache_index(size_t size);
+size_t slab_cache_index_to_size(size_t index);
 
 /* core functions */
 
@@ -67,7 +68,7 @@ void *malloc(size_t size)
     {
         size_t new_size = size + sizeof(malloc_metadata_t);
 
-        size_t index = get_slab_cache_index(new_size);
+        size_t index = size_to_slab_cache_index(new_size);
         pointer = slab_cache_alloc(slab_caches[index], SLAB_PANIC);
 
 	if (!pointer)
@@ -112,31 +113,28 @@ void *realloc(void *pointer, size_t size)
 	return NULL;
     }
 
+    size_t old_size = 0;
 
-    if (size <= 512)
+    if (((uint64_t)pointer & 0xFFF) != 0)
     {
-	if (((uint64_t)pointer & 0xFFF) != 0)
-	{
-	    // both are slab, further checks required
-	}
-	else
-	{
-	    // old_size is for sure bigger than size
-	}
+        malloc_metadata_t *metadata = pointer;
+        size_t index = metadata->size;
+
+	old_size = slab_cache_index_to_size(index);
     }
     else
     {
-	if (((uint64_t)pointer & 0xFFF) != 0)
-	{
-	    // old_size is for sure smaller than size
-	}
-	else
-	{
-	    // both are pmm, further checks required
-	}
+        malloc_metadata_t *metadata = pointer;
+        size_t page_count = metadata->size;
+
+	old_size = page_count / PAGE_SIZE;
     }
 
-    size_t old_size = NULL;
+    // it's not aligned (i.e. too precise, thus not the same)
+    // if (old_size == size)
+    // {
+    //     return pointer;
+    // }
 
     void *new_pointer = malloc(size);
 
@@ -191,7 +189,7 @@ void free(void *pointer)
 // match arbitrary size to specific index for caches
 // very efficient (three conditions only) algorithm, compromising
 // looks of code
-size_t get_slab_cache_index(size_t size)
+size_t size_to_slab_cache_index(size_t size)
 {
     if (size <= 32)
     {
@@ -242,5 +240,35 @@ size_t get_slab_cache_index(size_t size)
                 return 7;
             }
         }
+    }
+}
+
+size_t slab_cache_index_to_size(size_t index)
+{
+    switch (index)
+    {
+	case 0:
+	    return 4;
+	
+	case 1:
+	    return 8;
+
+	case 2:
+	    return 16;
+
+	case 3:
+	    return 32;
+
+	case 4:
+	    return 64;
+	
+	case 5:
+	    return 128;
+	
+	case 6:
+	    return 256;
+	
+	case 7:
+	    return 512;
     }
 }
