@@ -60,3 +60,6 @@ int memcmp(const void *pointer1, const void *pointer2, size_t n)
 
     return 0;
 }
+
+
+// TODO: implement memcpy

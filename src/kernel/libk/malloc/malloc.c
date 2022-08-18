@@ -70,6 +70,11 @@ void *malloc(size_t size)
         size_t index = get_slab_cache_index(new_size);
         pointer = slab_cache_alloc(slab_caches[index], SLAB_PANIC);
 
+	if (!pointer)
+	{
+	    return NULL;
+	}
+
         malloc_metadata_t *metadata = pointer;
         metadata->size = index;
     }
@@ -80,12 +85,46 @@ void *malloc(size_t size)
         size_t page_count = new_size / PAGE_SIZE;
         pointer = pmm_allocz(page_count);
 
+	if (!pointer)
+	{
+	    return NULL;
+	}
+
         malloc_metadata_t *metadata = pointer;
         metadata->size = page_count;
 
     }
 
     return pointer + sizeof(malloc_metadata_t) + HEAP_START_ADDR;
+}
+
+void *realloc(void *pointer, size_t size)
+{
+    if (!pointer)
+    {
+	return malloc(size);
+    }
+
+    if (size == 0)
+    {
+	free(pointer);
+
+	return NULL;
+    }
+
+    void *new_pointer = malloc(size);
+
+    if (!new_pointer)
+    {
+	// `pointer` is not freed, as this is the responsibility of caller
+	return NULL;
+    }
+
+    // TODO: implement memcpy
+    memcpy(new_pointer, pointer, size);
+    free(pointer);
+
+    return new_pointer;
 }
 
 // free memory depending on the address, extract size from metadata
