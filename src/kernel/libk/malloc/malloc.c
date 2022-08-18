@@ -58,7 +58,7 @@ void malloc_heap_init(void)
 }
 
 // allocate memory depending on the size, store metadata for free()
-// return a vmm address
+// return a vmm address - not guaranteed that everything set to zero
 void *malloc(size_t size)
 {
     void *pointer;
@@ -112,6 +112,32 @@ void *realloc(void *pointer, size_t size)
 	return NULL;
     }
 
+
+    if (size <= 512)
+    {
+	if (((uint64_t)pointer & 0xFFF) != 0)
+	{
+	    // both are slab, further checks required
+	}
+	else
+	{
+	    // old_size is for sure bigger than size
+	}
+    }
+    else
+    {
+	if (((uint64_t)pointer & 0xFFF) != 0)
+	{
+	    // old_size is for sure smaller than size
+	}
+	else
+	{
+	    // both are pmm, further checks required
+	}
+    }
+
+    size_t old_size = NULL;
+
     void *new_pointer = malloc(size);
 
     if (!new_pointer)
@@ -120,8 +146,15 @@ void *realloc(void *pointer, size_t size)
 	return NULL;
     }
 
-    // TODO: implement memcpy
-    memcpy(new_pointer, pointer, size);
+    if (old_size > size)
+    {
+	memcpy(new_pointer, pointer, size);
+    }
+    else
+    {
+	memcpy(new_pointer, pointer, old_size);
+    }
+
     free(pointer);
 
     return new_pointer;
