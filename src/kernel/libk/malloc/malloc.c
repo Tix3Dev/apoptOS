@@ -29,6 +29,7 @@
 #include <boot/stivale2.h>
 #include <libk/malloc/malloc.h>
 #include <libk/serial/log.h>
+#include <libk/string/string.h>
 #include <memory/dynamic/slab.h>
 #include <memory/physical/pmm.h>
 #include <memory/mem.h>
@@ -37,8 +38,10 @@ static slab_cache_t *slab_caches[8];
 
 /* utility function prototypes */
 
-size_t size_to_slab_cache_index(size_t size);
-size_t slab_cache_index_to_size(size_t index);
+size_t round_alloc_size(size_t size);
+uint32_t next_power_of_two(uint32_t n);
+int64_t size_to_slab_cache_index(size_t size);
+int64_t slab_cache_index_to_size(size_t index);
 
 /* core functions */
 
@@ -58,17 +61,22 @@ void malloc_heap_init(void)
     log(INFO, "Heap fully initialized\n");
 }
 
-// allocate memory depending on the size, store metadata for free()
+// allocate memory depending on the size, store metadata for realloc() or free()
 // return a vmm address - not guaranteed that everything set to zero
 void *malloc(size_t size)
 {
+    size_t new_size = round_alloc_size(size);
     void *pointer;
 
     if (size <= 512)
     {
-        size_t new_size = size + sizeof(malloc_metadata_t);
+        int64_t index = size_to_slab_cache_index(new_size);
 
-        size_t index = size_to_slab_cache_index(new_size);
+	if (index == -1)
+	{
+	    return NULL;
+	}
+
         pointer = slab_cache_alloc(slab_caches[index], SLAB_PANIC);
 
 	if (!pointer)
@@ -81,9 +89,13 @@ void *malloc(size_t size)
     }
     else
     {
-        size_t new_size = ALIGN_UP(size + sizeof(malloc_metadata_t), PAGE_SIZE);
+        int64_t page_count = new_size / PAGE_SIZE;
 
-        size_t page_count = new_size / PAGE_SIZE;
+	if (page_count == -1)
+	{
+	    return NULL;
+	}
+
         pointer = pmm_allocz(page_count);
 
 	if (!pointer)
@@ -99,61 +111,67 @@ void *malloc(size_t size)
     return pointer + sizeof(malloc_metadata_t) + HEAP_START_ADDR;
 }
 
-void *realloc(void *pointer, size_t size)
+void *realloc(void *old_pointer, size_t new_size)
 {
-    if (!pointer)
+    if (!old_pointer)
     {
-	return malloc(size);
+	return malloc(new_size);
     }
 
-    if (size == 0)
+    if (!new_size)
     {
-	free(pointer);
+	free(old_pointer);
 
 	return NULL;
     }
 
+    new_size = round_alloc_size(new_size);
     size_t old_size = 0;
 
-    if (((uint64_t)pointer & 0xFFF) != 0)
+    if (((uint64_t)old_pointer & 0xFFF) != 0)
     {
-        malloc_metadata_t *metadata = pointer;
+        malloc_metadata_t *metadata = old_pointer;
         size_t index = metadata->size;
 
-	old_size = slab_cache_index_to_size(index);
+	int64_t old_size_temp = slab_cache_index_to_size(index);
+
+	if (old_size_temp == -1)
+	{
+	    return NULL;
+	}
+
+	old_size = (size_t)old_size_temp;
     }
     else
     {
-        malloc_metadata_t *metadata = pointer;
+        malloc_metadata_t *metadata = old_pointer;
         size_t page_count = metadata->size;
 
 	old_size = page_count / PAGE_SIZE;
     }
 
-    // it's not aligned (i.e. too precise, thus not the same)
-    // if (old_size == size)
-    // {
-    //     return pointer;
-    // }
+    if (old_size == new_size)
+    {
+	return old_pointer;
+    }
 
-    void *new_pointer = malloc(size);
+    void *new_pointer = malloc(new_size);
 
     if (!new_pointer)
     {
-	// `pointer` is not freed, as this is the responsibility of caller
 	return NULL;
     }
 
-    if (old_size > size)
+    if (old_size > new_size)
     {
-	memcpy(new_pointer, pointer, size);
+	memcpy(new_pointer, old_pointer, new_size);
     }
     else
     {
-	memcpy(new_pointer, pointer, old_size);
+	memcpy(new_pointer, old_pointer, old_size);
     }
 
-    free(pointer);
+    free(old_pointer);
 
     return new_pointer;
 }
@@ -186,64 +204,70 @@ void free(void *pointer)
 
 /* utility functions */
 
-// match arbitrary size to specific index for caches
-// very efficient (three conditions only) algorithm, compromising
-// looks of code
-size_t size_to_slab_cache_index(size_t size)
+// round size so that it can be used properly without
+// having to care about rounding
+size_t round_alloc_size(size_t size)
 {
-    if (size <= 32)
+    if (size <= 512)
     {
-        if (size <= 8)
-        {
-            if (size <= 4)
-            {
-                return 0;
-            }
-            else
-            {
-                return 1;
-            }
-        }
-        else
-        {
-            if (size <= 16)
-            {
-                return 2;
-            }
-            else
-            {
-                return 3;
-            }
-        }
+	return next_power_of_two(size);
     }
     else
     {
-        if (size <= 128)
-        {
-            if (size <= 64)
-            {
-                return 4;
-            }
-            else
-            {
-                return 5;
-            }
-        }
-        else
-        {
-            if (size <= 256)
-            {
-                return 6;
-            }
-            else
-            {
-                return 7;
-            }
-        }
+	return ALIGN_UP(size, PAGE_SIZE);
     }
 }
 
-size_t slab_cache_index_to_size(size_t index)
+// round number to next biggest power of two
+uint32_t next_power_of_two(uint32_t n)
+{
+    n--;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    n++;
+
+    return n;
+}
+
+// match size to specific index for caches
+int64_t size_to_slab_cache_index(size_t size)
+{
+    switch (size)
+    {
+	case 4:
+	    return 0;
+	
+	case 8:
+	    return 1;
+
+	case 16:
+	    return 2;
+
+	case 32:
+	    return 3;
+
+	case 64:
+	    return 4;
+	
+	case 128:
+	    return 5;
+	
+	case 256:
+	    return 6;
+	
+	case 512:
+	    return 7;
+	
+	default:
+	    return -1;
+    }
+}
+
+// math cache index to specific size
+int64_t slab_cache_index_to_size(size_t index)
 {
     switch (index)
     {
@@ -270,5 +294,8 @@ size_t slab_cache_index_to_size(size_t index)
 	
 	case 7:
 	    return 512;
+	
+	default:
+	    return -1;
     }
 }
