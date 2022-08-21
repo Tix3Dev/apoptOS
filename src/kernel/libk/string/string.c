@@ -40,6 +40,20 @@ void *memset(void *pointer, uint32_t value, size_t size)
     return pointer;
 }
 
+// copy a block of memory to a certain position
+void *memcpy(void *dest, const void *src, size_t n)
+{
+    uint8_t *dest8 = (uint8_t *)dest;
+    const uint8_t *src8 = (uint8_t *)src;
+
+    for (size_t i = 0; i < n; i++)
+    {
+	dest8[i] = src8[i];
+    }
+
+    return dest8;
+}
+
 // compare first n bytes at pointer1 with first n bytes at pointer2
 // return value is based of fist non-matching character (e.g. abc aBc -> b/B) and
 // < 0 when string1 is less than string2
@@ -60,6 +74,3 @@ int memcmp(const void *pointer1, const void *pointer2, size_t n)
 
     return 0;
 }
-
-
-// TODO: implement memcpy

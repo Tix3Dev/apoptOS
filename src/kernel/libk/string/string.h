@@ -23,6 +23,7 @@
 #include <stdint.h>
 
 void *memset(void *pointer, uint32_t value, size_t size);
+void *memcpy(void *dest, const void *src, size_t n);
 int memcmp(const void *pointer1, const void *pointer2, size_t n);
 
 #endif
