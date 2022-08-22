@@ -42,6 +42,16 @@
 #include <tables/gdt.h>
 #include <tables/idt.h>
 
+
+
+
+
+#include <libk/malloc/malloc.h>
+#include <libk/string/string.h>
+
+
+
+
 /* utility function prototypes */
 
 void kinit_all(struct stivale2_struct *stivale2_struct);
@@ -86,5 +96,43 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
     acpi_init(stivale2_struct);
     apic_init();
 
-    smp_init(stivale2_struct);
+    /* realloc (and helpers) test start */
+
+    // memcpy
+    int *mem_block1 = malloc(5 * sizeof(int));
+    mem_block1[0] = 43;
+    mem_block1[1] = 37;
+    mem_block1[2] = 763;
+    mem_block1[3] = 944;
+    mem_block1[4] = 1220;
+
+    int *mem_block2 = malloc(5 * sizeof(int));
+    memcpy(mem_block2, mem_block1, 5 * sizeof(int));
+
+    char str1[] = "Hello";
+    char str2[] = "HELLO";
+
+    memcpy(str1, str2, sizeof(str2));
+
+    // round_alloc_size
+    //
+
+    // next_power_of_two
+    //
+
+    // size_to_slab_cache_index
+    //
+
+    // slab_cache_index_to_size
+    //
+
+    // malloc (if it still works, can reuse tests)
+    //
+
+    // realloc (use qemu monitor with command `pmemsave`)
+    //
+
+    /* realloc (and helpers) test end */
+
+    // smp_init(stivale2_struct);
 }
