@@ -28,6 +28,7 @@ typedef struct
 
 void malloc_heap_init(void);
 void *malloc(size_t size);
+void *realloc(void *old_pointer, size_t new_size);
 void free(void *pointer);
 
 #endif
