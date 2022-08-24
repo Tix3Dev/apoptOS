@@ -34,6 +34,15 @@
 #include <memory/physical/pmm.h>
 #include <memory/mem.h>
 
+
+
+
+
+#include <libk/serial/debug.h>
+
+
+
+
 static slab_cache_t *slab_caches[8];
 
 /* utility function prototypes */
@@ -59,6 +68,21 @@ void malloc_heap_init(void)
 
     log(INFO, "Slab caches for heap initialized\n");
     log(INFO, "Heap fully initialized\n");
+
+    // log(WARNING, "realloc test\n");
+    
+
+    // debug("round_alloc_size(%d): %d\n", 3, round_alloc_size(3));
+
+    // for (int i = 0; i < 130; i++)
+    // {
+    //     debug("round_alloc_size(%d): %d\n", i, round_alloc_size(i));
+    // }
+    // 
+    // for (int i = 0; i < PAGE_SIZE * 100; i += 23)
+    // {
+    //     debug("round_alloc_size(%d): %x\n", i, round_alloc_size(i));
+    // }
 }
 
 // allocate memory depending on the size, store metadata for realloc() or free()
@@ -221,6 +245,11 @@ size_t round_alloc_size(size_t size)
 // round number to next biggest power of two
 uint32_t next_power_of_two(uint32_t n)
 {
+    if (n < 2)
+    {
+	return 2;
+    }
+
     n--;
     n |= n >> 1;
     n |= n >> 2;
