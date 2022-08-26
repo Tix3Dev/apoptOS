@@ -70,7 +70,22 @@ void malloc_heap_init(void)
     log(INFO, "Heap fully initialized\n");
 
     // log(WARNING, "realloc test\n");
-    
+
+    // debug("size to index(%d): %d\n", -23, size_to_slab_cache_index(-23));
+    // debug("size to index(%d): %d\n", 0, size_to_slab_cache_index(0));
+    // debug("size to index(%d): %d\n", 4, size_to_slab_cache_index(4));
+    // debug("size to index(%d): %d\n", 5, size_to_slab_cache_index(5));
+    // debug("size to index(%d): %d\n", 16, size_to_slab_cache_index(16));
+    // debug("size to index(%d): %d\n", 32, size_to_slab_cache_index(32));
+    // debug("size to index(%d): %d\n", 64, size_to_slab_cache_index(64));
+    // debug("size to index(%d): %d\n", 128, size_to_slab_cache_index(128));
+    // debug("size to index(%d): %d\n", 129, size_to_slab_cache_index(129));
+    // debug("size to index(%d): %d\n", 512, size_to_slab_cache_index(512));
+    // 
+    // for (int i = -3; i < 10; i++)
+    // {
+    //     debug("index to size(%d): %d\n", i, slab_cache_index_to_size(i));
+    // }
 
     // debug("round_alloc_size(%d): %d\n", 3, round_alloc_size(3));
 
