@@ -216,24 +216,39 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
     // /* malloc test end */
 
     // realloc (use qemu monitor with command `pmemsave`)
-    int *mem_block1 = malloc(5 * sizeof(int));
-    mem_block1[0] = 43;
-    mem_block1[1] = 37;
-    mem_block1[2] = 763;
-    mem_block1[3] = 944;
-    mem_block1[4] = 1220;
-    mem_block1[5] = 1337;
-    mem_block1[6] = 31415;
-    mem_block1[11119] = 4323;
+    //
+    // int *mem_block1 = malloc(sizeof(int));
 
-    debug("mem_block1[0]: %d at %x\n", mem_block1[0], &mem_block1[0]);
-    debug("mem_block1[1]: %d at %x\n", mem_block1[1], &mem_block1[1]);
-    debug("mem_block1[2]: %d at %x\n", mem_block1[2], &mem_block1[2]);
-    debug("mem_block1[3]: %d at %x\n", mem_block1[3], &mem_block1[3]);
-    debug("mem_block1[4]: %d at %x\n", mem_block1[4], &mem_block1[4]);
-    debug("mem_block1[5]: %d at %x\n", mem_block1[5], &mem_block1[5]);
-    debug("mem_block1[6]: %d at %x\n", mem_block1[6], &mem_block1[6]);
-    debug("mem_block1[11119]: %d at %x\n", mem_block1[11119], &mem_block1[11119]);
+    // free(mem_block1);
+    
+    void *ptr1 = malloc(2);
+    void *ptr2 = malloc(5121);
+
+    free(ptr1);
+    free(ptr2);
+
+    // mem_block1[0] = 43;
+    // mem_block1[1] = 37;
+    // mem_block1[2] = 763;
+    // mem_block1[3] = 944;
+    // mem_block1[4] = 1220;
+
+    // debug("mem_block1[0]: %d at %x\n", mem_block1[0], &mem_block1[0]);
+    // debug("mem_block1[1]: %d at %x\n", mem_block1[1], &mem_block1[1]);
+    // debug("mem_block1[2]: %d at %x\n", mem_block1[2], &mem_block1[2]);
+    // debug("mem_block1[3]: %d at %x\n", mem_block1[3], &mem_block1[3]);
+    // debug("mem_block1[4]: %d at %x\n", mem_block1[4], &mem_block1[4]);
+
+    // mem_block1 = realloc(mem_block1, 3 * sizeof(int));
+
+//     if (mem_block1 == NULL)
+// 	debug("no\n");
+
+    // debug("mem_block1[0]: %d at %x\n", mem_block1[0], &mem_block1[0]);
+    // debug("mem_block1[1]: %d at %x\n", mem_block1[1], &mem_block1[1]);
+    // debug("mem_block1[2]: %d at %x\n", mem_block1[2], &mem_block1[2]);
+    // debug("mem_block1[3]: %d at %x\n", mem_block1[3], &mem_block1[3]);
+    // debug("mem_block1[4]: %d at %x\n", mem_block1[4], &mem_block1[4]);
 
     /* realloc (and helpers) test end */
 

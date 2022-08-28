@@ -104,10 +104,11 @@ void malloc_heap_init(void)
 // return a vmm address - not guaranteed that everything set to zero
 void *malloc(size_t size)
 {
-    size_t new_size = round_alloc_size(size);
+    size_t new_size = round_alloc_size(size + sizeof(malloc_metadata_t));
+    debug("malloc: new_size: %d\n", new_size);
     void *pointer;
 
-    if (size <= 512)
+    if (new_size <= 512)
     {
         int64_t index = size_to_slab_cache_index(new_size);
 
@@ -125,6 +126,8 @@ void *malloc(size_t size)
 
         malloc_metadata_t *metadata = pointer;
         metadata->size = index;
+
+	debug("size: %d\n", metadata->size);
     }
     else
     {
@@ -164,13 +167,17 @@ void *realloc(void *old_pointer, size_t new_size)
 	return NULL;
     }
 
-    new_size = round_alloc_size(new_size);
+    old_pointer = old_pointer - HEAP_START_ADDR - sizeof(malloc_metadata_t);
+
+    size_t rounded_new_size = round_alloc_size(new_size);
     size_t old_size = 0;
 
     if (((uint64_t)old_pointer & 0xFFF) != 0)
     {
         malloc_metadata_t *metadata = old_pointer;
         size_t index = metadata->size;
+
+	debug("index: %d\n", index);
 
 	int64_t old_size_temp = slab_cache_index_to_size(index);
 
@@ -189,7 +196,9 @@ void *realloc(void *old_pointer, size_t new_size)
 	old_size = page_count / PAGE_SIZE;
     }
 
-    if (old_size == new_size)
+    old_pointer = old_pointer + sizeof(malloc_metadata_t) + HEAP_START_ADDR;
+
+    if (old_size == rounded_new_size)
     {
 	return old_pointer;
     }
@@ -201,9 +210,9 @@ void *realloc(void *old_pointer, size_t new_size)
 	return NULL;
     }
 
-    if (old_size > new_size)
+    if (old_size > rounded_new_size)
     {
-	memcpy(new_pointer, old_pointer, new_size);
+	memcpy(new_pointer, old_pointer, rounded_new_size);
     }
     else
     {
