@@ -155,63 +155,63 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
     // malloc (if it still works, can reuse tests)
     // /* malloc test start */
 
-    // // slab allocations
+    // slab allocations
 
-    // void *ptr1 = malloc(30);
-    // debug("ptr1: %p\n", ptr1);
+    void *ptr1 = malloc(30);
+    debug("ptr1: %p\n", ptr1);
 
-    // void *ptr2 = malloc(30);
-    // debug("ptr2: %p\n", ptr2);
+    void *ptr2 = malloc(30);
+    debug("ptr2: %p\n", ptr2);
 
-    // free(ptr1);
-    // free(ptr2);
+    free(ptr1);
+    free(ptr2);
 
-    // void *ptr3 = malloc(30);
-    // debug("ptr3: %p\n", ptr3);
-    // void *ptr4 = malloc(30);
-    // debug("ptr4: %p\n", ptr4);
+    void *ptr3 = malloc(30);
+    debug("ptr3: %p\n", ptr3);
+    void *ptr4 = malloc(30);
+    debug("ptr4: %p\n", ptr4);
 
-    // // pmm allocations
+    // pmm allocations
 
-    // void *ptr5 = malloc(5111);
-    // debug("ptr5: %p\n", ptr5);
-    // void *ptr6 = malloc(5111);
-    // debug("ptr6: %p\n", ptr6);
+    void *ptr5 = malloc(5111);
+    debug("ptr5: %p\n", ptr5);
+    void *ptr6 = malloc(5111);
+    debug("ptr6: %p\n", ptr6);
 
-    // free(ptr5);
-    // free(ptr6);
+    free(ptr5);
+    free(ptr6);
 
-    // void *ptr7 = malloc(5111);
-    // debug("ptr7: %p\n", ptr7);
-    // void *ptr8 = malloc(5111);
-    // debug("ptr8: %p\n", ptr8);
+    void *ptr7 = malloc(5111);
+    debug("ptr7: %p\n", ptr7);
+    void *ptr8 = malloc(5111);
+    debug("ptr8: %p\n", ptr8);
 
-    // debug("\n");
+    debug("\n");
 
-    // void *lol1 = pmm_alloc(2);
-    // debug("lol1: %p\n", lol1);
-    // void *lol2 = pmm_alloc(2);
-    // debug("lol2: %p\n", lol2);
+    void *lol1 = pmm_alloc(2);
+    debug("lol1: %p\n", lol1);
+    void *lol2 = pmm_alloc(2);
+    debug("lol2: %p\n", lol2);
 
-    // pmm_free(lol1, 2);
-    // pmm_free(lol2, 2);
+    pmm_free(lol1, 2);
+    pmm_free(lol2, 2);
 
-    // void *lol3 = pmm_alloc(2);
-    // debug("lol3: %p\n", lol3);
-    // void *lol4 = pmm_alloc(2);
-    // debug("lol4: %p\n", lol4);
+    void *lol3 = pmm_alloc(2);
+    debug("lol3: %p\n", lol3);
+    void *lol4 = pmm_alloc(2);
+    debug("lol4: %p\n", lol4);
 
 
-    // void *bee = malloc(6);
-    // debug("bee:  %p\n", bee);
+    void *bee = malloc(6);
+    debug("bee:  %p\n", bee);
 
-    // int *dummy = (int *)malloc(sizeof(int));
-    // *dummy = 5;
-    // debug("dummy %p: %d\n", dummy, *dummy);
+    int *dummy = (int *)malloc(sizeof(int));
+    *dummy = 5;
+    debug("dummy %p: %d\n", dummy, *dummy);
 
-    // int *dummy1 = (int *)malloc(12011);
-    // *dummy1 = 5;
-    // debug("dummy %p: %d\n", dummy1, *dummy1);
+    int *dummy1 = (int *)malloc(12011);
+    *dummy1 = 5;
+    debug("dummy %p: %d\n", dummy1, *dummy1);
 
     // /* malloc test end */
 
@@ -221,11 +221,12 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
 
     // free(mem_block1);
     
-    void *ptr1 = malloc(2);
-    void *ptr2 = malloc(5121);
+    // void *ptr1 = malloc(2);
+    // void *ptr11 = malloc(2);
+    // void *ptr2 = malloc(5121);
 
-    free(ptr1);
-    free(ptr2);
+    // free(ptr1);
+    // free(ptr2);
 
     // mem_block1[0] = 43;
     // mem_block1[1] = 37;

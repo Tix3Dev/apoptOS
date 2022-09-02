@@ -68,36 +68,6 @@ void malloc_heap_init(void)
 
     log(INFO, "Slab caches for heap initialized\n");
     log(INFO, "Heap fully initialized\n");
-
-    // log(WARNING, "realloc test\n");
-
-    // debug("size to index(%d): %d\n", -23, size_to_slab_cache_index(-23));
-    // debug("size to index(%d): %d\n", 0, size_to_slab_cache_index(0));
-    // debug("size to index(%d): %d\n", 4, size_to_slab_cache_index(4));
-    // debug("size to index(%d): %d\n", 5, size_to_slab_cache_index(5));
-    // debug("size to index(%d): %d\n", 16, size_to_slab_cache_index(16));
-    // debug("size to index(%d): %d\n", 32, size_to_slab_cache_index(32));
-    // debug("size to index(%d): %d\n", 64, size_to_slab_cache_index(64));
-    // debug("size to index(%d): %d\n", 128, size_to_slab_cache_index(128));
-    // debug("size to index(%d): %d\n", 129, size_to_slab_cache_index(129));
-    // debug("size to index(%d): %d\n", 512, size_to_slab_cache_index(512));
-    // 
-    // for (int i = -3; i < 10; i++)
-    // {
-    //     debug("index to size(%d): %d\n", i, slab_cache_index_to_size(i));
-    // }
-
-    // debug("round_alloc_size(%d): %d\n", 3, round_alloc_size(3));
-
-    // for (int i = 0; i < 130; i++)
-    // {
-    //     debug("round_alloc_size(%d): %d\n", i, round_alloc_size(i));
-    // }
-    // 
-    // for (int i = 0; i < PAGE_SIZE * 100; i += 23)
-    // {
-    //     debug("round_alloc_size(%d): %x\n", i, round_alloc_size(i));
-    // }
 }
 
 // allocate memory depending on the size, store metadata for realloc() or free()
@@ -105,7 +75,7 @@ void malloc_heap_init(void)
 void *malloc(size_t size)
 {
     size_t new_size = round_alloc_size(size + sizeof(malloc_metadata_t));
-    debug("malloc: new_size: %d\n", new_size);
+    // debug("malloc: new_size: %d\n", new_size);
     void *pointer;
 
     if (new_size <= 512)
@@ -127,7 +97,7 @@ void *malloc(size_t size)
         malloc_metadata_t *metadata = pointer;
         metadata->size = index;
 
-	debug("size: %d\n", metadata->size);
+	// debug("size: %d\n", metadata->size);
     }
     else
     {

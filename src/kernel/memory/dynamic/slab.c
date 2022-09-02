@@ -386,6 +386,12 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
     slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
     new_bufctl->pointer = new_bufctl;
 
+    if (((uint64_t)new_bufctl & 0xFFF) == 0)
+    {
+	cache->slabs->bufctl_count--;
+	return;
+    }
+
     if (!cache->slabs->freelist)
     {
         cache->slabs->freelist_head = new_bufctl;
