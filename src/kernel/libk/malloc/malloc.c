@@ -70,12 +70,11 @@ void malloc_heap_init(void)
     log(INFO, "Heap fully initialized\n");
 }
 
-// allocate memory depending on the size, store metadata for realloc() or free()
+// allocate memory depending on the size, store metadata for realloc() and free()
 // return a vmm address - not guaranteed that everything set to zero
 void *malloc(size_t size)
 {
     size_t new_size = round_alloc_size(size + sizeof(malloc_metadata_t));
-    // debug("malloc: new_size: %d\n", new_size);
     void *pointer;
 
     if (new_size <= 512)
@@ -96,8 +95,6 @@ void *malloc(size_t size)
 
         malloc_metadata_t *metadata = pointer;
         metadata->size = index;
-
-	// debug("size: %d\n", metadata->size);
     }
     else
     {
@@ -117,7 +114,6 @@ void *malloc(size_t size)
 
         malloc_metadata_t *metadata = pointer;
         metadata->size = page_count;
-
     }
 
     return pointer + sizeof(malloc_metadata_t) + HEAP_START_ADDR;
@@ -146,8 +142,6 @@ void *realloc(void *old_pointer, size_t new_size)
     {
         malloc_metadata_t *metadata = old_pointer;
         size_t index = metadata->size;
-
-	debug("index: %d\n", index);
 
 	int64_t old_size_temp = slab_cache_index_to_size(index);
 
@@ -206,6 +200,8 @@ void free(void *pointer)
 
     if (((uint64_t)pointer & 0xFFF) != 0)
     {
+	debug("free: %p was a slab address\n", pointer);
+
         malloc_metadata_t *metadata = pointer;
         size_t index = metadata->size;
 
@@ -213,6 +209,8 @@ void free(void *pointer)
     }
     else
     {
+	debug("free: %p was a pmm address\n", pointer);
+
         malloc_metadata_t *metadata = pointer;
         size_t page_count = metadata->size;
 
