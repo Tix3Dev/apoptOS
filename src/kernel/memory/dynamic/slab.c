@@ -67,6 +67,7 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t
     cache->name = name;
     cache->slab_size = slab_size;
     cache->bufctl_count_max = (PAGE_SIZE - sizeof(slab_cache_t)) / cache->slab_size;
+    log(INFO, "max: %d -> %d, %d, %d\n", cache->bufctl_count_max, PAGE_SIZE, sizeof(slab_cache_t), cache->slab_size);
 
     cache->slabs = NULL;
 
@@ -389,6 +390,7 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
     // if (((uint64_t)new_bufctl & 0xFFF) == 0)
     // {
     //     cache->slabs->bufctl_count--;
+    //     cache->bufctl_count_max--;
     //     return;
     // }
 

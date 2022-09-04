@@ -66,6 +66,8 @@ void malloc_heap_init(void)
     slab_caches[6] = slab_cache_create("heap slab size 256", 256, SLAB_PANIC | SLAB_AUTO_GROW);
     slab_caches[7] = slab_cache_create("heap slab size 512", 512, SLAB_PANIC | SLAB_AUTO_GROW);
 
+    // slab_cache_dump(slab_caches[2], SLAB_PANIC);
+
     log(INFO, "Slab caches for heap initialized\n");
     log(INFO, "Heap fully initialized\n");
 }
@@ -237,9 +239,9 @@ size_t round_alloc_size(size_t size)
 // round number to next biggest power of two
 uint32_t next_power_of_two(uint32_t n)
 {
-    if (n < 2)
+    if (n <= 4)
     {
-	return 2;
+	return 4;
     }
 
     n--;
