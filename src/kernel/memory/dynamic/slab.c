@@ -152,6 +152,10 @@ void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
         {
             slab_init_bufctls(cache, bufctl, j);
         }
+
+	// TODO: this could be a bug where although count > 1, only one is in the linked list as
+	// they don't get linked?
+	// (see comment in slab_create_bufctl_buffer function)
     }
 }
 
@@ -352,7 +356,7 @@ slab_bufctl_t *slab_create_bufctl_buffer(void)
         return NULL;
     }
 
-    bufctl->next = NULL;
+    bufctl->next = NULL; // TODO: because of this line
 
     return bufctl;
 }
@@ -396,6 +400,10 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
 
     if (!cache->slabs->freelist)
     {
+	// FIX?
+	new_bufctl->next = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * (index + 1));
+	log(WARNING, "new_bufctl->next: %p\n", new_bufctl->next);
+
         cache->slabs->freelist_head = new_bufctl;
         cache->slabs->freelist = new_bufctl;
     }

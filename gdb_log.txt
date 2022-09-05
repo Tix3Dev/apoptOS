@@ -1,0 +1,268 @@
+0x000000000000fff0 in ?? ()
+(gdb) b kinit_all
+Breakpoint 1 at 0xffffffff8020492b: file src/kernel/kernel.c, line 81.
+(gdb) continue
+Continuing.
+
+Thread 1 hit Breakpoint 1, kinit_all (stivale2_struct=0x0) at src/kernel/kernel.c:81
+81	{
+(gdb) b malloc_heap_init
+Breakpoint 2 at 0xffffffff802003e7: file src/kernel/libk/malloc/malloc.c, line 60.
+(gdb) continue
+Continuing.
+
+Thread 1 hit Breakpoint 2, malloc_heap_init () at src/kernel/libk/malloc/malloc.c:60
+60	    slab_caches[0] = slab_cache_create("heap slab size 4", 4, SLAB_PANIC | SLAB_AUTO_GROW);
+(gdb) s
+slab_cache_create (name=0xffffffff8020ad70 "heap slab size 4", slab_size=4, flags=(SLAB_PANIC | SLAB_AUTO_GROW)) at src/kernel/memory/dynamic/slab.c:52
+52	    assert(slab_size <= 512); // only support small slab sizes (PAGE_SIZE / 8)
+(gdb) n
+53	    assert(is_power_of_two(slab_size));
+(gdb) n
+55	    slab_cache_t *cache = (slab_cache_t *)pmm_allocz(1);
+(gdb) n
+57	    if (!cache && (flags & SLAB_PANIC))
+(gdb) s
+62	    if (!cache)
+(gdb) s
+67	    cache->name = name;
+(gdb) s
+68	    cache->slab_size = slab_size;
+(gdb) s
+69	    cache->bufctl_count_max = (PAGE_SIZE - sizeof(slab_cache_t)) / cache->slab_size;
+(gdb)
+70	    log(INFO, "max: %d -> %d, %d, %d\n", cache->bufctl_count_max, PAGE_SIZE, sizeof(slab_cache_t), cache->slab_size);
+(gdb) n
+72	    cache->slabs = NULL;
+(gdb) p cache->name
+$1 = 0xffffffff8020ad70 "heap slab size 4"
+(gdb) p cache->slab_size
+$2 = 4
+(gdb) p cache->bufctl_count_max
+$3 = 1014
+(gdb) n
+74	    slab_cache_grow(cache, 1, flags);
+(gdb) s
+slab_cache_grow (cache=0x1cd4000, count=1, flags=(SLAB_PANIC | SLAB_AUTO_GROW)) at src/kernel/memory/dynamic/slab.c:123
+123	    if (!cache && (flags & SLAB_PANIC))
+(gdb) s
+128	    if (!cache)
+(gdb) s
+133	    cache->slabs = cache->slabs_head;
+(gdb) s
+135	    for (size_t i = 0; i < count; i++)
+(gdb) s
+137	        slab_bufctl_t *bufctl = slab_create_bufctl_buffer();
+(gdb) s
+slab_create_bufctl_buffer () at src/kernel/memory/dynamic/slab.c:348
+348	    slab_bufctl_t *bufctl = (slab_bufctl_t *)pmm_allocz(1);
+(gdb) s
+pmm_allocz (page_count=1) at src/kernel/memory/physical/pmm.c:170
+170	    void *pointer = pmm_alloc(page_count);
+(gdb) s
+pmm_alloc (page_count=1) at src/kernel/memory/physical/pmm.c:142
+142	    if (used_pages_count <= 0)
+(gdb) s
+147	    void *pointer = pmm_find_first_free_page_range(page_count);
+(gdb) n
+149	    if (pointer == NULL)
+(gdb) n
+154	    uint64_t index = PAGE_TO_BIT(pointer);
+(gdb) n
+156	    for (size_t i = 0; i < page_count; i++)
+(gdb) n
+158	        bitmap_set_bit(&pmm_bitmap, index + i);
+(gdb)
+156	    for (size_t i = 0; i < page_count; i++)
+(gdb)
+161	    used_pages_count += page_count;
+(gdb)
+163	    return (void *)BIT_TO_PAGE(index);
+(gdb)
+164	}
+(gdb)
+pmm_allocz (page_count=1) at src/kernel/memory/physical/pmm.c:171
+171	    memset(pointer, 0, PAGE_SIZE * page_count);
+(gdb)
+173	    return pointer;
+(gdb)
+174	}
+(gdb) s
+slab_create_bufctl_buffer () at src/kernel/memory/dynamic/slab.c:350
+350	    if (!bufctl)
+(gdb) s
+355	    bufctl->next = NULL;
+(gdb)
+357	    return bufctl;
+(gdb) s
+358	}
+(gdb)
+slab_cache_grow (cache=0x1cd4000, count=1, flags=(SLAB_PANIC | SLAB_AUTO_GROW)) at src/kernel/memory/dynamic/slab.c:139
+139	        if (!bufctl && (flags & SLAB_PANIC))
+(gdb) s
+144	        if (!bufctl)
+(gdb) s
+149	        slab_create_slab(cache, bufctl);
+(gdb) s
+slab_create_slab (cache=0x1cd4000, bufctl=0x1cd5000) at src/kernel/memory/dynamic/slab.c:363
+363	    slab_t *slab = (slab_t *)(((uintptr_t)bufctl + PAGE_SIZE) - sizeof(slab_t));
+(gdb) s
+365	    slab->next = NULL;
+(gdb) p slab
+$4 = (slab_t *) 0x1cd5fe0
+(gdb) p bufctl
+$5 = (slab_bufctl_t *) 0x1cd5000
+(gdb) p sizeof(slab_t)
+$6 = 32
+(gdb) s
+367	    slab->bufctl_count = cache->bufctl_count_max;
+(gdb) s
+369	    slab->freelist_head = NULL;
+(gdb) p slab->bufctl_count
+$7 = 1014
+(gdb) p slab->freelist
+$8 = (slab_bufctl_t *) 0x0
+(gdb) p slab->freelist_head
+$9 = (slab_bufctl_t *) 0x0
+(gdb) s
+370	    slab->freelist = NULL;
+(gdb) p slab->freelist_head
+$10 = (slab_bufctl_t *) 0x0
+(gdb) s
+372	    if (!cache->slabs)
+(gdb) s
+374	        cache->slabs_head = slab;
+(gdb) s
+375	        cache->slabs = slab;
+(gdb) p cache->slab_head
+There is no member named slab_head.
+(gdb) p cache->slabs_head
+$11 = (slab_t *) 0x1cd5fe0
+(gdb) p cache->slabs
+$12 = (slab_t *) 0x0
+(gdb) s
+382	}
+(gdb) p cache->slabs
+$13 = (slab_t *) 0x1cd5fe0
+(gdb) s
+slab_cache_grow (cache=0x1cd4000, count=1, flags=(SLAB_PANIC | SLAB_AUTO_GROW)) at src/kernel/memory/dynamic/slab.c:151
+151	        for (size_t j = 0; j < cache->bufctl_count_max; j++)
+(gdb) s
+153	            slab_init_bufctls(cache, bufctl, j);
+(gdb) p j
+$14 = 0
+(gdb) p cache->bufctl_count_max
+$15 = 1014
+(gdb) s
+slab_init_bufctls (cache=0x1cd4000, bufctl=0x1cd5000, index=0) at src/kernel/memory/dynamic/slab.c:387
+387	    slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
+(gdb) p bufctl
+$16 = (slab_bufctl_t *) 0x1cd5000
+(gdb) p new_bufctl
+$17 = (slab_bufctl_t *) 0x1cd5fe0
+(gdb) s
+388	    new_bufctl->pointer = new_bufctl;
+(gdb) p new_bufctl
+$18 = (slab_bufctl_t *) 0x1cd5000
+(gdb) s
+397	    if (!cache->slabs->freelist)
+(gdb) p new_bufctl->pointer
+$19 = (void *) 0x1cd5000
+(gdb) s
+399	        cache->slabs->freelist_head = new_bufctl;
+(gdb) s
+400	        cache->slabs->freelist = new_bufctl;
+(gdb) s
+407	}
+(gdb) s
+slab_cache_grow (cache=0x1cd4000, count=1, flags=(SLAB_PANIC | SLAB_AUTO_GROW)) at src/kernel/memory/dynamic/slab.c:151
+151	        for (size_t j = 0; j < cache->bufctl_count_max; j++)
+(gdb) p cache->bufctl_count_max
+$20 = 1014
+(gdb) s
+153	            slab_init_bufctls(cache, bufctl, j);
+(gdb) s
+slab_init_bufctls (cache=0x1cd4000, bufctl=0x1cd5000, index=1) at src/kernel/memory/dynamic/slab.c:387
+387	    slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
+(gdb) s
+388	    new_bufctl->pointer = new_bufctl;
+(gdb) s
+397	    if (!cache->slabs->freelist)
+(gdb) p new_bufctl
+$21 = (slab_bufctl_t *) 0x1cd5004
+(gdb) p new_bufctl->pointer
+$22 = (void *) 0x1cd5004
+(gdb) s
+404	        cache->slabs->freelist->next = new_bufctl;
+(gdb) s
+405	        cache->slabs->freelist = cache->slabs->freelist->next;
+(gdb) p cache->slabs->freelist_head
+$23 = (slab_bufctl_t *) 0x1cd5000
+(gdb) p cache->slabs->freelist_head->next
+$24 = (struct slab_bufctl *) 0x1cd5004
+(gdb) s
+407	}
+(gdb) s
+slab_cache_grow (cache=0x1cd4000, count=1, flags=(SLAB_PANIC | SLAB_AUTO_GROW)) at src/kernel/memory/dynamic/slab.c:151
+151	        for (size_t j = 0; j < cache->bufctl_count_max; j++)
+(gdb) s
+153	            slab_init_bufctls(cache, bufctl, j);
+(gdb) s
+slab_init_bufctls (cache=0x1cd4000, bufctl=0x1cd5000, index=2) at src/kernel/memory/dynamic/slab.c:387
+387	    slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
+(gdb) s
+388	    new_bufctl->pointer = new_bufctl;
+(gdb) s
+397	    if (!cache->slabs->freelist)
+(gdb) p new_bufctl
+$25 = (slab_bufctl_t *) 0x1cd5008
+(gdb) p new_bufctl->pointer
+$26 = (void *) 0x1cd5008
+(gdb) s
+404	        cache->slabs->freelist->next = new_bufctl;
+(gdb) s
+405	        cache->slabs->freelist = cache->slabs->freelist->next;
+(gdb) s
+407	}
+(gdb) p cache->slabs
+$27 = (slab_t *) 0x1cd5fe0
+(gdb) p cache->slabs->next
+$28 = (struct slab *) 0x0
+(gdb) p cache->slabs->freelist_head
+$29 = (slab_bufctl_t *) 0x1cd5000
+(gdb) p cache->slabs->freelist_head->next
+$30 = (struct slab_bufctl *) 0x1cd500801cd5004
+(gdb) p cache->slabs->freelist_head->next->next
+Cannot access memory at address 0x1cd500801cd5004
+(gdb) p cache->slabs->freelist
+$31 = (slab_bufctl_t *) 0x1cd5008
+(gdb) p cache->slabs->freelist->next
+$32 = (struct slab_bufctl *) 0x1cd500400000000
+(gdb) s
+slab_cache_grow (cache=0x1cd4000, count=1, flags=(SLAB_PANIC | SLAB_AUTO_GROW)) at src/kernel/memory/dynamic/slab.c:151
+151	        for (size_t j = 0; j < cache->bufctl_count_max; j++)
+(gdb) s
+153	            slab_init_bufctls(cache, bufctl, j);
+(gdb) s
+slab_init_bufctls (cache=0x1cd4000, bufctl=0x1cd5000, index=3) at src/kernel/memory/dynamic/slab.c:387
+387	    slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
+(gdb) s
+388	    new_bufctl->pointer = new_bufctl;
+(gdb) s
+397	    if (!cache->slabs->freelist)
+(gdb) s
+404	        cache->slabs->freelist->next = new_bufctl;
+(gdb) s
+405	        cache->slabs->freelist = cache->slabs->freelist->next;
+(gdb) p cache->slabs->freelist
+$33 = (slab_bufctl_t *) 0x1cd5008
+(gdb) p cache->slabs->freelist->next
+$34 = (struct slab_bufctl *) 0x1cd500c
+(gdb) p cache->slabs->freelist_head
+$35 = (slab_bufctl_t *) 0x1cd5000
+(gdb) p cache->slabs->freelist_head->next
+$36 = (struct slab_bufctl *) 0x1cd500801cd5004
+(gdb) p cache->slabs->freelist_head->next
+$37 = (struct slab_bufctl *) 0x1cd500801cd5004
+(gdb) p cache->slabs->freelist_head->next->next
+Cannot access memory at address 0x1cd500801cd5004
