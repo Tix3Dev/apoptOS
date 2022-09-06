@@ -401,8 +401,8 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
     if (!cache->slabs->freelist)
     {
 	// FIX?
-	new_bufctl->next = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * (index + 1));
-	log(WARNING, "new_bufctl->next: %p\n", new_bufctl->next);
+	// new_bufctl->next = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * (index + 1));
+	// log(WARNING, "new_bufctl->next: %p\n", new_bufctl->next);
 
         cache->slabs->freelist_head = new_bufctl;
         cache->slabs->freelist = new_bufctl;
