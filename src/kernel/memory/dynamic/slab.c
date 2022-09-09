@@ -46,10 +46,11 @@ bool is_power_of_two(int num);
 
 /* core functions */
 
-// create a cache and grow one slab
+// create a cache and grow one slab - only power of two's between 16 and 512
 slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t flags)
 {
-    assert(slab_size <= 512); // only support small slab sizes (PAGE_SIZE / 8)
+    assert(slab_size <= 512);
+    assert(slab_size >= sizeof(slab_bufctl_t));
     assert(is_power_of_two(slab_size));
 
     slab_cache_t *cache = (slab_cache_t *)pmm_allocz(1);
@@ -67,7 +68,6 @@ slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t
     cache->name = name;
     cache->slab_size = slab_size;
     cache->bufctl_count_max = (PAGE_SIZE - sizeof(slab_cache_t)) / cache->slab_size;
-    log(INFO, "max: %d -> %d, %d, %d\n", cache->bufctl_count_max, PAGE_SIZE, sizeof(slab_cache_t), cache->slab_size);
 
     cache->slabs = NULL;
 
@@ -152,10 +152,6 @@ void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
         {
             slab_init_bufctls(cache, bufctl, j);
         }
-
-	// TODO: this could be a bug where although count > 1, only one is in the linked list as
-	// they don't get linked?
-	// (see comment in slab_create_bufctl_buffer function)
     }
 }
 
@@ -356,7 +352,7 @@ slab_bufctl_t *slab_create_bufctl_buffer(void)
         return NULL;
     }
 
-    bufctl->next = NULL; // TODO: because of this line
+    bufctl->next = NULL;
 
     return bufctl;
 }
@@ -400,14 +396,6 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
 
     if (!cache->slabs->freelist)
     {
-	// FIX?
-	// new_bufctl->next = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size);
-	// log(WARNING, "new_bufctl->next: %p\n", new_bufctl->next);
-
-	// log(WARNING, "sizeof(bufctl): %d\n", sizeof(slab_bufctl_t));
-
-	// log(WARNING, "new_bufctl: %p\n", new_bufctl);
-
         cache->slabs->freelist_head = new_bufctl;
         cache->slabs->freelist = new_bufctl;
     }

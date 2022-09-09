@@ -22,7 +22,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-typedef struct slab_bufctl
+typedef struct __attribute__((__packed__)) slab_bufctl
 {
     struct slab_bufctl *next;
 

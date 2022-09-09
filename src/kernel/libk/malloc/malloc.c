@@ -20,9 +20,8 @@
 
     Brief file description:
     Combine slab allocator with pmm allocator for custom sized allocations, making them
-    optimized. There are 8 caches for sizes ranging from 4 to 512. 2 isn't used (as it's
-    commonly found in other slab allocators), as metadata with size 2 will always be stored.
-    Note that it might be better for specific tasks to use the neccessary allocators by hand.
+    optimized. There are 6 caches for sizes ranging from 16 to 512. Note that it might
+    be better for specific tasks to use the neccessary allocators by hand.
 
 */
 
@@ -34,16 +33,7 @@
 #include <memory/physical/pmm.h>
 #include <memory/mem.h>
 
-
-
-
-
-#include <libk/serial/debug.h>
-
-
-
-
-static slab_cache_t *slab_caches[8];
+static slab_cache_t *slab_caches[6];
 
 /* utility function prototypes */
 
@@ -57,16 +47,14 @@ int64_t slab_cache_index_to_size(size_t index);
 // create caches that malloc will be able to use
 void malloc_heap_init(void)
 {
-    slab_caches[0] = slab_cache_create("heap slab size 4", 4, SLAB_PANIC | SLAB_AUTO_GROW);
-    slab_caches[1] = slab_cache_create("heap slab size 8", 8, SLAB_PANIC | SLAB_AUTO_GROW);
-    slab_caches[2] = slab_cache_create("heap slab size 16", 16, SLAB_PANIC | SLAB_AUTO_GROW);
-    slab_caches[3] = slab_cache_create("heap slab size 32", 32, SLAB_PANIC | SLAB_AUTO_GROW);
-    slab_caches[4] = slab_cache_create("heap slab size 64", 64, SLAB_PANIC | SLAB_AUTO_GROW);
-    slab_caches[5] = slab_cache_create("heap slab size 128", 128, SLAB_PANIC | SLAB_AUTO_GROW);
-    slab_caches[6] = slab_cache_create("heap slab size 256", 256, SLAB_PANIC | SLAB_AUTO_GROW);
-    slab_caches[7] = slab_cache_create("heap slab size 512", 512, SLAB_PANIC | SLAB_AUTO_GROW);
+    slab_caches[0] = slab_cache_create("heap slab size 16", 16, SLAB_PANIC | SLAB_AUTO_GROW);
+    slab_caches[1] = slab_cache_create("heap slab size 32", 32, SLAB_PANIC | SLAB_AUTO_GROW);
+    slab_caches[2] = slab_cache_create("heap slab size 64", 64, SLAB_PANIC | SLAB_AUTO_GROW);
+    slab_caches[3] = slab_cache_create("heap slab size 128", 128, SLAB_PANIC | SLAB_AUTO_GROW);
+    slab_caches[4] = slab_cache_create("heap slab size 256", 256, SLAB_PANIC | SLAB_AUTO_GROW);
+    slab_caches[5] = slab_cache_create("heap slab size 512", 512, SLAB_PANIC | SLAB_AUTO_GROW);
 
-    slab_cache_dump(slab_caches[1], SLAB_PANIC);
+    slab_cache_dump(slab_caches[0], 0);
 
     log(INFO, "Slab caches for heap initialized\n");
     log(INFO, "Heap fully initialized\n");
@@ -121,6 +109,8 @@ void *malloc(size_t size)
     return pointer + sizeof(malloc_metadata_t) + HEAP_START_ADDR;
 }
 
+// try to reallocate memory (although the address won't be the same unless
+// no change of size)
 void *realloc(void *old_pointer, size_t new_size)
 {
     if (!old_pointer)
@@ -202,8 +192,6 @@ void free(void *pointer)
 
     if (((uint64_t)pointer & 0xFFF) != 0)
     {
-	debug("free: %p was a slab address\n", pointer);
-
         malloc_metadata_t *metadata = pointer;
         size_t index = metadata->size;
 
@@ -211,8 +199,6 @@ void free(void *pointer)
     }
     else
     {
-	debug("free: %p was a pmm address\n", pointer);
-
         malloc_metadata_t *metadata = pointer;
         size_t page_count = metadata->size;
 
@@ -239,9 +225,9 @@ size_t round_alloc_size(size_t size)
 // round number to next biggest power of two
 uint32_t next_power_of_two(uint32_t n)
 {
-    if (n <= 4)
+    if (n <= 16)
     {
-	return 4;
+	return 16;
     }
 
     n--;
@@ -260,29 +246,23 @@ int64_t size_to_slab_cache_index(size_t size)
 {
     switch (size)
     {
-	case 4:
-	    return 0;
-	
-	case 8:
-	    return 1;
-
 	case 16:
-	    return 2;
+	    return 0;
 
 	case 32:
-	    return 3;
+	    return 1;
 
 	case 64:
-	    return 4;
+	    return 2;
 	
 	case 128:
-	    return 5;
+	    return 3;
 	
 	case 256:
-	    return 6;
+	    return 4;
 	
 	case 512:
-	    return 7;
+	    return 5;
 	
 	default:
 	    return -1;
@@ -295,27 +275,21 @@ int64_t slab_cache_index_to_size(size_t index)
     switch (index)
     {
 	case 0:
-	    return 4;
-	
-	case 1:
-	    return 8;
-
-	case 2:
 	    return 16;
 
-	case 3:
+	case 1:
 	    return 32;
 
-	case 4:
+	case 2:
 	    return 64;
 	
-	case 5:
+	case 3:
 	    return 128;
 	
-	case 6:
+	case 4:
 	    return 256;
 	
-	case 7:
+	case 5:
 	    return 512;
 	
 	default:
