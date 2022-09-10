@@ -26,7 +26,7 @@ typedef struct __attribute__((__packed__)) slab_bufctl
 {
     struct slab_bufctl *next;
 
-    void *pointer;
+    uint16_t index;
 } slab_bufctl_t;
 
 typedef struct slab

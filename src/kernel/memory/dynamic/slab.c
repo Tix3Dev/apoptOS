@@ -41,7 +41,7 @@
 
 slab_bufctl_t *slab_create_bufctl_buffer(void);
 void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl);
-void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index);
+bool slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index, size_t updated_index);
 bool is_power_of_two(int num);
 
 /* core functions */
@@ -148,9 +148,13 @@ void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
 
         slab_create_slab(cache, bufctl);
 
-        for (size_t j = 0; j < cache->bufctl_count_max; j++)
+	size_t updated_index = 0;
+        for (size_t j = 0; j < cache->bufctl_count_max; j++, updated_index++)
         {
-            slab_init_bufctls(cache, bufctl, j);
+            if (!slab_init_bufctls(cache, bufctl, j, updated_index))
+	    {
+		updated_index--;
+	    }
         }
     }
 }
@@ -289,7 +293,7 @@ void slab_cache_free(slab_cache_t *cache, void *pointer, slab_flags_t flags)
     slab_bufctl_t *new_bufctl = (slab_bufctl_t *)pointer;
 
     new_bufctl->next = cache->slabs->freelist_head;
-    new_bufctl->pointer = (void *)new_bufctl; // just for sanity (would work without)
+    new_bufctl->index = ((uintptr_t)new_bufctl - (uintptr_t)cache->slabs->freelist_head) / cache->slab_size;
 
     cache->slabs->freelist_head = new_bufctl;
     cache->slabs->bufctl_count++;
@@ -321,7 +325,7 @@ void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
 
         cache->slabs->freelist = cache->slabs->freelist_head;
 
-        debug("\tSlab no. %d is at 0x%p\n", slab_count, cache->slabs);
+	debug("\tSlab no. %d is at 0x%p\n", slab_count, cache->slabs);
 
         for (int bufctl_count = 0;; bufctl_count++)
         {
@@ -330,7 +334,8 @@ void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
                 goto done;
             }
 
-            debug("\t\tBufctl no. %d\t has pointer 0x%p\n", bufctl_count, cache->slabs->freelist->pointer);
+            debug("\t\tBufctl no. %d\t has pointer 0x%p\n", bufctl_count,
+		    (uintptr_t)cache->slabs->freelist_head + cache->slab_size * cache->slabs->freelist->index);
 
             cache->slabs->freelist = cache->slabs->freelist->next;
         }
@@ -382,20 +387,27 @@ void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
 }
 
 // position bufctl at index in bufctl buffer, add it to freelist
-void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
+bool slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index, size_t updated_index)
 {
     slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
-    new_bufctl->pointer = new_bufctl;
+    new_bufctl->index = updated_index;
 
-    // if (((uint64_t)new_bufctl & 0xFFF) == 0)
-    // {
-    //     cache->slabs->bufctl_count--;
-    //     cache->bufctl_count_max--;
-    //     return;
-    // }
+    log(WARNING, "new_bufctl: %p\n", new_bufctl);
+
+    if (((uint64_t)new_bufctl & 0xFFF) == 0)
+    {
+	log(WARNING, "new_bufctl (page align): %p\n", new_bufctl);
+
+        cache->slabs->bufctl_count--;
+        cache->bufctl_count_max--;
+
+        return false;
+    }
 
     if (!cache->slabs->freelist)
     {
+	log(WARNING, "new_bufctl (head): %p\n", new_bufctl);
+
         cache->slabs->freelist_head = new_bufctl;
         cache->slabs->freelist = new_bufctl;
     }
@@ -404,6 +416,8 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
         cache->slabs->freelist->next = new_bufctl;
         cache->slabs->freelist = cache->slabs->freelist->next;
     }
+
+    return true;
 }
 
 // return if num is power of two
