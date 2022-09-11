@@ -22,9 +22,9 @@
     Memory allocator mainly intended for heap memory management.
     Based on some of the principles of the slab allocator, e.g. implemented by
     Jeff Bonwick (https://people.eecs.berkeley.edu/~kubitron/courses/cs194-24-S14/hand-outs/bonwick_slab.pdf).
-    Though this allocator does only work for small slab sizes (<= 512), as this is the best for keeping
-    the same slab layout for every size. It also doesn't make use of slab states (free, used and partial)
-    for the sake of simplicity.
+    Though this allocator does only work for small slab sizes (sizeof(bufctl) <= x <= 512), as this is the
+    best for keeping the same slab layout for every size. It also doesn't make use of slab states (free,
+    used and partial) for the sake of simplicity.
 
 */
 
@@ -331,13 +331,6 @@ void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
                 goto done;
             }
 
-
-	    ///
-	    // BUG:
-	    // we're doing freelist_head + slab_size * index
-	    // but freelist_head might not be equivalent to bufctl, because it was removed cuz page align
-	    ///
-
             debug("\t\tBufctl no. %d\t with index %d\t -> has pointer 0x%p\n",
 		    bufctl_count, cache->slabs->freelist->index,
 		    (uintptr_t)cache->slabs->bufctl_addr + cache->slab_size * cache->slabs->freelist->index);
@@ -399,12 +392,8 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
     slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
     new_bufctl->index = index;
 
-    log(WARNING, "new_bufctl: %p\n", new_bufctl);
-
     if (((uint64_t)new_bufctl & 0xFFF) == 0)
     {
-        log(WARNING, "new_bufctl (page align): %p\n", new_bufctl);
-
         cache->slabs->bufctl_count--;
         cache->bufctl_count_max--;
 
@@ -413,8 +402,6 @@ void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
 
     if (!cache->slabs->freelist)
     {
-	log(WARNING, "new_bufctl (head): %p\n", new_bufctl);
-
         cache->slabs->freelist_head = new_bufctl;
         cache->slabs->freelist = new_bufctl;
     }
