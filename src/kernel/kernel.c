@@ -46,9 +46,7 @@
 
 
 
-#include <libk/malloc/malloc.h>
 #include <libk/serial/debug.h>
-#include <libk/string/string.h>
 
 
 
