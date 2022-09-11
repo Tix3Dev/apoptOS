@@ -107,13 +107,13 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
     // -> pmemsave 0xb000 0xfffff000 memdump.txt
 
     // realloc (use qemu monitor with command `pmemsave`)
-    
+
     // int *mem_block1 = malloc(sizeof(int));
 
     // free(mem_block1);
 
     // debug("1\n");
-    // 
+    //
     // void *ptr1 = malloc(2);
     // debug("1.1\n");
     // void *ptr11 = malloc(2);

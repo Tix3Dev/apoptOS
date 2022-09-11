@@ -73,17 +73,17 @@ void *malloc(size_t size)
     {
         int64_t index = size_to_slab_cache_index(new_size);
 
-	if (index == -1)
-	{
-	    return NULL;
-	}
+        if (index == -1)
+        {
+            return NULL;
+        }
 
         pointer = slab_cache_alloc(slab_caches[index], SLAB_PANIC);
 
-	if (!pointer)
-	{
-	    return NULL;
-	}
+        if (!pointer)
+        {
+            return NULL;
+        }
 
         malloc_metadata_t *metadata = pointer;
         metadata->size = index;
@@ -92,17 +92,17 @@ void *malloc(size_t size)
     {
         int64_t page_count = new_size / PAGE_SIZE;
 
-	if (page_count == -1)
-	{
-	    return NULL;
-	}
+        if (page_count == -1)
+        {
+            return NULL;
+        }
 
         pointer = pmm_allocz(page_count);
 
-	if (!pointer)
-	{
-	    return NULL;
-	}
+        if (!pointer)
+        {
+            return NULL;
+        }
 
         malloc_metadata_t *metadata = pointer;
         metadata->size = page_count;
@@ -117,14 +117,14 @@ void *realloc(void *old_pointer, size_t new_size)
 {
     if (!old_pointer)
     {
-	return malloc(new_size);
+        return malloc(new_size);
     }
 
     if (!new_size)
     {
-	free(old_pointer);
+        free(old_pointer);
 
-	return NULL;
+        return NULL;
     }
 
     old_pointer = old_pointer - HEAP_START_ADDR - sizeof(malloc_metadata_t);
@@ -137,44 +137,44 @@ void *realloc(void *old_pointer, size_t new_size)
         malloc_metadata_t *metadata = old_pointer;
         size_t index = metadata->size;
 
-	int64_t old_size_temp = slab_cache_index_to_size(index);
+        int64_t old_size_temp = slab_cache_index_to_size(index);
 
-	if (old_size_temp == -1)
-	{
-	    return NULL;
-	}
+        if (old_size_temp == -1)
+        {
+            return NULL;
+        }
 
-	old_size = (size_t)old_size_temp;
+        old_size = (size_t)old_size_temp;
     }
     else
     {
         malloc_metadata_t *metadata = old_pointer;
         size_t page_count = metadata->size;
 
-	old_size = page_count / PAGE_SIZE;
+        old_size = page_count / PAGE_SIZE;
     }
 
     old_pointer = old_pointer + sizeof(malloc_metadata_t) + HEAP_START_ADDR;
 
     if (old_size == rounded_new_size)
     {
-	return old_pointer;
+        return old_pointer;
     }
 
     void *new_pointer = malloc(new_size);
 
     if (!new_pointer)
     {
-	return NULL;
+        return NULL;
     }
 
     if (old_size > rounded_new_size)
     {
-	memcpy(new_pointer, old_pointer, rounded_new_size);
+        memcpy(new_pointer, old_pointer, rounded_new_size);
     }
     else
     {
-	memcpy(new_pointer, old_pointer, old_size);
+        memcpy(new_pointer, old_pointer, old_size);
     }
 
     free(old_pointer);
@@ -216,11 +216,11 @@ size_t round_alloc_size(size_t size)
 {
     if (size <= 512)
     {
-	return next_power_of_two(size);
+        return next_power_of_two(size);
     }
     else
     {
-	return ALIGN_UP(size, PAGE_SIZE);
+        return ALIGN_UP(size, PAGE_SIZE);
     }
 }
 
@@ -229,7 +229,7 @@ uint32_t next_power_of_two(uint32_t n)
 {
     if (n <= 16)
     {
-	return 16;
+        return 16;
     }
 
     n--;
@@ -248,26 +248,26 @@ int64_t size_to_slab_cache_index(size_t size)
 {
     switch (size)
     {
-	case 16:
-	    return 0;
+        case 16:
+            return 0;
 
-	case 32:
-	    return 1;
+        case 32:
+            return 1;
 
-	case 64:
-	    return 2;
-	
-	case 128:
-	    return 3;
-	
-	case 256:
-	    return 4;
-	
-	case 512:
-	    return 5;
-	
-	default:
-	    return -1;
+        case 64:
+            return 2;
+
+        case 128:
+            return 3;
+
+        case 256:
+            return 4;
+
+        case 512:
+            return 5;
+
+        default:
+            return -1;
     }
 }
 
@@ -276,25 +276,25 @@ int64_t slab_cache_index_to_size(size_t index)
 {
     switch (index)
     {
-	case 0:
-	    return 16;
+        case 0:
+            return 16;
 
-	case 1:
-	    return 32;
+        case 1:
+            return 32;
 
-	case 2:
-	    return 64;
-	
-	case 3:
-	    return 128;
-	
-	case 4:
-	    return 256;
-	
-	case 5:
-	    return 512;
-	
-	default:
-	    return -1;
+        case 2:
+            return 64;
+
+        case 3:
+            return 128;
+
+        case 4:
+            return 256;
+
+        case 5:
+            return 512;
+
+        default:
+            return -1;
     }
 }

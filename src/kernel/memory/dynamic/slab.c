@@ -148,7 +148,8 @@ void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
 
         slab_create_slab(cache, bufctl);
 
-	size_t max_const = cache->bufctl_count_max; // shouldn't be checked each iteration as it might change
+        size_t max_const = cache->bufctl_count_max; // shouldn't be checked each iteration as it might change
+
         for (size_t j = 0; j < max_const; j++)
         {
             slab_init_bufctls(cache, bufctl, j);
@@ -322,7 +323,7 @@ void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
 
         cache->slabs->freelist = cache->slabs->freelist_head;
 
-	debug("\tSlab no. %d is at 0x%p\n", slab_count, cache->slabs);
+        debug("\tSlab no. %d is at 0x%p\n", slab_count, cache->slabs);
 
         for (int bufctl_count = 0;; bufctl_count++)
         {
@@ -332,8 +333,8 @@ void slab_cache_dump(slab_cache_t *cache, slab_flags_t flags)
             }
 
             debug("\t\tBufctl no. %d\t with index %d\t -> has pointer 0x%p\n",
-		    bufctl_count, cache->slabs->freelist->index,
-		    (uintptr_t)cache->slabs->bufctl_addr + cache->slab_size * cache->slabs->freelist->index);
+                  bufctl_count, cache->slabs->freelist->index,
+                  (uintptr_t)cache->slabs->bufctl_addr + cache->slab_size * cache->slabs->freelist->index);
 
             cache->slabs->freelist = cache->slabs->freelist->next;
         }
