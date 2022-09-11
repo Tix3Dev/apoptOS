@@ -54,8 +54,6 @@ void malloc_heap_init(void)
     slab_caches[4] = slab_cache_create("heap slab size 256", 256, SLAB_PANIC | SLAB_AUTO_GROW | SLAB_NO_ALIGN);
     slab_caches[5] = slab_cache_create("heap slab size 512", 512, SLAB_PANIC | SLAB_AUTO_GROW | SLAB_NO_ALIGN);
 
-    slab_cache_dump(slab_caches[0], 0);
-
     log(INFO, "Slab caches for heap initialized\n");
     log(INFO, "Heap fully initialized\n");
 }
