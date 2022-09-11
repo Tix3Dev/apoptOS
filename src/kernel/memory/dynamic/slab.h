@@ -35,6 +35,8 @@ typedef struct slab
 
     size_t bufctl_count;
 
+    void *bufctl_addr;
+
     slab_bufctl_t *freelist_head;
     slab_bufctl_t *freelist;
 } slab_t;
