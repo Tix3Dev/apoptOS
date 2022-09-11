@@ -41,7 +41,7 @@
 
 slab_bufctl_t *slab_create_bufctl_buffer(void);
 void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl);
-void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index);
+void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index, slab_flags_t flags);
 bool is_power_of_two(int num);
 
 /* core functions */
@@ -152,7 +152,7 @@ void slab_cache_grow(slab_cache_t *cache, size_t count, slab_flags_t flags)
 
         for (size_t j = 0; j < max_const; j++)
         {
-            slab_init_bufctls(cache, bufctl, j);
+            slab_init_bufctls(cache, bufctl, j, flags);
         }
     }
 }
@@ -388,12 +388,14 @@ void slab_create_slab(slab_cache_t *cache, slab_bufctl_t *bufctl)
 }
 
 // position bufctl at index in bufctl buffer, add it to freelist
-void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index)
+void slab_init_bufctls(slab_cache_t *cache, slab_bufctl_t *bufctl, size_t index, slab_flags_t flags)
 {
     slab_bufctl_t *new_bufctl = (slab_bufctl_t *)((uintptr_t)bufctl + cache->slab_size * index);
     new_bufctl->index = index;
 
-    if (((uint64_t)new_bufctl & 0xFFF) == 0)
+    // don't include any bufctl addresses which are page aligned (i.e. like the addresses
+    // returned by the PMM)
+    if ((flags & SLAB_NO_ALIGN) && (((uint64_t)new_bufctl & 0xFFF) == 0))
     {
         cache->slabs->bufctl_count--;
         cache->bufctl_count_max--;

@@ -162,18 +162,18 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
 
     /* realloc (and helpers) test end */
 
-    void *ptr1 = malloc(30);
+    void *ptr1 = malloc(1);
     debug("ptr1: %p\n", ptr1);
 
-    void *ptr2 = malloc(30);
+    void *ptr2 = malloc(1);
     debug("ptr2: %p\n", ptr2);
 
     free(ptr1);
     free(ptr2);
 
-    void *ptr3 = malloc(30);
+    void *ptr3 = malloc(1);
     debug("ptr3: %p\n", ptr3);
-    void *ptr4 = malloc(30);
+    void *ptr4 = malloc(1);
     debug("ptr4: %p\n", ptr4);
 
     // pmm allocations

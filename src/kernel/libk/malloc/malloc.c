@@ -47,16 +47,14 @@ int64_t slab_cache_index_to_size(size_t index);
 // create caches that malloc will be able to use
 void malloc_heap_init(void)
 {
-    slab_caches[0] = slab_cache_create("heap slab size 16", 16, SLAB_PANIC | SLAB_AUTO_GROW);
+    slab_caches[0] = slab_cache_create("heap slab size 16", 16, SLAB_PANIC | SLAB_AUTO_GROW | SLAB_NO_ALIGN);
+    slab_caches[1] = slab_cache_create("heap slab size 32", 32, SLAB_PANIC | SLAB_AUTO_GROW | SLAB_NO_ALIGN);
+    slab_caches[2] = slab_cache_create("heap slab size 64", 64, SLAB_PANIC | SLAB_AUTO_GROW | SLAB_NO_ALIGN);
+    slab_caches[3] = slab_cache_create("heap slab size 128", 128, SLAB_PANIC | SLAB_AUTO_GROW | SLAB_NO_ALIGN);
+    slab_caches[4] = slab_cache_create("heap slab size 256", 256, SLAB_PANIC | SLAB_AUTO_GROW | SLAB_NO_ALIGN);
+    slab_caches[5] = slab_cache_create("heap slab size 512", 512, SLAB_PANIC | SLAB_AUTO_GROW | SLAB_NO_ALIGN);
 
     slab_cache_dump(slab_caches[0], 0);
-
-
-    slab_caches[1] = slab_cache_create("heap slab size 32", 32, SLAB_PANIC | SLAB_AUTO_GROW);
-    slab_caches[2] = slab_cache_create("heap slab size 64", 64, SLAB_PANIC | SLAB_AUTO_GROW);
-    slab_caches[3] = slab_cache_create("heap slab size 128", 128, SLAB_PANIC | SLAB_AUTO_GROW);
-    slab_caches[4] = slab_cache_create("heap slab size 256", 256, SLAB_PANIC | SLAB_AUTO_GROW);
-    slab_caches[5] = slab_cache_create("heap slab size 512", 512, SLAB_PANIC | SLAB_AUTO_GROW);
 
     log(INFO, "Slab caches for heap initialized\n");
     log(INFO, "Heap fully initialized\n");

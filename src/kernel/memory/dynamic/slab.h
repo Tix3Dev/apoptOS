@@ -54,7 +54,8 @@ typedef struct
 typedef enum
 {
     SLAB_PANIC	    = (1 << 0),
-    SLAB_AUTO_GROW  = (1 << 1)
+    SLAB_AUTO_GROW  = (1 << 1),
+    SLAB_NO_ALIGN   = (1 << 2)
 } slab_flags_t;
 
 slab_cache_t *slab_cache_create(const char *name, size_t slab_size, slab_flags_t flags);
