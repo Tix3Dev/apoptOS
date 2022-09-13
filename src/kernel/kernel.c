@@ -97,39 +97,49 @@ void kinit_all(struct stivale2_struct *stivale2_struct)
 
     /* realloc (and helpers) test start */
 
-    // NOTE: memdump
-    // qemu monitor
-    // pmemsave addr size file
-    //
-    // heap: 0xb000 0xfffff000
-    // -> pmemsave 0xb000 0xfffff000 memdump.txt
+    debug("sizeof(int): %d\n", sizeof(int));
 
-    // realloc (use qemu monitor with command `pmemsave`)
+    int *ptr;
 
-    int *mem_block1 = malloc(3 * sizeof(int));
+    ptr = malloc(10 * sizeof(int));
 
-    mem_block1[0] = 43;
-    mem_block1[1] = 37;
-    mem_block1[2] = 763;
-    mem_block1[3] = 944;
-    mem_block1[4] = 1220;
+    debug("ptr at  0x%p\n", ptr);
 
-    debug("mem_block1[0]: %d at %x\n", mem_block1[0], &mem_block1[0]);
-    debug("mem_block1[1]: %d at %x\n", mem_block1[1], &mem_block1[1]);
-    debug("mem_block1[2]: %d at %x\n", mem_block1[2], &mem_block1[2]);
-    debug("mem_block1[3]: %d at %x\n", mem_block1[3], &mem_block1[3]);
-    debug("mem_block1[4]: %d at %x\n", mem_block1[4], &mem_block1[4]);
+    ptr = realloc(ptr, 40 * sizeof(int));
+    if(ptr == NULL) {
+    	log(WARNING, "returned NULL\n"); 
+    }
 
-    mem_block1 = realloc(mem_block1, 10 * sizeof(int));
+    ptr[100] = -120;
 
-    if (mem_block1 == NULL)
-        debug("no\n");
+    debug("%d at 0x%p\n", ptr[100], &ptr[3]);
 
-    debug("mem_block1[0]: %d at %x\n", mem_block1[0], &mem_block1[0]);
-    debug("mem_block1[1]: %d at %x\n", mem_block1[1], &mem_block1[1]);
-    debug("mem_block1[2]: %d at %x\n", mem_block1[2], &mem_block1[2]);
-    debug("mem_block1[3]: %d at %x\n", mem_block1[3], &mem_block1[3]);
-    debug("mem_block1[4]: %d at %x\n", mem_block1[4], &mem_block1[4]);
+
+    int *ptr1;
+
+    ptr1 = malloc(10 * sizeof(int));
+    debug("ptr1 at 0x%p\n", ptr1);
+
+    ptr1[3] = -120;
+
+    ptr1 = realloc(ptr1, 4 * sizeof(int));
+    if(ptr1 == NULL) {
+	log(WARNING, "returned NULL too\n");
+    }
+    debug("%d at 0x%p\n", ptr1[3], &ptr1[3]);
+
+
+    int *ptr2;
+
+    ptr2 = malloc(10 * sizeof(int));
+    debug("ptr2 at 0x%p\n", ptr2);
+    ptr2[3] = -120;
+
+    ptr2 = realloc(ptr2, 10 * sizeof(int));
+    if(ptr2 == NULL) {
+	log(WARNING, "returned NULL too\n");
+    }
+    debug("%d at 0x%p\n", ptr2[3], &ptr2[3]);
 
     /* realloc (and helpers) test end */
 

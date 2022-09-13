@@ -104,6 +104,8 @@ void *malloc(size_t size)
         metadata->size = page_count;
     }
 
+    log(WARNING, "malloc initially at 0x%llx\n", (pointer + sizeof(malloc_metadata_t) + HEAP_START_ADDR)); 
+
     return pointer + sizeof(malloc_metadata_t) + HEAP_START_ADDR;
 }
 
@@ -158,6 +160,8 @@ void *realloc(void *old_pointer, size_t new_size)
     }
 
     void *new_pointer = malloc(new_size);
+
+    log(WARNING, "malloc new pointer at 0x%p\n", new_pointer);
 
     if (!new_pointer)
     {
